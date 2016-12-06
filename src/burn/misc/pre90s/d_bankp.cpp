@@ -20,7 +20,7 @@ static struct BurnInputInfo bankpInputList[] = {
 	{"P1 Left"      , BIT_DIGITAL  , DrvJoy1 + 3, 	"p1 left"  },
 	{"P1 Right"     , BIT_DIGITAL  , DrvJoy1 + 1, 	"p1 right" },
 	{"P1 Button 1"  , BIT_DIGITAL  , DrvJoy1 + 7,	"p1 fire 1"},
-#ifdef BUILD_PSP
+#ifdef NDS
 	{"P1 Button 2"  , BIT_DIGITAL  , DrvJoy1 + 4,	"p1 fire 3"},
 	{"P1 Button 3"  , BIT_DIGITAL  , DrvJoy3 + 0,	"p1 fire 2"},
 #else
@@ -50,7 +50,7 @@ static struct BurnInputInfo combhInputList[] = {
 	{"P1 Up"        , BIT_DIGITAL  , DrvJoy1 + 0, 	"p1 up"    },
 	{"P1 Down"      , BIT_DIGITAL  , DrvJoy1 + 2, 	"p1 down"  },
 	{"P1 Button 1"  , BIT_DIGITAL  , DrvJoy1 + 7,	"p1 fire 1"},
-#ifdef BUILD_PSP
+#ifdef NDS
 	{"P1 Button 2"  , BIT_DIGITAL  , DrvJoy1 + 4,	"p1 fire 3"},
 	{"P1 Button 3"  , BIT_DIGITAL  , DrvJoy3 + 0,	"p1 fire 2"},
 #else
@@ -386,7 +386,7 @@ static int DrvExit()
 }
 
 
-#ifndef BUILD_PSP
+#ifndef NDS
 #define Y_SIZE	224
 #else
 #define Y_SIZE	512

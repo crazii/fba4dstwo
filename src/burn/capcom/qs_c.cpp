@@ -328,7 +328,7 @@ int QscUpdate(int nEnd)
 			}
 		}
 		
-#ifndef BUILD_PSP
+#ifndef NDS
 		if (bBurnUseMMX) {
 			BurnSoundCopyClamp_A(Qs_s, pBurnSoundOut + (nPos << 1), nLen);
 		} else 
@@ -375,7 +375,7 @@ int QscUpdate(int nEnd)
 					QChan[c].nPos = (QChan[c].nPos & 0x0FFF) + QChan[c].nPlayStart;
 				}
 			}
-#ifndef BUILD_PSP
+#ifndef NDS
 			if (bBurnUseMMX && i > 0) {
 				QChan[c].bKey = (unsigned char)ChannelMix_QS_A(pTemp, i,
 															   QChan[c].PlayBank,
@@ -439,7 +439,7 @@ int QscUpdate(int nEnd)
 		}
 	}
 
-#ifndef BUILD_PSP
+#ifndef NDS
 	if (bBurnUseMMX) {
 		BurnSoundCopyClamp_A(Qs_s, pBurnSoundOut + (nPos << 1), nLen);
 	} else 

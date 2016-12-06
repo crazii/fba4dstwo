@@ -5,13 +5,14 @@ UniCacheIndex uniCacheIndex[CACHE_INDEX_SIZE];
 char filePathName[256];
 unsigned char *uniCacheHead = 0;
 unsigned char *lastVisitedCacheBlock = 0;
-SceUID cacheFile = -1;
+FILE* cacheFile = NULL;
 unsigned int cacheFileSize = 0;
 unsigned int totalMemBlocks = 0;
 unsigned int requestAddrOffsetHigh = 0,requestAddrEndOffsetHigh=0, headBlockIndexOffsetHigh=0, magicFreeSpaceOffsetHigh=0;
 unsigned int  requestAddrOffsetLow = 0;
 unsigned short indexRecycleListHead=SHORT_INVALID_VALUE, indexRecycleListEnd=SHORT_INVALID_VALUE;
 unsigned int uniCacheSpaceStatus[CACHE_SPACE_STATUS_SIZE]={0xffffffff,};
+char* panicMsg;
 bool needCreateCache=false;
 bool fillExtendData=false;
 //test
@@ -32,11 +33,11 @@ inline static void fillCacheData(unsigned int requestBlockCount)
 		return;
 	}else
 	{	
-		if(cacheFile<0) 
-			cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
+		if(!cacheFile) 
+			cacheFile = fopen( filePathName, "rb");
 			
-		sceIoLseek( cacheFile, blockOffset, SEEK_SET );
-		sceIoRead( cacheFile, uniCacheHead+(uniCacheIndex[requestAddrOffsetHigh].cacheSpaceHeadOffsetHigh<<CACHE_INDEX_SHIFT), requestBlockCount<<CACHE_INDEX_SHIFT );
+		fseek( cacheFile, blockOffset, SEEK_SET );
+		fread(uniCacheHead+(uniCacheIndex[requestAddrOffsetHigh].cacheSpaceHeadOffsetHigh<<CACHE_INDEX_SHIFT), requestBlockCount<<CACHE_INDEX_SHIFT, 1, cacheFile);
 	}
 /*
 int i;
@@ -177,32 +178,32 @@ void destroyCacheStructure()
 
 void initUniCache(unsigned int cacheSize,float ratio)
 {	
-		cacheFileSize=cacheSize;
-		initCacheStructure(ratio);
-		extern char szAppCachePath[];
-		
-		strcpy(filePathName, szAppCachePath);
-		strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
-		strcat(filePathName, "_LB");
-		needCreateCache = false;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
-		if (cacheFile<0)
-		{
-			needCreateCache = true;
-			cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_CREAT, 0777 );
-		}else if(sceIoLseek(cacheFile,0,SEEK_END)!=cacheSize)
-		{
-			needCreateCache = true;
-			sceIoClose(cacheFile);
-			cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_TRUNC, 0777 );
-		}
+	cacheFileSize=cacheSize;
+	initCacheStructure(ratio);
+	extern char szAppCachePath[];
+	
+	strcpy(filePathName, szAppCachePath);
+	strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
+	strcat(filePathName, "_LB");
+	needCreateCache = false;
+	cacheFile = fopen( filePathName, "rb");
+	if (cacheFile<0)
+	{
+		needCreateCache = true;
+		cacheFile = fopen( filePathName, "wb+");
+	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+	{
+		needCreateCache = true;
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "w+b" );
+	}
 }
 void destroyUniCache()
 {
 	destroyCacheStructure();
-	sceIoClose( cacheFile );
+	fclose(cacheFile);
 	needCreateCache = false;
-	cacheFile = -1;
+	cacheFile = NULL;
 }
 
 unsigned short getUsedMemSize()

@@ -7,7 +7,7 @@
 #include <stdarg.h>
 
 #include "burnint.h"
-#include "psp.h"
+#include "nds.h"
 #include "font.h"
 
 static unsigned char __attribute__((aligned(16))) list[512*1024];

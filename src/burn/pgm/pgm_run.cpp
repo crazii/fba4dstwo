@@ -1,6 +1,6 @@
 
-#include "pgm.h"
 #include "UniCache.h"
+#include "pgm.h"
 
 unsigned char PgmJoy1[8] = {0,0,0,0,0,0,0,0};
 unsigned char PgmJoy2[8] = {0,0,0,0,0,0,0,0};
@@ -123,8 +123,8 @@ static void loadAndWriteRomToCache(int i,unsigned int romLength)
 	BurnLoadRom(uniCacheHead, i, 1);
 	for(j=0;j<5;j++)
 	{
-		sceIoLseek( cacheFile, cacheFileSize, SEEK_SET );
-		if( romLength == sceIoWrite(cacheFile, uniCacheHead, romLength ) )
+		fseek( cacheFile, cacheFileSize, SEEK_SET );
+		if( 1 == fwrite(uniCacheHead, romLength, 1, cacheFile) )
 			break;
 	}
 }
@@ -393,7 +393,7 @@ static void pgm_calendar_w(unsigned short data)
 
 inline static unsigned int CalcCol(unsigned short nColour)
 {
-#ifndef BUILD_PSP
+#ifndef NDS
 	int r, g, b;
 
 	r = (nColour & 0x001F) << 3;	// Red
@@ -823,16 +823,16 @@ int pgmInit()
 		strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
 		strcat(filePathName, "_LB");
 		bPgmCreateCache = false;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
+		cacheFile = fopen( filePathName, "rb");
 		if (cacheFile<0)
 		{
 			bPgmCreateCache = true;
-			cacheFile = sceIoOpen( filePathName, PSP_O_WRONLY|PSP_O_CREAT, 0777 );
-		}else if(sceIoLseek(cacheFile,0,SEEK_END)!=(nPGMTileROMLen+nPGMSPRColROMLen+nPGMSPRMaskROMLen+nPGMSNDROMLen))
+			cacheFile = fopen( filePathName, "wb+");
+		}else if(fseek(cacheFile,0,SEEK_END)!=(nPGMTileROMLen+nPGMSPRColROMLen+nPGMSPRMaskROMLen+nPGMSNDROMLen))
 		{
 			bPgmCreateCache = true;
-			sceIoClose(cacheFile);
-			cacheFile = sceIoOpen( filePathName, PSP_O_WRONLY|PSP_O_TRUNC, 0777 );
+			fclose(cacheFile);
+			cacheFile = fopen( filePathName, "wb");
 		}
 		if(bPgmCreateCache)
 		{
@@ -861,8 +861,8 @@ int pgmInit()
 		if ( bPgmCreateCache ) {
 			free(uniCacheHead);
 			uniCacheHead=NULL;
-			sceIoClose( cacheFile );
-			cacheFile = sceIoOpen( filePathName,PSP_O_RDONLY, 0777);
+			fclose(cacheFile);
+			cacheFile = fopen( filePathName, "rb");
 		}
 	}
 	
@@ -989,16 +989,16 @@ int pgmKov2Init()
 		strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
 		strcat(filePathName, "_LB");
 		bPgmCreateCache = false;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
+		cacheFile = fopen( filePathName, "rb");
 		if (cacheFile<0)
 		{
 			bPgmCreateCache = true;
-			cacheFile = sceIoOpen( filePathName, PSP_O_WRONLY|PSP_O_CREAT, 0777 );
-		}else if(sceIoLseek(cacheFile,0,SEEK_END)!=(nPGMTileROMLen+nPGMSPRColROMLen+nPGMSPRMaskROMLen+nPGMSNDROMLen))
+			cacheFile = fopen( filePathName, "wb+");
+		}else if(fseek(cacheFile,0,SEEK_END)!=(nPGMTileROMLen+nPGMSPRColROMLen+nPGMSPRMaskROMLen+nPGMSNDROMLen))
 		{
 			bPgmCreateCache = true;
-			sceIoClose(cacheFile);
-			cacheFile = sceIoOpen( filePathName, PSP_O_WRONLY|PSP_O_TRUNC, 0777 );
+			fclose(cacheFile);
+			cacheFile = fopen( filePathName, "wb");
 		}
 		if(bPgmCreateCache)
 		{
@@ -1027,8 +1027,8 @@ int pgmKov2Init()
 		if ( bPgmCreateCache ) {
 			free(uniCacheHead);
 			uniCacheHead=NULL;
-			sceIoClose( cacheFile );
-			cacheFile = sceIoOpen( filePathName,PSP_O_RDONLY, 0777);
+			fclose(cacheFile);
+			cacheFile = fopen( filePathName, "rb");
 		}
 	}
 	

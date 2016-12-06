@@ -371,7 +371,7 @@ static int DrawChars(int priority)
 
 					pxl = Palette[color | *src];
 
-#ifdef BUILD_PSP
+#ifdef NDS
 					if (flipscreen)
 						pos = ((191 - y) << 9) | (~x & 0xff);
 					else
@@ -427,7 +427,7 @@ static int DrvDraw()
 		
 						pxl = Palette[color | *src];
 		
-#ifdef BUILD_PSP
+#ifdef NDS
 						if (flipscreen)
 							pos = ((191 - y) << 9) | (~x & 0xff);
 						else
@@ -447,7 +447,7 @@ static int DrvDraw()
 		
 						pxl = Palette[color | *src];
 		
-#ifdef BUILD_PSP
+#ifdef NDS
 						if (flipscreen)
 							pos = ((191 - y) << 9) | (~x & 0xff);
 						else
@@ -473,7 +473,7 @@ static int DrvDraw()
 		
 						pxl = Palette[color | *src];
 		
-#ifdef BUILD_PSP
+#ifdef NDS
 						if (flipscreen)
 							pos = ((191 - y) << 9) | (~x & 0xff);
 						else
@@ -493,7 +493,7 @@ static int DrvDraw()
 		
 						pxl = Palette[color | *src];
 		
-#ifdef BUILD_PSP
+#ifdef NDS
 						if (flipscreen)
 							pos = ((191 - y) << 9) | (~x & 0xff);
 						else

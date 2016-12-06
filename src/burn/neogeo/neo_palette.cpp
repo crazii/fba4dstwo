@@ -38,7 +38,7 @@ void NeoExitPalette()
 
 inline static unsigned int CalcCol(unsigned short nColour)
 {
-#ifndef BUILD_PSP
+#ifndef NDS
 	int r = (nColour & 0x0F00) >> 4;	// Red
 	r |= (nColour >> 11) & 8;
 	int g = (nColour & 0x00F0);			// Green

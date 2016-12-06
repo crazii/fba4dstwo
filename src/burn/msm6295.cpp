@@ -294,7 +294,7 @@ int MSM6295Render(int nChip, short* pSoundBuf, int nSegmentLength)
 	}
 
 	if (nChip == nLastChip)	{
-#ifndef BUILD_PSP
+#ifndef NDS
 		if (bBurnUseMMX) {
 			if (bAdd) {
 				BurnSoundCopyClamp_Mono_Add_A(pBuffer, pSoundBuf, nSegmentLength);
@@ -308,7 +308,7 @@ int MSM6295Render(int nChip, short* pSoundBuf, int nSegmentLength)
 			} else {
 				BurnSoundCopyClamp_Mono_C(pBuffer, pSoundBuf, nSegmentLength);
 			}
-#ifndef BUILD_PSP
+#ifndef NDS
 		}
 #endif
 	}

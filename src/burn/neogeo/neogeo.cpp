@@ -145,7 +145,7 @@ void NeoDecodeSprites(unsigned char* pDest, int nSize)
 			if (BurnDrvGetHardwareCode() & (HARDWARE_SNK_ENCRYPTED_A | HARDWARE_SNK_ENCRYPTED_B)) {
 				nStep *= 4;
 			}
-#ifdef BUILD_PSP
+#ifdef NDS
 			extern void ui_update_progress2(float size, const char * txt);
 			ui_update_progress2(1.0 / nStep, i ? NULL : "Preprocessing graphics..." );
 #else
@@ -225,7 +225,7 @@ void NeoClearScreen()
 {
 	unsigned int nColour = NeoPalette[0x0FFF];
 
-#ifdef BUILD_PSP
+#ifdef NDS
 
 	extern void clear_gui_texture(int color, int w, int h);
 	//clear_gui_texture(nColour, 320, 224);

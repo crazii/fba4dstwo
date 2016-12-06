@@ -39,18 +39,23 @@ export
 # Perl is available
 PERL = 1
 
+NDSSDK = ../ds2sdk
+
+PATH := $(NDSSDK)/tools:/opt/mipsel-4.1.2-nopic/bin:$(PATH)
+
+
 #
 #	execute an appropriate system-specific makefile
 #
+all: FORCE
+
+	@$(MAKE) -f makefile.all
+
 test: FORCE
 	@$(MAKE) -f makefile.test
 psikyo: FORCE
 
 	@$(MAKE) -s -f makefile.psikyo
-
-all: FORCE
-
-	@$(MAKE) -s -f makefile.all
 	
 mid: FORCE
 
@@ -74,47 +79,51 @@ cps3: FORCE
 
 	@$(MAKE) -s -f makefile.cps3
 
-clean: FORCE
-	-@rm -f -r obj/PSP/psp
-	-@rm -f -r obj/PSP/burn/burn*
-	-@rm -f -r src/generated/driverlist.h
+clean:
+	@echo Removing all files from ./obj...
+	-@rm -f -r obj
+	-@rm -f -r bin
+	-@rm -f -r src/generated
+	-@rm -f -r $(ctv.h)
+	-@rm -f start.o
+	-@rm -f _dstwoplug/fba4dstwo.plg
 
 alltarget : FORCE
-	-@rm -f -r obj/PSP/psp
-	-@rm -f -r obj/PSP/burn/burn*
+	-@rm -f -r obj/nds/nds
+	-@rm -f -r obj/nds/burn/burn*
 	-@rm -f -r src/generated/driverlist.h
 	@$(MAKE) -s -f makefile.pgm
-	-@rm -f -r obj/PSP/psp
-	-@rm -f -r obj/PSP/burn/burn*
+	-@rm -f -r obj/nds/nds
+	-@rm -f -r obj/nds/burn/burn*
 	-@rm -f -r src/generated/driverlist.h
 	@$(MAKE) -s -f makefile.pgm_new
-	-@rm -f -r obj/PSP/psp
-	-@rm -f -r obj/PSP/burn/burn*
+	-@rm -f -r obj/nds/nds
+	-@rm -f -r obj/nds/burn/burn*
 	-@rm -f -r src/generated/driverlist.h
 	@$(MAKE) -s -f makefile.cave
-	-@rm -f -r obj/PSP/psp
-	-@rm -f -r obj/PSP/burn/burn*
+	-@rm -f -r obj/nds/nds
+	-@rm -f -r obj/nds/burn/burn*
 	-@rm -f -r src/generated/driverlist.h
 	@$(MAKE) -s -f makefile.cps3
-	-@rm -f -r obj/PSP/psp
-	-@rm -f -r obj/PSP/burn/burn*
+	-@rm -f -r obj/nds/nds
+	-@rm -f -r obj/nds/burn/burn*
 	-@rm -f -r src/generated/driverlist.h
 	@$(MAKE) -s -f makefile.sega
-	-@rm -f -r obj/PSP/psp
-	-@rm -f -r obj/PSP/burn/burn*
+	-@rm -f -r obj/nds/nds
+	-@rm -f -r obj/nds/burn/burn*
 	-@rm -f -r src/generated/driverlist.h
 	@$(MAKE) -s -f makefile.small
-	-@rm -f -r obj/PSP/psp		
-	-@rm -f -r obj/PSP/burn/burn*
+	-@rm -f -r obj/nds/nds		
+	-@rm -f -r obj/nds/burn/burn*
 	-@rm -f -r src/generated/driverlist.h
 	@$(MAKE) -s -f makefile.mid
-	-@rm -f -r obj/PSP/psp
-	-@rm -f -r obj/PSP/burn/burn*
+	-@rm -f -r obj/nds/nds
+	-@rm -f -r obj/nds/burn/burn*
 	-@rm -f -r src/generated/driverlist.h
 	@$(MAKE) -s -f makefile.all
 FORCE:
-#	@$(MAKE) -C src/psp/me/mediaengineprx clean
-#	@$(MAKE) -C src/psp/me/mediaengineprx
-#	@$(MAKE) -C src/psp/me/me_load
-#	@cp src/psp/me/mediaengineprx/mediaengine.prx bin/
-#	@cp src/psp/me/me_load/me_load.bin bin/
+#	@$(MAKE) -C src/nds/me/mediaengineprx clean
+#	@$(MAKE) -C src/nds/me/mediaengineprx
+#	@$(MAKE) -C src/nds/me/me_load
+#	@cp src/nds/me/mediaengineprx/mediaengine.prx bin/
+#	@cp src/nds/me/me_load/me_load.bin bin/

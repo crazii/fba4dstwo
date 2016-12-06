@@ -3570,7 +3570,7 @@ static void JumpingDrawSprites()
 	}
 }
 
-#ifdef BUILD_PSP
+#ifdef NDS
 
 int DariusTransferCopy(UINT32* pPalette)
 {
@@ -3600,7 +3600,7 @@ static void DariusDraw()
 	DariusDrawSprites(1);
 	DariusDrawCharLayer();
 
-#ifdef BUILD_PSP
+#ifdef NDS
 	DariusTransferCopy(TaitoPalette);
 #else
 	BurnTransferCopy(TaitoPalette);

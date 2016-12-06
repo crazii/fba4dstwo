@@ -1855,16 +1855,16 @@ static int DrvInit()
 	strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
-	cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
+	cacheFile = fopen( filePathName, "rb");
 	if (cacheFile<0)
 	{
 		needCreateCache = true;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_CREAT, 0777 );
-	}else if(sceIoLseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+		cacheFile = fopen( filePathName, "wb+");
+	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
 	{
 		needCreateCache = true;
-		sceIoClose(cacheFile);
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_TRUNC, 0777 );
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "w+b" );
 	}
 	if(needCreateCache)
 	{
@@ -1885,16 +1885,16 @@ static int DrvInit()
 			unsigned int romLength=ri.nLen*2;
 			for(int j=0;j<5;j++)
 			{
-				sceIoLseek( cacheFile, cacheFileSize, SEEK_SET );
-				if( romLength == sceIoWrite(cacheFile,Mem, romLength ) )
+				fseek( cacheFile, cacheFileSize, SEEK_SET );
+				if( 1 == fwrite(Mem, romLength, 1, cacheFile) )
 					break;
 			}
 			cacheFileSize=cacheFileSize+romLength;
 			
 		}
 		
-		sceIoClose( cacheFile );
-		cacheFile = sceIoOpen( filePathName,PSP_O_RDONLY, 0777);
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "rb");
 	}
 	
 	

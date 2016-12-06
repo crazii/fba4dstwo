@@ -1,6 +1,6 @@
 // Driver Init module
 #include "burner.h"
-#include "psp.h"
+#include "nds.h"
 
 int bDrvOkay=0; // 1 if the Driver has been initted okay, and it's okay to use the BurnDrv functions
 
@@ -90,9 +90,8 @@ static int __cdecl DrvLoadRom(unsigned char* Dest, int* pnWrote, int i)
 	return nRet;
 }
 
-int DrvInit(int nDrvNum, bool bRestore)
+extern "C" int DrvInit(int nDrvNum, bool bRestore)
 {
-
 	int nRet=0;
 	DrvExit(); // Make sure exited
 

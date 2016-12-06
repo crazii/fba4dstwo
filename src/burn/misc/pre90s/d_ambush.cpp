@@ -350,7 +350,7 @@ static void draw_tile(int code, int sx, int sy, int color, int flipx, int flipy,
 			if (pos < 0x1000 || pos > 0xefff) continue; // trim garbage
 			pos -= 0x1000;
 
-#ifdef BUILD_PSP
+#ifdef NDS
 			pos <<= 1;
 #endif
 			if (flipx)
@@ -439,7 +439,7 @@ static int DrvDraw()
 	{
 		int px = BurnHighCol(Palette[0] >> 16, Palette[0] >> 8, Palette[0], 0);
 
-#ifdef BUILD_PSP
+#ifdef NDS
 		extern void clear_gui_texture(int color, int w, int h);
 		clear_gui_texture(((px & 0x001F) << 3) | ((px & 0x07e0) << 5) | ((px & 0xF800) << 8), 256, 224);
 #else

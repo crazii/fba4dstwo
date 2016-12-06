@@ -1,10 +1,7 @@
-
-#include <pspiofilemgr.h>
-
 #include <stdio.h>
 #include <string.h>
 
-#include "psp.h"
+#include "nds.h"
 #include "burnint.h"
 
 #define MAX_ROM_COUNT	512
@@ -16,7 +13,24 @@ typedef struct rom_ent {
 
 static ROM_FILE_ENT * pRom_ent = NULL;
 static int rom_count = 0;
-static SceIoDirent fi;
+static dirent* fi;
+
+
+static inline int stricmp(const char* lhs, const char* rhs)
+{
+	#define towlowerASCII(c) ((('A' <= (c))&&((c) <= 'Z')) ? ((c) - 'A' + 'a') : (c))
+	assert(lhs != NULL && rhs != NULL);
+	wchar_t cmp;
+	while ((cmp = towlowerASCII(*lhs) - towlowerASCII(*rhs)) == 0)
+	{
+		if (0 == *lhs)
+			return 0;
+		++lhs;
+		++rhs;
+	}
+	return (int)cmp;
+}
+
 
 static int FindDrvInfoByName(char * fn)
 {
@@ -29,9 +43,11 @@ static int FindDrvInfoByName(char * fn)
 	return -1;
 }
 
-static int isValidFile(SceIoDirent * pfd, ROM_FILE_ENT * pre)
+static int isValidFile(dirent * pfd, ROM_FILE_ENT * pre)
 {
-	if (pfd->d_stat.st_attr == FIO_SO_IFDIR) {
+	struct stat st;
+	lstat(pfd->d_name, &st);
+	if ( (st.st_mode&S_IFDIR) ) {
 		if ( strcmp(".", pfd->d_name) == 0 ) return 0;
 		if ( pre ) {
 			strcpy( pre->name, pfd->d_name );
@@ -54,22 +70,20 @@ static int findloop( ROM_FILE_ENT * pre )
 {
 	int count = 0;
 	
-	SceUID fd = sceIoDopen(ui_current_path);
-	if (fd > 0) {
-		memset(&fi, 0, sizeof(fi));
-		while ( sceIoDread( fd, &fi ) > 0 ) {
-			if ( isValidFile(&fi, pre) ) {
+	DIR* dir = opendir(ui_current_path);
+	if (dir) {
+		while ( (fi=readdir(dir))  ) {
+			if ( isValidFile(fi, pre) ) {
 				count++;
 				if (pre) pre++;
 			}
-			memset(&fi, 0, sizeof(fi));
 		}
-		sceIoDclose(fd);
+		closedir(dir);
 	}
 	return count;
 }
 
-int findRomsInDir(bool force)
+extern "C" int findRomsInDir(int force)
 {
 #if 0
 	if ( force && pRom_ent ) {
@@ -88,7 +102,7 @@ int findRomsInDir(bool force)
 	}
 	return rom_count;
 #else
-	// alloc enough memory now !!! for PSP doesn't have TLB or MMU
+	// alloc enough memory now !!! for nds doesn't have TLB or MMU
 	if (!pRom_ent) pRom_ent = (ROM_FILE_ENT *) malloc ( MAX_ROM_COUNT * sizeof(ROM_FILE_ENT) );
 	if (force || (rom_count <= 0))
 		rom_count = findloop( pRom_ent );

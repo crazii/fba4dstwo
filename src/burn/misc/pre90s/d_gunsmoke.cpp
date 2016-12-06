@@ -27,7 +27,7 @@ static struct BurnInputInfo DrvInputList[] = {
 	{"P1 Left"      , BIT_DIGITAL  , DrvJoy2 + 1, "p1 left"  },
 	{"P1 Down"      ,	BIT_DIGITAL  , DrvJoy2 + 2, "p1 down"  },
 	{"P1 Up"        ,	BIT_DIGITAL  , DrvJoy2 + 3, "p1 up"    },
-#ifdef BUILD_PSP
+#ifdef NDS
 	{"P1 Button 1"  , BIT_DIGITAL  , DrvJoy2 + 4,	"p1 fire 3"},
 	{"P1 Button 2"  , BIT_DIGITAL  , DrvJoy2 + 5,	"p1 fire 1"},
 	{"P1 Button 3"  , BIT_DIGITAL  , DrvJoy2 + 6,	"p1 fire 2"},

@@ -4,7 +4,7 @@
 
 #if ROT == 0
  #define ADVANCEWORD pPixel += ((BPP >> 3) * 16)
- #ifndef BUILD_PSP
+ #ifndef NDS
   #define ADVANCEROW pRow += ((BPP >> 3) * XSIZE)
  #else
   #define ADVANCEROW pRow += ((BPP >> 3) * 512)
@@ -32,7 +32,7 @@
 #elif ZBUFFER == 1
  #define ZBUF _RZBUFFER
  #define ADVANCEZWORD pZPixel += 16
-// #ifndef BUILD_PSP
+// #ifndef NDS
   #define ADVANCEZROW pZRow += XSIZE
 // #else
 //  #define ADVANCEZROW pZRow += 512
@@ -42,7 +42,7 @@
 #elif ZBUFFER == 2
  #define ZBUF _WZBUFFER
  #define ADVANCEZWORD pZPixel += 16
-// #ifndef BUILD_PSP
+// #ifndef NDS
   #define ADVANCEZROW pZRow += XSIZE
 // #else
 //  #define ADVANCEZROW pZRow += 512
@@ -52,7 +52,7 @@
 #elif ZBUFFER == 3
  #define ZBUF _RWZBUFFER
  #define ADVANCEZWORD pZPixel += 16
-// #ifndef BUILD_PSP
+// #ifndef NDS
   #define ADVANCEZROW pZRow += XSIZE
 // #else
 //  #define ADVANCEZROW pZRow += 512

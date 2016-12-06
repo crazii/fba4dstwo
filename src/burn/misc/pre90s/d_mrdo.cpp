@@ -333,7 +333,7 @@ static int DrvExit()
 	return 0;
 }
 
-#ifndef BUILD_PSP
+#ifndef NDS
 #define Y_SIZE	240
 #else
 #define Y_SIZE	512
@@ -458,7 +458,7 @@ static void draw_8x8_tiles(unsigned char *vram, unsigned char *gfx_base, int scr
 
 static int DrvDraw()
 {
-#ifdef BUILD_PSP
+#ifdef NDS
 	extern void clear_gui_texture(int color, int w, int h);
 	clear_gui_texture(0, 240, 192);
 #else

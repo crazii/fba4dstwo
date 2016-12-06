@@ -15,13 +15,13 @@
  #endif
 
  #if YFLIP == 0
-  #ifndef BUILD_PSP
+  #ifndef NDS
    #define ADVANCEROW pTileRow += ((BPP >> 3) * 320)
   #else
    #define ADVANCEROW pTileRow += ((BPP >> 3) * 512)
   #endif
  #elif YFLIP == 1
-  #ifndef BUILD_PSP
+  #ifndef NDS
    #define ADVANCEROW pTileRow -= ((BPP >> 3) * 320)
   #else
    #define ADVANCEROW pTileRow -= ((BPP >> 3) * 512)
@@ -113,7 +113,7 @@ static void FUNCTIONNAME(BPP,ROT,FLIP,CLIP,OPACITY)()
   #if YFLIP == 0
 	for (y = 0, pTileRow = pTile; y < 8; y++, ADVANCEROW) {
   #else
-   #ifndef BUILD_PSP
+   #ifndef NDS
 	for (y = 7, pTileRow = pTile + ((BPP >> 3) * 320 * 7); y >= 0; y--, ADVANCEROW) {
    #else
 	for (y = 7, pTileRow = pTile + ((BPP >> 3) * 512 * 7); y >= 0; y--, ADVANCEROW) {

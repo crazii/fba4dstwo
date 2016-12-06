@@ -886,7 +886,7 @@ static void Darius2RenderSprites(int PriorityDraw)
 	}
 }
 
-#ifdef BUILD_PSP
+#ifdef NDS
 
 int Darius2TransferCopy(UINT32* pPalette)
 {
@@ -926,7 +926,7 @@ static void Darius2Draw()
 	
 	if (!(Disable & 0x04)) TC0100SCNRenderCharLayer();
 
-#ifdef BUILD_PSP
+#ifdef NDS
 	Darius2TransferCopy(TC0110PCRPalette);
 #else
 	BurnTransferCopy(TC0110PCRPalette);

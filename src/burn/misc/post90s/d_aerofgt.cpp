@@ -653,7 +653,7 @@ static int DrvExit()
 	return 0;
 }
 
-#ifndef BUILD_PSP
+#ifndef NDS
 #define X_SIZE	320
 #else
 #define X_SIZE	512
@@ -1681,7 +1681,7 @@ static int turbofrcInit()
 	return 0;
 }
 
-#ifndef BUILD_PSP
+#ifndef NDS
 #define X_SIZE	352
 #else
 #define X_SIZE	512
@@ -3877,7 +3877,7 @@ static int aerofgtbInit()
 	return 0;
 }
 
-#ifndef BUILD_PSP
+#ifndef NDS
 #define X_SIZE	320
 #else
 #define X_SIZE	512

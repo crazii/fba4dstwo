@@ -457,13 +457,13 @@ int YMZ280BRender(short* pSoundBuf, int nSegmentLength)
 			break;
 		}
 		case 3: {									// Use both output channels
-#ifndef BUILD_PSP
+#ifndef NDS
 			if (bBurnUseMMX) {
 				BurnSoundCopyClamp_A(pBuffer, pSoundBuf, nSegmentLength);
 			} else {
 #endif
 				BurnSoundCopyClamp_C(pBuffer, pSoundBuf, nSegmentLength);
-#ifndef BUILD_PSP
+#ifndef NDS
 			}
 #endif
 			break;

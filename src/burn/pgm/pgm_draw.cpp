@@ -1,5 +1,5 @@
-#include "pgm.h"
 #include "UniCache.h"
+#include "pgm.h"
 extern unsigned long nPGMTileROMOffset;
 extern unsigned long nPGMSPRColROMOffset;
 extern unsigned long nPGMSPRMaskROMOffset;
@@ -21,7 +21,7 @@ inline static unsigned char* getBlockSPRCol(unsigned long offset, unsigned long 
 }
 /* PGM Palette */ 
 
-#ifndef BUILD_PSP
+#ifndef NDS
 
 #define PGM_WIDTH	448
 
@@ -1251,7 +1251,7 @@ static void pgm_tile_bg()
 
 int pgmDraw()
 {
-#ifndef BUILD_PSP
+#ifndef NDS
 	for(int i=0;i<PGM_WIDTH*224*2/4;i++)
 	{
 		((unsigned int *)pBurnDraw)[i]=0;

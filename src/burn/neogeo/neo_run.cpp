@@ -535,7 +535,7 @@ static int LoadRoms(NeoGameInfo* pInfo)
 	BurnUpdateProgress(0.0, _T("Decoding text layer graphics..."), 0);
 	NeoDecodeText(NeoTextROM, nNeoTextROMSize);
 
-#ifndef BUILD_PSP
+#ifndef NDS
 	// Save decrypted Cs
 	if (bSaveCRoms) NeoSaveDecryptedCRoms();
 #endif

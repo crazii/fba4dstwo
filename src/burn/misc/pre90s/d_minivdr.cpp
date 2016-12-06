@@ -85,7 +85,7 @@ static int DrvDraw()
 		for (i = 0; i < 8; i++)
 		{
 			c = (d & 0x80) ? 0xff : 0;
-#ifdef BUILD_PSP
+#ifdef NDS
 			PutPix(pBurnDraw + (x + (y << 1)) * nBurnBpp, BurnHighCol(c, c, c, 0));
 #else
 			PutPix(pBurnDraw + (x + y) * nBurnBpp, BurnHighCol(c, c, c, 0));

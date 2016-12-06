@@ -5,7 +5,7 @@
 
 #define ADVANCECOLUMN pPixel += (BPP >> 3)
 
-#ifndef BUILD_PSP
+#ifndef NDS
  #define ADVANCEROW pTileRow += ((BPP >> 3) * nNeoScreenWidth)
 #else
  #define ADVANCEROW pTileRow += ((BPP >> 3) * 512)

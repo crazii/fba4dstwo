@@ -88,7 +88,7 @@ int ToaLoadGP9001Tiles(unsigned char* pDest, int nStart, int nNumFiles, int nROM
 // This function fills the screen with the first palette entry
 void ToaClearScreen()
 {
-#ifdef BUILD_PSP
+#ifdef NDS
 
 	extern void clear_gui_texture(int color, int w, int h);
 	

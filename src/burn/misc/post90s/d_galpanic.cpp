@@ -665,7 +665,7 @@ unsigned char __fastcall GalpanicReadByte(unsigned int sekAddress)
 	return 0;
 }
 
-unsigned short __fastcall GalpanicReadWord(unsigned int sekAddress)
+static unsigned short __fastcall GalpanicReadWord(unsigned int sekAddress)
 {
 	switch (sekAddress) {
 		case 0x800000:
@@ -743,7 +743,7 @@ void __fastcall ComadWriteByte(unsigned int sekAddress, unsigned char byteValue)
 	}
 }
 
-void __fastcall GalhustlWriteWord(unsigned int sekAddress, unsigned short wordValue)
+static void __fastcall GalhustlWriteWord(unsigned int sekAddress, unsigned short wordValue)
 {
 
 if (sekAddress >= 0x580000 && sekAddress <= 0x583fff) {
@@ -1282,7 +1282,7 @@ static int GalpanicExit()
 	return 0;
 }
 
-#ifndef BUILD_PSP
+#ifndef NDS
  #define XSIZE	256
 #else
  #define XSIZE	512
@@ -1552,7 +1552,7 @@ static int GalpanicDraw()
  	} 	
 
  	unsigned short * d = (unsigned short *)pBurnDraw + ( 224 * XSIZE ) - 1;
-#ifdef BUILD_PSP
+#ifdef NDS
 	d -= 256;
 #endif
  	unsigned short * s = (unsigned short *)RamBg;
@@ -1565,7 +1565,7 @@ static int GalpanicDraw()
 			s++;
 			f++;
 		}
-#ifdef BUILD_PSP
+#ifdef NDS
 	d -= 256;
 #endif
 	}
@@ -1627,7 +1627,7 @@ static int ComadDraw()
  	}
 
  	unsigned short * d = (unsigned short *)pBurnDraw + ( 224 * XSIZE ) - 1;
-#ifdef BUILD_PSP
+#ifdef NDS
 	d -= 256;
 #endif 	
  	unsigned short * s = (unsigned short *)RamBg;
@@ -1640,7 +1640,7 @@ static int ComadDraw()
 			s++;
 			f++;
 		}
-#ifdef BUILD_PSP
+#ifdef NDS
 	d -= 256;
 #endif
 	}

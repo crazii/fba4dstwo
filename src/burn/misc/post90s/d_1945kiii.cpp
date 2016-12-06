@@ -358,7 +358,7 @@ static int DrvExit()
 	return 0;
 }
 
-#ifndef BUILD_PSP
+#ifndef NDS
 #define X_SIZE	320
 #else
 #define X_SIZE	512

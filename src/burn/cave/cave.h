@@ -1,6 +1,6 @@
+#include "UniCache.h"
 #include "burnint.h"
 #include "eeprom_93cxx.h"
-#include "UniCache.h"
 
 #define CAVE_REFRESHRATE (15625.0 / 271.5)
 

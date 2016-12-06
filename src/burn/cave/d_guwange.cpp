@@ -570,16 +570,16 @@ cacheFileSize=0x3000000;
 	strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
-	cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
+	cacheFile = fopen( filePathName, "rb");
 	if (cacheFile<0)
 	{
 		needCreateCache = true;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_CREAT, 0777 );
-	}else if(sceIoLseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+		cacheFile = fopen( filePathName, "wb+");
+	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
 	{
 		needCreateCache = true;
-		sceIoClose(cacheFile);
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_TRUNC, 0777 );
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "w+b" );
 	}
 	
 	// Load Sprite and Tile
@@ -603,8 +603,8 @@ cacheFileSize=0x3000000;
 		NibbleSwap3(uniCacheHead, 0x400000);
 		for(int j=0;j<5;j++)
 		{
-			sceIoLseek( cacheFile,0, SEEK_SET );
-			if( 0x0800000 == sceIoWrite(cacheFile,uniCacheHead, 0x0800000 ) )
+			fseek( cacheFile,0, SEEK_SET );
+			if( 1 == fwrite(uniCacheHead, 0x800000, 1, cacheFile) )
 				break;
 		}
 		block1Head=0x0600000,block2Head=0x0A00000;
@@ -620,8 +620,8 @@ cacheFileSize=0x3000000;
 		NibbleSwap3(uniCacheHead, 0x400000);
 		for(int j=0;j<5;j++)
 		{
-			sceIoLseek( cacheFile,0x800000, SEEK_SET );
-			if( 0x0800000 == sceIoWrite(cacheFile,uniCacheHead, 0x0800000 ) )
+			fseek( cacheFile,0x800000, SEEK_SET );
+			if( 1 == fwrite(uniCacheHead, 0x800000, 1, cacheFile) )
 				break;
 		}
 		memset(uniCacheHead,0,0x1200000);
@@ -658,8 +658,8 @@ cacheFileSize=0x3000000;
 	#endif
 		for(int j=0;j<5;j++)
 		{
-			sceIoLseek( cacheFile,0x1000000, SEEK_SET );
-			if( 0x1000000 == sceIoWrite(cacheFile,uniCacheHead, 0x1000000 ) )
+			fseek( cacheFile,0x1000000, SEEK_SET );
+			if( 1 == fwrite(uniCacheHead, 0x1000000, 1, cacheFile) )
 				break;
 		}
 		BurnLoadRom(uniCacheHead + 0x000000, 6, 1);
@@ -670,13 +670,13 @@ cacheFileSize=0x3000000;
 		NibbleSwap4(uniCacheHead + 0xC00000, 0x200000);
 		for(int j=0;j<5;j++)
 		{
-			sceIoLseek( cacheFile,0x2000000, SEEK_SET );
-			if( 0x1000000 == sceIoWrite(cacheFile,uniCacheHead, 0x1000000 ) )
+			fseek( cacheFile,0x2000000, SEEK_SET );
+			if( 1 == fwrite(uniCacheHead, 0x1000000, 1, cacheFile) )
 				break;
 		}
 
-		sceIoClose( cacheFile );
-		cacheFile = sceIoOpen( filePathName,PSP_O_RDONLY, 0777);
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "rb");
 		free(uniCacheHead);
 		uniCacheHead=NULL;
 	}

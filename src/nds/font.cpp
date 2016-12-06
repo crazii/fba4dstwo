@@ -1,7 +1,7 @@
 
 #include <string.h>
 #include "font.h"
-#include "psp.h"
+#include "nds.h"
 
 // Tahoma Font 12px Bold
 
@@ -199,7 +199,7 @@ void drawImage(unsigned short *screenbuf, int x, int y, int w,int h, unsigned sh
 	{
 		for (j=0 ;j<h; j++, screenbuf+=512,imgBuf+=512 ) 
 		{
-			for(i=0; i<w; i++) screenbuf[i] = imgBuf[i];
+			for(i=0; i<w/2; i++) ((unsigned int*)screenbuf)[i] = ((unsigned int*)imgBuf)[i];
 		}
 	}else
 	{
@@ -208,8 +208,8 @@ void drawImage(unsigned short *screenbuf, int x, int y, int w,int h, unsigned sh
 		
 		for (j=0 ;j<h; j++, screenbuf+=512) {
 			unsigned short * p = screenbuf;
-			for(i=0; i<w; i++,p++) *p =
-			*(imgBuf+(int)(wRatio*i+0.5)+(int)(hRatio*j+0.5)*PSP_LINE_SIZE);
+			for(i=0; i<w; i++,p++)
+				*p = *(imgBuf+(int)(wRatio*i+0.5)+(int)(hRatio*j+0.5)*SCREEN_WIDTH);
 		}
 	}
 }

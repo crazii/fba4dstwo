@@ -1,6 +1,5 @@
 #include "burnint.h"
-#include "psp.h"
-#include "pspadhoc.h"
+#include "nds.h"
 struct GameInp {
 	unsigned char *pVal;  // Destination for the Input Value
 	unsigned char nType;  // 0=binary (0,1) 1=analog (0x01-0xFF) 2=dip switch
@@ -70,7 +69,7 @@ void loadDefaultInput()
 	monoSound=0;
 	gameSpeedCtrl=1;
 	screenMode=0;
-	FILE * fp = fopen("fba4psp.ini", "r");
+	FILE * fp = fopen("FBA4DSTWO.ini", "r");
 	
 	char IniLine[256];
 	char FindName[32]={'\0',};

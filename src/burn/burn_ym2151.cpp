@@ -85,7 +85,7 @@ static void YM2151RenderNormal(short* pSoundBuf, int nSegmentLength)
 
 	YM2151UpdateOne(0, pYM2151Buffer, nSegmentLength);
 
-#ifndef BUILD_PSP
+#ifndef NDS
 	if (bBurnUseMMX) {
 		BurnSoundCopy_FM_A(pYM2151Buffer[0], pYM2151Buffer[1], pSoundBuf, nSegmentLength, nYM2151Volume, nYM2151Volume);
 	} else {

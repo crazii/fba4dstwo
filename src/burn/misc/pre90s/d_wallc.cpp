@@ -311,7 +311,7 @@ static int DrvDraw()
 			{
 				int pxl = Palette[src[0]];
 
-#ifdef BUILD_PSP
+#ifdef NDS
 				PutPix(pBurnDraw + ((y << 9) | x) * nBurnBpp, BurnHighCol(pxl >> 16, pxl >> 8, pxl, 0));
 #else
 				PutPix(pBurnDraw + ((y << 8) | x) * nBurnBpp, BurnHighCol(pxl >> 16, pxl >> 8, pxl, 0));

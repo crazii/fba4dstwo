@@ -642,8 +642,9 @@ static void NibbleSwap1(unsigned char* pData, int nLen, unsigned long fileOffset
 	for(int k=nLen-0x100000;k>=(nLen>>1);k=k-0x100000)
 	{
 		pOrg= pData + 0x100000 - 1;
-		sceIoLseek( cacheFile, fileOffset+k, SEEK_SET );
-		sceIoRead( cacheFile,pData , 0x100000 );
+		fseek( cacheFile, fileOffset+k, SEEK_SET );
+		fread(pData , 0x100000, 1, cacheFile);
+		
 		
 		for (int i = 0; i < 0x100000; i++, pOrg--, pDest -= 2) {
 			pDest[0] = *pOrg & 15;
@@ -652,13 +653,13 @@ static void NibbleSwap1(unsigned char* pData, int nLen, unsigned long fileOffset
 	}
 	for(int j=0;j<5;j++)
 	{
-		sceIoLseek( cacheFile, fileOffset+nLen, SEEK_SET );
-		if( nLen == sceIoWrite(cacheFile,pData+0x100000, nLen ) )
+		fseek( cacheFile, fileOffset+nLen, SEEK_SET );
+		if( 1 == fwrite(pData+0x100000, nLen, 1, cacheFile) )
 			break;
 	}
 
-	sceIoLseek( cacheFile, fileOffset, SEEK_SET );
-	sceIoRead( cacheFile,pData , nLen );
+	fseek( cacheFile, fileOffset, SEEK_SET );
+	fread(pData , nLen, 1, cacheFile);
 	pOrg = pData + (nLen>>1) - 1;
 	pDest = pData + (nLen - 2);
 
@@ -668,8 +669,8 @@ static void NibbleSwap1(unsigned char* pData, int nLen, unsigned long fileOffset
 	}
 	for(int j=0;j<5;j++)
 	{
-		sceIoLseek( cacheFile, fileOffset, SEEK_SET );
-		if( nLen == sceIoWrite(cacheFile,pData, nLen ) )
+		fseek( cacheFile, fileOffset, SEEK_SET );
+		if( 1 == fwrite(pData, nLen, 1, cacheFile) )
 			break;
 	}
 	return;
@@ -896,16 +897,16 @@ static int DrvInit()
 	strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
-	cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
+	cacheFile = fopen( filePathName, "rb");
 	if (cacheFile<0)
 	{
 		needCreateCache = true;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_CREAT, 0777 );
-	}else if(sceIoLseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+		cacheFile = fopen( filePathName, "wb+");
+	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
 	{
 		needCreateCache = true;
-		sceIoClose(cacheFile);
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_TRUNC, 0777 );
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "w+b" );
 	}
 	
 	// Load Sprite and Tile
@@ -930,8 +931,8 @@ static int DrvInit()
 		}
 		for(int j=0;j<5;j++)
 		{
-			sceIoLseek( cacheFile, 0, SEEK_SET );
-			if( 0xe00000 == sceIoWrite(cacheFile,uniCacheHead, 0xe00000 ) )
+			fseek( cacheFile, 0, SEEK_SET );
+			if( 1 == fwrite(uniCacheHead, 0xe00000, 1, cacheFile) )
 				break;
 		}
 		NibbleSwap1(uniCacheHead, 0xe00000,0);
@@ -946,12 +947,12 @@ static int DrvInit()
 		NibbleSwap2(uniCacheHead+0x800000, 0x080000);
 		for(int j=0;j<5;j++)
 		{
-			sceIoLseek( cacheFile, 0xe00000*2, SEEK_SET );
-			if( 0x900000 == sceIoWrite(cacheFile,uniCacheHead,0x900000  ) )
+			fseek( cacheFile, 0xe00000*2, SEEK_SET );
+			if( 1 == fwrite(uniCacheHead, 0x900000, 1, cacheFile) )
 				break;
 		}
-		sceIoClose( cacheFile );
-		cacheFile = sceIoOpen( filePathName,PSP_O_RDONLY, 0777);
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "rb");
 		free(uniCacheHead);
 		uniCacheHead=NULL;
 	}
@@ -1045,16 +1046,16 @@ cacheFileSize=0x2D00000;
 	strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
-	cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
+	cacheFile = fopen( filePathName, "rb");
 	if (cacheFile<0)
 	{
 		needCreateCache = true;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_CREAT, 0777 );
-	}else if(sceIoLseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+		cacheFile = fopen( filePathName, "wb+");
+	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
 	{
 		needCreateCache = true;
-		sceIoClose(cacheFile);
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_TRUNC, 0777 );
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "w+b" );
 	}
 	
 	// Load Sprite and Tile
@@ -1080,8 +1081,8 @@ cacheFileSize=0x2D00000;
 		}
 		for(int j=0;j<5;j++)
 		{
-			sceIoLseek( cacheFile, 0, SEEK_SET );
-			if( 0x1000000 == sceIoWrite(cacheFile,uniCacheHead, 0x1000000 ) )
+			fseek( cacheFile, 0, SEEK_SET );
+			if( 1 == fwrite(uniCacheHead, 0x1000000, 1, cacheFile) )
 				break;
 		}
 		NibbleSwap1(uniCacheHead, 0x1000000,0);
@@ -1096,12 +1097,12 @@ cacheFileSize=0x2D00000;
 		NibbleSwap2(uniCacheHead+0xC00000, 0x080000);
 		for(int j=0;j<5;j++)
 		{
-			sceIoLseek( cacheFile, 0x1000000*2, SEEK_SET );
-			if( 0xD00000 == sceIoWrite(cacheFile,uniCacheHead,0xD00000  ) )
+			fseek( cacheFile, 0x1000000*2, SEEK_SET );
+			if( 1 == fwrite(uniCacheHead, 0xD00000, 1, cacheFile) )
 				break;
 		}
-		sceIoClose( cacheFile );
-		cacheFile = sceIoOpen( filePathName,PSP_O_RDONLY, 0777);
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "rb");
 		free(uniCacheHead);
 		uniCacheHead=NULL;
 	}

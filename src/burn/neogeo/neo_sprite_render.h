@@ -492,7 +492,7 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 
 	unsigned char* pZoomValue = NeoZoomROM + (nBankYZoom << 8);
 
-#ifndef BUILD_PSP
+#ifndef NDS
 	pTileRow = pBurnDraw + (nSliceStart - 0x10) * (BPP >> 3) * nNeoScreenWidth + nBankXPos * (BPP >> 3);
 #else
 	pTileRow = pBurnDraw + (nSliceStart - 0x10) * (BPP >> 3) * 512 + nBankXPos * (BPP >> 3);
@@ -519,7 +519,7 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 	} else {
 		if (nBankYPos < nSliceEnd) {						// Sprite starts on screen
 			y = 0;
-#ifndef BUILD_PSP
+#ifndef NDS
 			pTileRow += (nBankYPos - nSliceStart) * (BPP >> 3) * nNeoScreenWidth;
 #else
 			pTileRow += (nBankYPos - nSliceStart) * (BPP >> 3) * 512;
@@ -538,7 +538,7 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 						if (nMax > nSliceSize - y) {
 							nMax = nSliceSize - y;
 						}
-#ifndef BUILD_PSP
+#ifndef NDS
 						pTileRow += y * (BPP >> 3) * nNeoScreenWidth;
 #else
 						pTileRow += y * (BPP >> 3) * 512;
@@ -607,7 +607,7 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 				}
 			}
 
-#ifndef BUILD_PSP
+#ifndef NDS
 			pTileRow = pBurnDraw + (nSliceStart - 0x10) * (BPP >> 3) * nNeoScreenWidth + nBankXPos * (BPP >> 3);
 #else
 			pTileRow = pBurnDraw + (nSliceStart - 0x10) * (BPP >> 3) * 512 + nBankXPos * (BPP >> 3);
@@ -666,7 +666,7 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 		}
 
 		y++;
-#ifndef BUILD_PSP
+#ifndef NDS
 		pTileRow += ((BPP >> 3) * nNeoScreenWidth);
 #else
 		pTileRow += ((BPP >> 3) * 512);
@@ -705,7 +705,7 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 			nMax = y;
 		} else {													// Sprite starts on the screen
 			if (nYPos <= nSliceEnd) {
-#ifndef BUILD_PSP
+#ifndef NDS
 				pTileRow = pBurnDraw + nBankXPos * (BPP >> 3) + (nYPos - 0x11) * (BPP >> 3) * nNeoScreenWidth;
 #else
 				pTileRow = pBurnDraw + nBankXPos * (BPP >> 3) + (nYPos - 0x11) * (BPP >> 3) * 512;
@@ -718,7 +718,7 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 					nPass = 1;
 				}
 			} else {
-#ifndef BUILD_PSP
+#ifndef NDS
 				pTileRow = pBurnDraw + nBankXPos * (BPP >> 3) + (nSliceEnd - 0x11) * (BPP >> 3) * nNeoScreenWidth;
 #else
 				pTileRow = pBurnDraw + nBankXPos * (BPP >> 3) + (nSliceEnd - 0x11) * (BPP >> 3) * 512;
@@ -752,7 +752,7 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 					y -= 0xFF - nBankYZoom;
 				}
 #endif
-#ifndef BUILD_PSP
+#ifndef NDS
 				pTileRow = pBurnDraw + nBankXPos * (BPP >> 3) + (nSliceStart + nSlice - 0x11) * (BPP >> 3) * nNeoScreenWidth;
 #else
 				pTileRow = pBurnDraw + nBankXPos * (BPP >> 3) + (nSliceStart + nSlice - 0x11) * (BPP >> 3) * 512;
@@ -789,7 +789,7 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 
 				nMax = nBankYZoom + 1;
 				if (y < 224) {
-#ifndef BUILD_PSP
+#ifndef NDS
 					pTileRow = pBurnDraw + nBankXPos * (BPP >> 3) + (nSliceStart - 0x11 + y) * (BPP >> 3) * nNeoScreenWidth;
 #else
 					pTileRow = pBurnDraw + nBankXPos * (BPP >> 3) + (nSliceStart - 0x11 + y) * (BPP >> 3) * 512;
@@ -799,7 +799,7 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 					}
 					y = 0;
 				} else {
-#ifndef BUILD_PSP					
+#ifndef NDS					
 					pTileRow = pBurnDraw + nBankXPos * (BPP >> 3) + (nSliceEnd - 0x11) * (BPP >> 3) * nNeoScreenWidth;
 #else
 					pTileRow = pBurnDraw + nBankXPos * (BPP >> 3) + (nSliceEnd - 0x11) * (BPP >> 3) * 512;
@@ -822,7 +822,7 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 				if (nMax > nSliceSize + y) {
 					nMax = nSliceSize + y;
 				}
-#ifndef BUILD_PSP
+#ifndef NDS
 				pTileRow = pBurnDraw + nBankXPos * (BPP >> 3) + (nSliceEnd - 0x11) * (BPP >> 3) * nNeoScreenWidth;
 #else
 				pTileRow = pBurnDraw + nBankXPos * (BPP >> 3) + (nSliceEnd - 0x11) * (BPP >> 3) * 512;
@@ -876,7 +876,7 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 		}
 
 		y++;
-#ifndef BUILD_PSP
+#ifndef NDS
 		pTileRow -= (BPP >> 3) * nNeoScreenWidth;
 #else
 		pTileRow -= (BPP >> 3) * 512;

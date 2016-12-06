@@ -101,7 +101,7 @@ static int DrvDoReset()
 }
 
 
-#ifndef BUILD_PSP
+#ifndef NDS
 #define Y_SIZE	256
 #else
 #define Y_SIZE	512

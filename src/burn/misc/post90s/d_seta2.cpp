@@ -45,10 +45,9 @@ static int A68KIRQAcknowledge(int nIRQ)
  ********************************************************************************
  port to Finalburn Alpha by OopsWare. 2007
  ********************************************************************************/
-
+#include "UniCache.h"
 #include "burnint.h"
 #include "x1010.h"
-#include "UniCache.h"
 static unsigned char *Mem = NULL, *MemEnd = NULL;
 static unsigned char *RamStart, *RamEnd;
 
@@ -998,8 +997,8 @@ static void loadDecodeGfx(unsigned char *p, int cnt, int offset2x, unsigned char
 		}
 		else
 		{
-			sceIoLseek( cacheFile, fileOffset, SEEK_SET );
-			sceIoRead( cacheFile, cacheHead, EACH_BLOCK_SIZE*8 );
+			fseek( cacheFile, fileOffset, SEEK_SET );
+			fread(cacheHead, EACH_BLOCK_SIZE*8, 1, cacheFile);
 		}
 		for (int i=i2; i<i2+EACH_BLOCK_SIZE; i++, p+=2, q+=2, d+=8) {
 			*(d+0) |= (( (*p >> 7) & 1 ) << offset2x) | (( (*q >> 7) & 1 ) << (offset2x + 1));
@@ -1014,8 +1013,8 @@ static void loadDecodeGfx(unsigned char *p, int cnt, int offset2x, unsigned char
 		}
 		for(int j=0;j<5;j++)
 		{
-			sceIoLseek( cacheFile, fileOffset, SEEK_SET );
-			if( EACH_BLOCK_SIZE*8 == sceIoWrite(cacheFile,cacheHead, EACH_BLOCK_SIZE*8 ) )
+			fseek( cacheFile, fileOffset, SEEK_SET );
+			if( 1 == fwrite(uniCacheHead, EACH_BLOCK_SIZE*8, 1, cacheFile) )
 				break;
 		}
 		
@@ -1035,16 +1034,16 @@ static int grdiansInit()
 	strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
-	cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
+	cacheFile = fopen( filePathName, "rb");
 	if (cacheFile<0)
 	{
 		needCreateCache = true;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_CREAT, 0777 );
-	}else if(sceIoLseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+		cacheFile = fopen( filePathName, "wb+");
+	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
 	{
 		needCreateCache = true;
-		sceIoClose(cacheFile);
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_TRUNC, 0777 );
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "w+b" );
 	}
 
 	
@@ -1061,8 +1060,8 @@ static int grdiansInit()
 			BurnLoadRom(uniCacheHead + 0x0000000, i+4, 1);
 			loadDecodeGfx( uniCacheHead, 0x0800000 / 2, i,uniCacheHead+0x0800000);
 		}
-		sceIoClose( cacheFile );
-		cacheFile = sceIoOpen( filePathName,PSP_O_RDONLY, 0777);
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "rb");
 		free(uniCacheHead);
 		uniCacheHead=NULL;
 	}
@@ -1237,16 +1236,16 @@ static int mj4simaiInit()
 	strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
-	cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
+	cacheFile = fopen( filePathName, "rb");
 	if (cacheFile<0)
 	{
 		needCreateCache = true;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_CREAT, 0777 );
-	}else if(sceIoLseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+		cacheFile = fopen( filePathName, "wb+");
+	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
 	{
 		needCreateCache = true;
-		sceIoClose(cacheFile);
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_TRUNC, 0777 );
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "w+b" );
 	}
 
 	
@@ -1262,8 +1261,8 @@ static int mj4simaiInit()
 			BurnLoadRom(uniCacheHead + 0x0400000, i+5, 1);
 			loadDecodeGfx( uniCacheHead, 0x0800000 / 2, i,uniCacheHead+0x0800000 );
 		}
-		sceIoClose( cacheFile );
-		cacheFile = sceIoOpen( filePathName,PSP_O_RDONLY, 0777);
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "rb");
 		free(uniCacheHead);
 		uniCacheHead=NULL;
 	}
@@ -1423,16 +1422,16 @@ static int myangelInit()
 	strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
-	cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
+	cacheFile = fopen( filePathName, "rb");
 	if (cacheFile<0)
 	{
 		needCreateCache = true;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_CREAT, 0777 );
-	}else if(sceIoLseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+		cacheFile = fopen( filePathName, "wb+");
+	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
 	{
 		needCreateCache = true;
-		sceIoClose(cacheFile);
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_TRUNC, 0777 );
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "w+b" );
 	}
 
 	
@@ -1448,8 +1447,8 @@ static int myangelInit()
 			BurnLoadRom(uniCacheHead + 0x0200000, i+5, 1);
 			loadDecodeGfx( uniCacheHead, 0x0400000 / 2, i,uniCacheHead+0x0800000 );
 		}
-		sceIoClose( cacheFile );
-		cacheFile = sceIoOpen( filePathName,PSP_O_RDONLY, 0777);
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "rb");
 		free(uniCacheHead);
 		uniCacheHead=NULL;
 	}
@@ -1606,16 +1605,16 @@ cacheFileSize=0x1800000;
 	strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
-	cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
+	cacheFile = fopen( filePathName, "rb");
 	if (cacheFile<0)
 	{
 		needCreateCache = true;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_CREAT, 0777 );
-	}else if(sceIoLseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+		cacheFile = fopen( filePathName, "wb+");
+	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
 	{
 		needCreateCache = true;
-		sceIoClose(cacheFile);
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_TRUNC, 0777 );
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "w+b" );
 	}
 
 	
@@ -1631,8 +1630,8 @@ cacheFileSize=0x1800000;
 			BurnLoadRom(uniCacheHead + 0x0200000, i+5, 1);
 			loadDecodeGfx( uniCacheHead, 0x0600000 / 2, i,uniCacheHead+0x0800000 );
 		}
-		sceIoClose( cacheFile );
-		cacheFile = sceIoOpen( filePathName,PSP_O_RDONLY, 0777);
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "rb");
 		free(uniCacheHead);
 		uniCacheHead=NULL;
 	}
@@ -1800,16 +1799,16 @@ static int pzlbowlInit()
 	strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
-	cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
+	cacheFile = fopen( filePathName, "rb");
 	if (cacheFile<0)
 	{
 		needCreateCache = true;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_CREAT, 0777 );
-	}else if(sceIoLseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+		cacheFile = fopen( filePathName, "wb+");
+	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
 	{
 		needCreateCache = true;
-		sceIoClose(cacheFile);
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_TRUNC, 0777 );
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "w+b" );
 	}
 
 	
@@ -1824,8 +1823,8 @@ static int pzlbowlInit()
 			BurnLoadRom(uniCacheHead, i+2, 1);
 			loadDecodeGfx( uniCacheHead, 0x0400000 / 2, i*2,uniCacheHead+0x0800000 );
 		}
-		sceIoClose( cacheFile );
-		cacheFile = sceIoOpen( filePathName,PSP_O_RDONLY, 0777);
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "rb");
 		free(uniCacheHead);
 		uniCacheHead=NULL;
 	}
@@ -1978,16 +1977,16 @@ static int penbrosInit()
 	strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
-	cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
+	cacheFile = fopen( filePathName, "rb");
 	if (cacheFile<0)
 	{
 		needCreateCache = true;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_CREAT, 0777 );
-	}else if(sceIoLseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+		cacheFile = fopen( filePathName, "wb+");
+	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
 	{
 		needCreateCache = true;
-		sceIoClose(cacheFile);
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_TRUNC, 0777 );
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "w+b" );
 	}
 
 	
@@ -2002,8 +2001,8 @@ static int penbrosInit()
 			BurnLoadRom(uniCacheHead, i+2, 1);
 			loadDecodeGfx( uniCacheHead, 0x0400000 / 2, i*2,uniCacheHead+0x0800000 );
 		}
-		sceIoClose( cacheFile );
-		cacheFile = sceIoOpen( filePathName,PSP_O_RDONLY, 0777);
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "rb");
 		free(uniCacheHead);
 		uniCacheHead=NULL;
 	}
@@ -2101,7 +2100,7 @@ static int grdiansExit()
 }
 
 
-#ifndef BUILD_PSP
+#ifndef NDS
 
 #define	DRAWGFX( op )												\
 	if(myangel2) {													\
@@ -2356,7 +2355,7 @@ typedef void (*pDrawgfx)(unsigned int,unsigned int,int,int,int,int);
 
 static void DrvDraw()
 {
-#ifndef BUILD_PSP
+#ifndef NDS
 	memset(pBurnDraw, 0, sva_w * sva_h * 2);
 #else
 	extern void clear_gui_texture(int color, int w, int h);

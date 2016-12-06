@@ -29,7 +29,7 @@ int CavePalExit()
 
 inline static unsigned int CalcCol(unsigned short nColour)
 {
-#ifdef BUILD_PSP
+#ifdef NDS
 
 	return ((nColour & 0x03E0) >> 5) | ((nColour & 0x7C00) >> 4) | ((nColour & 0x001F) << 11);
 

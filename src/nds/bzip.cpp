@@ -1,6 +1,6 @@
 // Burner Zip module
 #include "burner.h"
-#include "psp.h"
+#include "nds.h"
 
 //char szAppRomPath[MAX_PATH] = "roms/";
 char szAppRomPath[MAX_PATH] = "E:/mamep/roms/";

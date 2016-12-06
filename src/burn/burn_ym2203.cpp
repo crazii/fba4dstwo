@@ -248,7 +248,7 @@ static void YM2203UpdateNormal(short* pSoundBuf, int nSegmentEnd)
 		pYM2203Buffer[10] = pBuffer + 4 + 10 * 4096;
 	}
 
-#ifndef BUILD_PSP
+#ifndef NDS
 	if (bBurnUseMMX) {
 		for (int n = nFractionalPosition; n < nSegmentLength; n++) {
 			pAYBuffer[n] = pYM2203Buffer[2][n] + pYM2203Buffer[3][n] + pYM2203Buffer[4][n];
@@ -305,7 +305,7 @@ static void YM2203UpdateNormal(short* pSoundBuf, int nSegmentEnd)
 				pSoundBuf[(n << 1) + 1] = nTotalSample;
 			}
 		}
-#ifndef BUILD_PSP
+#ifndef NDS
 	}
 #endif
 

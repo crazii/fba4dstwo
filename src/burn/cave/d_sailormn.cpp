@@ -750,8 +750,8 @@ static void sailormnDecodeTiles2(unsigned char* pData, int nLen, unsigned long f
 	for(int k=nLen-0x100000;k>=(nLen>>1);k=k-0x100000)
 	{
 		pOrg= pData + 0x100000 - 1;
-		sceIoLseek( cacheFile, fileOffset+k, SEEK_SET );
-		sceIoRead( cacheFile,pData , 0x100000 );
+		fseek( cacheFile, fileOffset+k, SEEK_SET );
+		fread(pData, 0x100000, 1, cacheFile);
 		
 		for (int i = 0; i < 0x100000; i++, pOrg--, pDest -= 2) {
 			pDest[0] = *pOrg & 15;
@@ -760,13 +760,13 @@ static void sailormnDecodeTiles2(unsigned char* pData, int nLen, unsigned long f
 	}
 	for(int j=0;j<5;j++)
 	{
-		sceIoLseek( cacheFile, fileOffset+nLen, SEEK_SET );
-		if( nLen == sceIoWrite(cacheFile,pData+0x100000, nLen ) )
+		fseek( cacheFile, fileOffset+nLen, SEEK_SET );
+		if( 1 == fwrite(uniCacheHead, nLen, 1, cacheFile) )
 			break;
 	}
 
-	sceIoLseek( cacheFile, fileOffset, SEEK_SET );
-	sceIoRead( cacheFile,pData , nLen );
+	fseek( cacheFile, fileOffset, SEEK_SET );
+	fread(pData , nLen, 1, cacheFile);
 	pOrg = pData + (nLen>>1) - 1;
 	pDest = pData + (nLen - 2);
 
@@ -776,8 +776,8 @@ static void sailormnDecodeTiles2(unsigned char* pData, int nLen, unsigned long f
 	}
 	for(int j=0;j<5;j++)
 	{
-		sceIoLseek( cacheFile, fileOffset, SEEK_SET );
-		if( nLen == sceIoWrite(cacheFile,pData, nLen ) )
+		fseek( cacheFile, fileOffset, SEEK_SET );
+		if( 1 == fwrite(pData, nLen, 1, cacheFile) )
 			break;
 	}
 	return;
@@ -943,16 +943,16 @@ static int gameInit()
 	strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
-	cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
+	cacheFile = fopen( filePathName, "rb");
 	if (cacheFile<0)
 	{
 		needCreateCache = true;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_CREAT, 0777 );
-	}else if(sceIoLseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+		cacheFile = fopen( filePathName, "wb+");
+	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
 	{
 		needCreateCache = true;
-		sceIoClose(cacheFile);
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_TRUNC, 0777 );
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "w+b" );
 	}
 	
 	// Load Sprite and Tile
@@ -972,8 +972,8 @@ static int gameInit()
 			sailormnDecodeSprites(uniCacheHead, 0x400000);
 			for(int j=0;j<5;j++)
 			{
-				sceIoLseek( cacheFile, 0, SEEK_SET );
-				if( 0x800000 == sceIoWrite(cacheFile,uniCacheHead, 0x800000 ) )
+				fseek( cacheFile, 0, SEEK_SET );
+				if( 1 == fwrite(uniCacheHead, 0x800000, 1, cacheFile) )
 					break;
 			}
 			BurnLoadRom(uniCacheHead, 4, 1);
@@ -994,8 +994,8 @@ static int gameInit()
 		
 			for(int j=0;j<5;j++)
 			{
-				sceIoLseek( cacheFile,0x800000, SEEK_SET );
-				if( 0xC00000 == sceIoWrite(cacheFile,uniCacheHead, 0xC00000 ) )
+				fseek( cacheFile,0x800000, SEEK_SET );
+				if( 1 == fwrite(uniCacheHead, 0xC00000, 1, cacheFile) )
 					break;
 			}
 		}
@@ -1010,8 +1010,8 @@ static int gameInit()
 			sailormnDecodeSprites(uniCacheHead, 0x400000);
 			for(int j=0;j<5;j++)
 			{
-				sceIoLseek( cacheFile, 0, SEEK_SET );
-				if( 0x800000 == sceIoWrite(cacheFile,uniCacheHead, 0x800000 ) )
+				fseek( cacheFile, 0, SEEK_SET );
+				if( 1 == fwrite(uniCacheHead, 0x800000, 1, cacheFile) )
 					break;
 			}
 			BurnLoadRom(uniCacheHead, 5, 1);
@@ -1020,8 +1020,8 @@ static int gameInit()
 			sailormnDecodeTiles(uniCacheHead+0x400000, 0x200000);
 			for(int j=0;j<5;j++)
 			{
-				sceIoLseek( cacheFile, 0x800000, SEEK_SET );
-				if( 0x800000 == sceIoWrite(cacheFile,uniCacheHead, 0x800000 ) )
+				fseek( cacheFile, 0x800000, SEEK_SET );
+				if( 1 == fwrite(uniCacheHead, 0x800000, 1, cacheFile) )
 					break;
 			}
 			BurnLoadRom(uniCacheHead + 0x000000, 7, 1);
@@ -1031,8 +1031,8 @@ static int gameInit()
 			BurnLoadRom(uniCacheHead + 0x800000, 11, 1);
 			for(int j=0;j<5;j++)
 			{
-				sceIoLseek( cacheFile, 0x1000000, SEEK_SET );
-				if( 0xA00000 == sceIoWrite(cacheFile,uniCacheHead, 0xA00000 ) )
+				fseek( cacheFile, 0x1000000, SEEK_SET );
+				if( 1 == fwrite(uniCacheHead, 0xA00000, 1, cacheFile) )
 					break;
 			}
 			sailormnDecodeTiles2(uniCacheHead, 0xA00000,0x1000000);
@@ -1043,8 +1043,8 @@ static int gameInit()
 			BurnLoadRom(pTemp + 0x400000, 14, 1);
 			for (int k=0;k<0x500000;k=k+0x100000)
 			{	
-				sceIoLseek( cacheFile, 4*k+0x1000000, SEEK_SET );
-				sceIoRead( cacheFile,uniCacheHead , 0x400000 );
+				fseek( cacheFile, 4*k+0x1000000, SEEK_SET );
+				fread(uniCacheHead , 0x400000, 1, cacheFile);
 				for (int i = k; i < k+0x100000; i++) {
 					uniCacheHead[((i-k) << 2) + 0] |= (pTemp[i] & 0x03) << 4;
 					uniCacheHead[((i-k) << 2) + 1] |= (pTemp[i] & 0x0C) << 2;
@@ -1053,15 +1053,15 @@ static int gameInit()
 				}
 				for(int j=0;j<5;j++)
 				{
-					sceIoLseek( cacheFile, 4*k+0x1000000, SEEK_SET );
-					if( 0x400000 == sceIoWrite(cacheFile,uniCacheHead, 0x400000 ) )
+					fseek( cacheFile, 4*k+0x1000000, SEEK_SET );
+					if( 1 == fwrite(uniCacheHead, 0x400000, 1, cacheFile) )
 						break;
 				}
 				
 			}		
 		}
-		sceIoClose( cacheFile );
-		cacheFile = sceIoOpen( filePathName,PSP_O_RDONLY, 0777);
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "rb");
 		free(uniCacheHead);
 		uniCacheHead=NULL;
 	}

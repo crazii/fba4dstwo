@@ -4,7 +4,7 @@
 
 #if ROT == 0
  #define ADVANCECOLUMN pPixel += (BPP >> 3)
- #ifndef BUILD_PSP
+ #ifndef NDS
   #define ADVANCEROW pRow += ((BPP >> 3) * XSIZE)
  #else
   #define ADVANCEROW pRow += ((BPP >> 3) * 512)

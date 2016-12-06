@@ -351,7 +351,7 @@ static int DrvExit()
 }
 
 
-#ifndef BUILD_PSP
+#ifndef NDS
 #define Y_SIZE	240
 #else
 #define Y_SIZE	512

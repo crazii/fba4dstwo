@@ -15,8 +15,9 @@ int nBurnVer = BURN_VERSION;		// Version number of the library
 unsigned int nBurnDrvCount = 0;		// Count of game drivers
 unsigned int nBurnDrvSelect = ~0U;	// Which game driver is selected
 
-//bool bBurnUseMMX;
-bool bBurnUseASMCPUEmulation = false;
+//int bBurnUseMMX;
+int bBurnUseASMCPUEmulation = false;
+int bForce60Hz = false;
 
 #if defined (FBA_DEBUG)
  clock_t starttime = 0;
@@ -26,7 +27,6 @@ unsigned int nCurrentFrame;			// Framecount for emulated game
 
 unsigned int nFramesEmulated;		// Counters for FPS	display
 unsigned int nFramesRendered;		//
-bool bForce60Hz = false;
 int nBurnFPS = 6000;
 int nBurnCPUSpeedAdjust = 0x0100;	// CPU speed adjustment (clock * nBurnCPUSpeedAdjust / 0x0100)
 
@@ -47,11 +47,11 @@ unsigned char nSpriteEnable = 0xFF;	// Can be used externally to select which la
 
 int nMaxPlayers;
 
-bool bSaveCRoms = 0;
+int bSaveCRoms = 0;
 
-bool BurnCheckMMXSupport()
+int BurnCheckMMXSupport()
 {
-#ifndef BUILD_PSP
+#ifndef NDS
 	unsigned int nSignatureEAX = 0, nSignatureEBX = 0, nSignatureECX = 0, nSignatureEDX = 0;
 
 	CPUID(1, nSignatureEAX, nSignatureEBX, nSignatureECX, nSignatureEDX);
@@ -494,7 +494,7 @@ extern "C" int BurnDrvGetFlags()
 }
 
 // Return BDF_WORKING flag
-extern "C" bool BurnDrvIsWorking()
+extern "C" int BurnDrvIsWorking()
 {
 	return pDriver[nBurnDrvSelect]->flags & BDF_GAME_WORKING;
 }
@@ -564,7 +564,7 @@ extern "C" int BurnDrvInit()
 
 	BurnSetRefreshRate(60.0);
 
-#ifndef BUILD_PSP
+#ifndef NDS
 	CheatInit();
 #endif
 	BurnStateInit();
@@ -604,7 +604,7 @@ extern "C" int BurnDrvExit()
 	}
 #endif
 
-#ifndef BUILD_PSP
+#ifndef NDS
 	CheatExit();
 	CheatSearchExit();
 #endif
@@ -618,7 +618,7 @@ extern "C" int BurnDrvExit()
 // Do one frame of game emulation
 extern "C" int BurnDrvFrame()
 {
-#ifndef BUILD_PSP
+#ifndef NDS
 	CheatApply();									// Apply cheats (if any)
 #endif
 	return pDriver[nBurnDrvSelect]->Frame();		// Forward to drivers function
@@ -798,7 +798,7 @@ extern "C" int BurnJukeboxFrame()
 // ----------------------------------------------------------------------------
 
 int (__cdecl *BurnExtProgressRangeCallback)(double fProgressRange) = NULL;
-int (__cdecl *BurnExtProgressUpdateCallback)(double fProgress, const TCHAR* pszText, bool bAbs) = NULL;
+int (__cdecl *BurnExtProgressUpdateCallback)(double fProgress, const TCHAR* pszText, int bAbs) = NULL;
 
 int BurnSetProgressRange(double fProgressRange)
 {
@@ -848,7 +848,7 @@ int BurnClearScreen()
 {
 	struct BurnDriver* pbd = pDriver[nBurnDrvSelect];
 
-#ifdef BUILD_PSP
+#ifdef NDS
 	extern void clear_gui_texture(int color, int w, int h);
 	
 	if (pbd->flags & BDF_ORIENTATION_VERTICAL) {

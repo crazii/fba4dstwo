@@ -1,12 +1,11 @@
-#ifndef _H_PSP_
-#define _H_PSP_
+#ifndef _H_NDS_
+#define _H_NDS_
+#include <ds2io.h>
 
+#define SCREEN_WIDTH	256
+#define SCREEN_HEIGHT	192
 
-#define PSP_LINE_SIZE	512
-#define SCREEN_WIDTH	480
-#define SCREEN_HEIGHT	272
-
-#define GU_FRAME_ADDR(frame)		(unsigned short *)((unsigned int)frame | 0x44000000)
+extern unsigned int inputKeys[3][3];
 
 /* main.cpp */
 
@@ -16,14 +15,6 @@ extern char currentPath[];
 extern char szAppCachePath[];
 extern unsigned int debugValue[2];
 void resetGame();
-
-struct Vertex
-{
-	unsigned short u, v;
-	unsigned short color;
-	signed short x, y, z;
-};
-
 
 /* ui.cpp */
 #define UI_COLOR	R8G8B8_to_B5G6R5(0xffffff)
@@ -45,7 +36,9 @@ extern short wifiStatus;
 extern short gameScreenWidth, gameScreenHeight;
 /* roms.cpp */
 
-int findRomsInDir(bool force);
+#ifdef __cplusplus
+extern "C" int findRomsInDir(int force);
+#endif
 char * getRomsFileName(int idx);
 int getRomsFileStat(int idx);
 
@@ -66,17 +59,17 @@ extern char szAppRomPath[];
 
 
 /* input */
-int DrvInit(int nDrvNum, bool bRestore);
+#ifdef __cplusplus
+extern "C" int DrvInit(int nDrvNum, bool bRestore);
+#endif
 int DrvExit();
 int InpInit();
 int InpExit();
 void InpDIP();
+int InpMake(unsigned int);
 void loadDefaultInput();
 
 /* snd.cpp */
-
-#define SND_RATE		22050
-#define SND_FRAME_SIZE	((SND_RATE * 100 + 5999) / 6000)
 extern int mixbufidDiff;
 extern unsigned char monoSound;
 int sound_start();
@@ -85,4 +78,7 @@ void sound_next();
 void sound_pause();
 void sound_continue();
 
-#endif	// _H_PSP_
+#define SND_RATE		22050
+#define SND_FRAME_SIZE	((SND_RATE * 100 + 5999) / 6000)
+
+#endif	// _H_NDS_

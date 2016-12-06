@@ -6,12 +6,9 @@
 
 unexport
 
-PSPSDK = $(shell psp-config --pspsdk-path)
-PSP_FW_VERSION = 200
+NDS_FW_VERSION = 200
 VERSION_MINOR = 1
 VERSION_MAJOR = 0
-
-#USE_PSPSDK_LIBC = 1
 
 #
 #	Flags. Uncomment any of these declarations to enable their function.
@@ -26,7 +23,9 @@ DEPEND = 1
 
 # Specify the name of the executable file, without ".exe"
 BINDIR = bin/all
-NAME = ${BINDIR}/FBA4PSP.elf
+ELF = ${BINDIR}/fba4dstwo.elf
+BIN = $(ELF:.elf=.bin)
+NAME = _dstwoplug/fba4dstwo.plg
 
 #ifndef	CPUTYPE
 #	CPUTYPE	= i686
@@ -36,19 +35,16 @@ NAME = ${BINDIR}/FBA4PSP.elf
 #	Specify paths/files
 #
 
-objdir	= obj/PSP/
+objdir	= obj/nds/
 srcdir	= src/
 
-alldir	= burn burn/cave burn/pgm burn/toaplan burn/taito generated psp zlib \
+alldir	= burn burn/cave burn/pgm burn/toaplan burn/taito generated nds zlib \
 burn/misc burn/misc/post90s burn/misc/pre90s burn/cps3 cpu cpu/c68k cpu/cz80 cpu/m6502 cpu/sh2 cpu/nec cpu/z80 cpu/i8039 burn/capcom burn/neogeo \
 cpu/m6809 cpu/hd6309 cpu/m6800 burn/misc burn/misc/dec0 burn/konami burn/sega cpu/arm7
 
-incdir	= -I. -I$(PSPSDK)/include $(foreach dir,$(alldir),-I$(srcdir)$(dir)) -I$(objdir)generated
+incdir	= -I. -I$(NDSSDK)/include $(foreach dir,$(alldir),-I$(srcdir)$(dir)) -I$(objdir)generated
 
-lib		=  -lm -lpspgu -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc \
-			-lpspnet -lpspnet_adhoc -lpspnet_adhocctl -lpspwlan -lpsputility \
-			-lpspuser -lpspkernel -lpsppower -lpspaudio -lpsprtc -lpng -lg
-
+lib		=  -lds2a -lds2b -lc -lm -lgcc
 
 		
 drvobj	= d_dodonpachi.o d_donpachi.o d_esprade.o d_feversos.o d_gaia.o d_guwange.o \
@@ -105,7 +101,7 @@ depobj	:= 	$(drvobj) \
 	   	vez.o nec.o \
 		m6800.o m6800_intf.o m6809.o m6809_intf.o hd6309.o hd6309_intf.o\
 		z80.o z80daisy.o i8039.o\
-		arm7.o arm7_intf.o \
+		arm7.o \
 	   	cave.o cave_tile.o cave_sprite.o cave_palette.o \
 	   	cps.o cps_config.o cps_draw.o cps_mem.o cps_obj.o cps_pal.o cps_run.o \
 	   	cps2_crpt.o cps_rw.o cps_scr.o cpsr.o cpsrd.o \
@@ -120,8 +116,8 @@ depobj	:= 	$(drvobj) \
 	   	\
 	   	adler32.o compress.o crc32.o deflate.o inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o \
 	   	\
-	   	main.o drv.o input.o state.o statec.o unzip.o zipfn.o bzip.o font.o \
-	   	roms.o ui.o gui.o snd.o UniCache.o exception.o pspadhoc.o m6502.o m6502_intf.o sh2.o \
+	   	ds2_main.o main.o drv.o input.o state.o statec.o unzip.o zipfn.o bzip.o font.o \
+	   	roms.o ui.o gui.o snd.o UniCache.o m6502.o m6502_intf.o sh2.o \
 	   	\
 	   	tiles_generic.o \
 		irem_cpu.o\
@@ -179,45 +175,15 @@ alldep	= $(foreach file,$(autobj:.o=.c), \
 		$(foreach dir,$(alldir),$(subst $(srcdir),$(objdir), \
 		$(firstword $(subst .cpp,.d,$(wildcard $(srcdir)$(dir)/$(file))))))) \
 
-#
-#
-#	Specify compiler/linker/assembler
-#
-#
-
-CC		= psp-gcc
-CXX		= psp-g++
-LD		= psp-gcc
-AS		= psp-as
-FIXUP	= psp-fixup-imports
-
-CFLAGS	 = -O3 -G0 -fomit-frame-pointer -fno-bounds-check -freg-struct-return $(DEF) $(incdir)
-#	   -fomit-frame-pointer -fsigned-char \
-#	   -fstrict-aliasing -falign-functions=32 -falign-loops -falign-labels -falign-jumps \
-#	   -Wall -Wno-long-long -Wno-sign-compare -Wno-uninitialized -Wno-unused \
-	   
-
-
-CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
-
-ASFLAGS	= -O3 -G0
-
-#	   -fomit-frame-pointer -fsigned-char \
-#	   -fstrict-aliasing -falign-functions=32 -falign-loops -falign-labels -falign-jumps \
-#	   -fforce-addr -finline-limit=1200 -fthread-jumps \
-#	   -fexpensive-optimizations \
-
-
 #-march=$(CPUTYPE) 
 #-pedantic 
 
-LDFLAGS	= -static -L. -L$(PSPSDK)/lib
+LDFLAGS	= -flto -nostdlib -static -L. -L$(NDSSDK)/lib
 
-DEF	:= -DSUB_VERSION=\"ALL\" -DPSP_FW_VERSION=$(PSP_FW_VERSION) -DFILENAME=$(NAME) \
-	-DBUILD_PSP -DUSE_SPEEDHACKS -DNEOGEO_HACKS \
+DEF	:= -DSUB_VERSION=\"ALL\" -DNDS_FW_VERSION=$(NDS_FW_VERSION) -DFILENAME=$(NAME) \
+	-DNDS -DUSE_SPEEDHACKS -DNEOGEO_HACKS \
 	-DPBPNAME='"$(TARGET)"' -DVERSION_MAJOR=$(VERSION_MAJOR) -DVERSION_MINOR=$(VERSION_MINOR)
-
-#	-DFASTCALL
+	#-DFASTCALL -D__fastcall="__attribute__((fastcall))"
 
 #ifdef DEBUG
 #	DEF	:= $(DEF) -DFBA_DEBUG
@@ -232,6 +198,41 @@ DEF	:= -DSUB_VERSION=\"ALL\" -DPSP_FW_VERSION=$(PSP_FW_VERSION) -DFILENAME=$(NAM
 #	Specify paths
 #
 #
+
+
+#
+#
+#	Specify compiler/linker/assembler
+#
+#
+
+CC		= mipsel-linux-gcc
+CXX		= mipsel-linux-g++
+LD		= mipsel-linux-gcc
+AS		= mipsel-linux-as
+OBJCOPY = mipsel-linux-objcopy
+NM		= mipsel-linux-nm
+OBJDUMP = mipsel-linux-objdump
+FIXUP	= makeplug
+
+CFLAGS	 = $(incdir) $(DEF) \
+		-mips32 -O3 -mno-abicalls -fno-pic -fno-builtin \
+	   -fno-exceptions -ffunction-sections -mlong-calls\
+	   -fomit-frame-pointer -msoft-float -G 4
+
+
+NATIVE_CC = gcc
+NATIVE_CXXFLAGS = -O3
+
+
+CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
+
+ASFLAGS	= -O3 -G0
+
+#	   -fomit-frame-pointer -fsigned-char \
+#	   -fstrict-aliasing -falign-functions=32 -falign-loops -falign-labels -falign-jumps \
+#	   -fforce-addr -finline-limit=1200 -fthread-jumps \
+#	   -fexpensive-optimizations \
 
 #vpath %.s	$(foreach dir,$(alldir),$(srcdir)$(dir)/ )
 vpath %.cpp	$(foreach dir,$(alldir),$(srcdir)$(dir)/ )
@@ -274,17 +275,29 @@ endif
 
 ifeq ($(MAKELEVEL),2)
 
-$(NAME):	$(allobj)
-	@echo
-	@echo Linking executable... $(NAME)
-	@$(LD) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(lib)
-	@echo Creating PSP EBOOT.PBP...
-	@$(FIXUP) $@
-	@psp-strip $(NAME) -o eboot_strip.elf
-	@mksfoex -d MEMSIZE=1 'FinalBurn Alpha for PSP' eboot.sfo
-	@pack-pbp ${BINDIR}/EBOOT.PBP eboot.sfo $(srcdir)psp/fbapsp_all.png NULL NULL NULL NULL eboot_strip.elf NULL
-	-@rm -f eboot.sfo eboot_strip.elf
+LINKS := $(NDSSDK)/specs/link.xn
+STARTS := $(NDSSDK)/specs/start.S
+STARTO := start.o
 
+$(STARTS): $(LINKS)
+	
+
+$(STARTO):
+	$(CC) $(CFLAGS) $(INC) -o $@ -c $(STARTS)
+
+$(ELF):	$(STARTO) $(allobj)
+	@echo Linking executable... $(ELF)
+	$(CC) $(LDFLAGS) -T $(LINKS) -o $(ELF) $^ $(lib)	
+	
+$(BIN) : $(ELF)
+	$(OBJCOPY) -O binary $< $@
+	
+$(NAME) : $(BIN) $(ELF)
+	@echo Creating nds FBA4DSTWO.plug...
+	$(OBJDUMP) -d $(ELF) > $(BIN:.bin=.dump)
+	$(NM) $(ELF) | sort > $(BIN:.bin=.sym)
+	$(OBJDUMP) -h $(ELF) > $(BIN:.bin=.map)
+	@$(FIXUP) $(BIN) $@
 
 ifdef	DEBUG
 
@@ -428,7 +441,7 @@ ctv.d ctv.o:	$(ctv.h)
 
 $(ctv.h):	ctv_make.cpp
 	@echo Generating $(srcdir)generated/$(@F)...
-	@gcc ${CXXFLAGS} $< \
+	@$(NATIVE_CC) ${NATIVE_CXXFLAGS} $< \
 		-o $(subst $(srcdir),$(objdir),$(<D))/$(<F:.cpp=.exe)
 	@$(subst $(srcdir),$(objdir),$(<D))/$(<F:.cpp=.exe) >$@
 
@@ -486,14 +499,6 @@ endif
 endif
 
 #
-#	Generic rule for resource files
-#
-
-%.o:	%.rc
-	@echo Compiling resource file $(<F)...
-	@windres $(DEF) $< -o $(subst $(srcdir),$(objdir),$(<D))/$(@F) $(foreach dir,$(alldir),--include-dir $(srcdir)$(dir))
-
-#
 #	Generic rules for C/C++ files
 #
 
@@ -535,13 +540,9 @@ ifdef DEPEND
 
 %.d:	%.c
 	@echo Generating depend file for $<...
-	@$(CC) -MM -MT "$(subst $(srcdir),$(objdir),$(<D))/$(*F).o $(subst $(srcdir),$(objdir),$(<D))/$(@F)" -x c++ $(CXXFLAGS) $< >$(subst $(srcdir),$(objdir),$(<D))/$(@F)
+	@$(CC) -MM -MT "$(subst $(srcdir),$(objdir),$(<D))/$(*F).o $(subst $(srcdir),$(objdir),$(<D))/$(@F)" -x c $(CFLAGS) $< >$(subst $(srcdir),$(objdir),$(<D))/$(@F)
 
 %.d:	%.cpp
-	@echo Generating depend file for $<...
-	@$(CC) -MM -MT "$(subst $(srcdir),$(objdir),$(<D))/$(*F).o $(subst $(srcdir),$(objdir),$(<D))/$(@F)" -x c++ $(CXXFLAGS) $< >$(subst $(srcdir),$(objdir),$(<D))/$(@F)
-
-%.d:	%.rc
 	@echo Generating depend file for $<...
 	@$(CC) -MM -MT "$(subst $(srcdir),$(objdir),$(<D))/$(*F).o $(subst $(srcdir),$(objdir),$(<D))/$(@F)" -x c++ $(CXXFLAGS) $< >$(subst $(srcdir),$(objdir),$(<D))/$(@F)
 

@@ -386,7 +386,7 @@ static int DrvDraw()
 		sy = i & 0xff;
 
 		if (sy < 16 || sy > 239 || sx < 12 || sx > 240) continue;
-#ifdef BUILD_PSP
+#ifdef NDS
 		sx -= 12; sy = (sy - 16) * 512;
 #else
 		sx -= 12; sy = (sy - 16) * 232;

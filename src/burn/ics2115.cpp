@@ -11,11 +11,11 @@
  Port to FB Alpha by OopsWare
  ******************************************************/
 
+ #include "UniCache.h"
 #include "burnint.h"
 #include "msm6295.h"
 #include "burn_sound.h"
 #include "ics2115.h"
-#include "UniCache.h"
 unsigned char *ICSSNDROM ;
 extern unsigned long nPGMSNDROMOffset;
 enum { V_ON = 1, V_DONE = 2 };

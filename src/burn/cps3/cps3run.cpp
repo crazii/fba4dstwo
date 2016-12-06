@@ -277,7 +277,7 @@ static void cps3_decrypt_game(void)
 	unsigned int * coderegion = (unsigned int *)uniCacheHead;
 	unsigned int * decrypt_coderegion = (unsigned int *)(uniCacheHead+0x1000000);
 	
-#ifdef BUILD_PSP
+#ifdef NDS
 	extern void ui_update_progress2(float size, const char * txt);
 #endif
 	for (int k=0;k<0x1000000;k+=0x200000)
@@ -288,7 +288,7 @@ static void cps3_decrypt_game(void)
 			decrypt_coderegion[l/4] = coderegion[i/4] ^ xormask;
 
 			
-	#ifdef BUILD_PSP
+	#ifdef NDS
 			if((i & 0x000FFFFF) == 0x00000000) {
 				ui_update_progress2(1.0 / 16, i ? NULL : "decrypting sh-2 program..." );
 			}
@@ -297,8 +297,8 @@ static void cps3_decrypt_game(void)
 		//reverseShort( uniCacheHead+0x1000000, 0x200000 );
 		for(int j=0;j<5;j++)
 		{
-			sceIoLseek( cacheFile, nRomGameOffset+k, SEEK_SET );
-			if( 0x200000 == sceIoWrite(cacheFile,uniCacheHead+0x1000000,0x200000  ) )
+			fseek( cacheFile, nRomGameOffset+k, SEEK_SET );
+			if( 1 == fwrite(uniCacheHead, 0x200000, 1, cacheFile) )
 				break;
 		}
 	}
@@ -1114,18 +1114,18 @@ int cps3Init()
 	strcat(filePathName, "_LB");
 	
 	needCreateCache = false;
-	cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777 );
+	cacheFile = fopen( filePathName, "rb");
 	
 	if (cacheFile<0)
 	{
 		needCreateCache = true;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_CREAT, 0777 );
+		cacheFile = fopen( filePathName, "wb+");
 	}
-	else if(sceIoLseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+	else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
 	{
 		needCreateCache = true;
-		sceIoClose(cacheFile);
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_TRUNC, 0777 );
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "w+b" );
 	}
 	
 	if(needCreateCache)
@@ -1138,7 +1138,7 @@ int cps3Init()
 		while (BurnDrvGetRomInfo(&pri, ii) == 0) {
 			if (pri.nType & (BRF_GRA | BRF_SND)) {
 				BurnLoadRom(uniCacheHead, ii, 1);
-				sceIoWrite(cacheFile, uniCacheHead, pri.nLen);
+				fwrite(uniCacheHead, pri.nLen, 1, cacheFile);
 			}
 			ii++;
 		}
@@ -1157,9 +1157,9 @@ int cps3Init()
 		be_to_le( uniCacheHead, 0x1000000 );
 		cps3_decrypt_game();
 		
-		sceIoClose( cacheFile );
+		fclose(cacheFile);
 		
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777 );
+		cacheFile = fopen( filePathName, "rb");
 		free(uniCacheHead);
 		uniCacheHead=NULL;
 	}
@@ -1302,7 +1302,7 @@ int cps3Exit()
 }
 
 
-#ifndef BUILD_PSP
+#ifndef NDS
 #define X_SIZE	cps3_gfx_width
 #else
 #define X_SIZE	512
@@ -2042,7 +2042,7 @@ if (Cps3But2[9]) {
 				srcx += fsz;
 			}
 			srcy += fsz;
-#ifdef BUILD_PSP
+#ifdef NDS
 			dstbitmap += 512 - cps3_gfx_width;
 #endif
 		}

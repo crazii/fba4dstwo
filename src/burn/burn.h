@@ -70,7 +70,7 @@ extern int (__cdecl *BurnExtLoadRom)(unsigned char* Dest, int* pnWrote, int i);
 
 // Application-defined progress indicator functions
 extern int (__cdecl *BurnExtProgressRangeCallback)(double dProgressRange);
-extern int (__cdecl *BurnExtProgressUpdateCallback)(double dProgress, const TCHAR* pszText, bool bAbs);
+extern int (__cdecl *BurnExtProgressUpdateCallback)(double dProgress, const TCHAR* pszText, int bAbs);
 
 // Application-defined colour conversion function
 extern unsigned int (__cdecl *BurnHighCol) (int r, int g, int b, int i);
@@ -143,14 +143,14 @@ struct BurnDIPInfo {
 
 // ---------------------------------------------------------------------------
 
-extern bool bBurnUseMMX;
-extern bool bBurnUseASMCPUEmulation;
+extern int bBurnUseMMX;
+extern int bBurnUseASMCPUEmulation;
 
 extern unsigned int nFramesEmulated;
 extern unsigned int nFramesRendered;
 extern clock_t starttime;					// system time when emulation started and after roms loaded
 
-extern bool bForce60Hz;
+extern int bForce60Hz;
 
 extern int nBurnFPS;
 extern int nBurnCPUSpeedAdjust;
@@ -191,7 +191,7 @@ int BurnDrvRedraw();
 int BurnRecalcPal();
 
 int BurnSetProgressRange(double dProgressRange);
-int BurnUpdateProgress(double dProgressStep, const TCHAR* pszText, bool bAbs);
+int BurnUpdateProgress(double dProgressStep, const TCHAR* pszText, int bAbs);
 
 // ---------------------------------------------------------------------------
 // Retrieve driver information
@@ -224,7 +224,7 @@ int BurnDrvGetFullSize(int* pnWidth, int* pnHeight);
 int BurnDrvGetAspect(int* pnXAspect, int* pnYAspect);
 int BurnDrvGetHardwareCode();
 int BurnDrvGetFlags();
-bool BurnDrvIsWorking();
+int BurnDrvIsWorking();
 int BurnDrvGetMaxPlayers();
 int BurnDrvSetVisibleSize(int pnWidth, int pnHeight);
 int BurnDrvSetAspect(int pnXAspect, int pnYAspect);
@@ -246,9 +246,9 @@ int BurnJukeboxInit();
 int BurnJukeboxExit();
 int BurnJukeboxFrame();
 
-extern bool bSaveCRoms;
+extern int bSaveCRoms;
 
-extern bool bDoPatch;
+extern int bDoPatch;
 void ApplyPatches(UINT8* base, char* rom_name);
 
 #define MAX_NEO_SLOTS	6

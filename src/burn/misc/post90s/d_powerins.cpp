@@ -907,7 +907,7 @@ static int powerinsExit()
 	return 0;
 }
 
-#ifndef BUILD_PSP
+#ifndef NDS
  #define XSIZE	320
 #else
  #define XSIZE	512
@@ -1159,7 +1159,7 @@ static void DrawSprites()
 
 static void DrvDraw()
 {
-#ifdef BUILD_PSP
+#ifdef NDS
 	extern void clear_gui_texture(int color, int w, int h);
 	clear_gui_texture(0, XSIZE, 224);
 #else

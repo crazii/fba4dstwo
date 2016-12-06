@@ -114,7 +114,7 @@ static int DrvDraw()
 	}
 	dirty = 0;
 
-#ifdef BUILD_PSP
+#ifdef NDS
 	int src_x;
 	for (y = 0; y < 200; y++) {
 		for (x = 0; x < 320; x++) {

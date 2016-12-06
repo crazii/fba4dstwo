@@ -10,10 +10,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <psptypes.h>
-#include <pspiofilemgr.h>
-#include "malloc.h"
-#define malloc(size) memalign(4, size)
+#ifdef NDS
+	#include <fs_api.h>
+	#include <ds2_malloc.h>
+	#define memalign(n, size) malloc(size)
+#else
+	#include "malloc.h"
+	#define malloc(size) memalign(4, size)
+#endif
 
 #define CACHE_BLOCK_SIZE 0xFFFF
 #define CACHE_INDEX_SHIFT 16
@@ -41,7 +45,7 @@ extern unsigned short indexRecycleListHead, indexRecycleListEnd;
 extern UniCacheIndex uniCacheIndex[CACHE_INDEX_SIZE]; 
 extern unsigned char *uniCacheHead;
 extern unsigned char *lastVisitedCacheBlock;
-extern SceUID cacheFile;
+extern FILE* cacheFile;
 extern unsigned int cacheFileSize;
 extern unsigned int totalMemBlocks;
 extern unsigned int requestAddrOffsetHigh,requestAddrOffsetLow,requestAddrEndOffsetHigh, headBlockIndexOffsetHigh, magicFreeSpaceOffsetHigh;

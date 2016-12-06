@@ -114,7 +114,7 @@ void BurnGunScan()
 	SCAN_VAR(BurnGunY);
 }
 
-#ifndef BUILD_PSP
+#ifndef NDS
 #define X_SIZE	nBurnGunMaxX
 #else
 #define X_SIZE	512

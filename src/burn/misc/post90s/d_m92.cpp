@@ -10,7 +10,7 @@
 
 #include "irem_cpu.h"
 
-#ifndef BUILD_PSP
+#ifndef NDS
 #define X_SIZE	320
 #define Y_SIZE  240
 #else

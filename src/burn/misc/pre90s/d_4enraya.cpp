@@ -309,7 +309,7 @@ static int DrvDraw()
 
 			for (int x = x1; x < x1 + 8; x++)
 			{
-#ifdef BUILD_PSP
+#ifdef NDS
 				PutPix(pBurnDraw + ((y << 1) | x) * nBurnBpp, BurnHighCol(cl(r0), cl(g0), cl(b0), 0));
 #else
 				PutPix(pBurnDraw + (y | x) * nBurnBpp, BurnHighCol(cl(r0), cl(g0), cl(b0), 0));

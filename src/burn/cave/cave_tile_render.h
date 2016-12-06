@@ -14,7 +14,7 @@
 
  #if YFLIP == 0
  
- #ifndef BUILD_PSP
+ #ifndef NDS
   #define ADVANCEROW pTileRow += ((BPP >> 3) * XSIZE)
  #else
   #define ADVANCEROW pTileRow += ((BPP >> 3) * 512)

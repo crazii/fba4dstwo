@@ -12,10 +12,10 @@
    
  ********************************************************************************/
 
+ #include "UniCache.h"
 #include "burnint.h"
 #include "burn_ym2151.h"
 #include "msm6295.h"
-#include "UniCache.h"
 
 static unsigned char *Mem = NULL, *MemEnd = NULL;
 static unsigned char *RamStart, *RamEnd;
@@ -552,8 +552,8 @@ static int loadDecodeGfx02()
 		}		
 		for(int j=0;j<5;j++)
 		{
-			sceIoLseek( cacheFile, fileOffset, SEEK_SET );
-			if( 0x0200000 == sceIoWrite(cacheFile,uniCacheHead+0x0C00000, 0x0200000 ) )
+			fseek( cacheFile, fileOffset, SEEK_SET );
+			if( 1 == fwrite(uniCacheHead+0x0C00000, 0x0200000, 1, cacheFile) )
 				break;
 		}
 	
@@ -621,16 +621,16 @@ static int shadfrceInit()
 	strcat(filePathName, BurnDrvGetTextA(DRV_NAME));
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
-	cacheFile = sceIoOpen( filePathName, PSP_O_RDONLY, 0777);
+	cacheFile = fopen( filePathName, "rb");
 	if (cacheFile<0)
 	{
 		needCreateCache = true;
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_CREAT, 0777 );
-	}else if(sceIoLseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+		cacheFile = fopen( filePathName, "wb+");
+	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
 	{
 		needCreateCache = true;
-		sceIoClose(cacheFile);
-		cacheFile = sceIoOpen( filePathName, PSP_O_RDWR|PSP_O_TRUNC, 0777 );
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "w+b" );
 	}
 	
 	// Load Gfx
@@ -640,8 +640,8 @@ static int shadfrceInit()
 		if ((uniCacheHead = (unsigned char *)malloc(0x1200000)) == NULL) return 1;
 		memset(uniCacheHead, 0, 0x1200000);
 		loadDecodeGfx02();
-		sceIoClose( cacheFile );
-		cacheFile = sceIoOpen( filePathName,PSP_O_RDONLY, 0777);
+		fclose(cacheFile);
+		cacheFile = fopen( filePathName, "rb");
 		free(uniCacheHead);
 		uniCacheHead=NULL;
 	}
@@ -748,7 +748,7 @@ static int shadfrceExit()
 }
 
 
-#ifndef BUILD_PSP
+#ifndef NDS
  #define X_SIZE	320
 #else
  #define X_SIZE	512

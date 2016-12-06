@@ -1,25 +1,17 @@
-#include <pspkernel.h>
-#include <pspctrl.h>
-#include <pspgu.h>
-#include <psppower.h>
-
 #include <stdio.h>
 #include <string.h>
-#include <pspdisplay.h>
-#include <png.h>
+//#include <png.h>
 
-#include "psp.h"
+#include "nds.h"
 #include "font.h"
 #include "burnint.h"
 #include "UniCache.h"
 #include "burner.h"
-#include "pspadhoc.h"
-
 
 #define find_rom_list_cnt	10
 
 short gameSpeedCtrl = 1;
-unsigned int hotButtons = (PSP_CTRL_SQUARE|PSP_CTRL_CIRCLE|PSP_CTRL_CROSS);
+unsigned int hotButtons = (KEY_A|KEY_B|KEY_Y);
 
 short screenMode=0;
 short wifiStatus=0;
@@ -42,6 +34,7 @@ int DoInputBlank(int bDipSwitch);
 static unsigned int bgW=0,bgH=0,bgIndex=0;
 static bool needPreview=true;
 
+#if 0
 static void screenshot(const char* filename)
 {
         u16* vram16;
@@ -157,6 +150,8 @@ static void loadImage(const unsigned char* imgBuf, const char* filename, unsigne
         png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
         fclose(fp);
 }
+#endif
+
 void processScreenMode()
 {
 	switch(screenMode)
@@ -167,7 +162,7 @@ void processScreenMode()
 			break;
 		case 1:
 		case 5:
-			gameScreenWidth=362;			
+			gameScreenWidth=162;			
 			break;		
 		case 2:
 		case 4:
@@ -232,57 +227,12 @@ static char *ui_main_menu[] = {
 	"Exit FinaBurn Alpha"	
 };
 
-static void update_status_str(char *batt_str)
-{
-	char batt_life_str[10];
-		int batt_life_per = scePowerGetBatteryLifePercent();
-		
-		if(batt_life_per < 0) {
-			strcpy(batt_str, "BATT. --%");
-		} else {
-			sprintf(batt_str, "BATT.%3d%%", batt_life_per);
-		}
-		
-		if(scePowerIsPowerOnline()) {
-			strcpy(batt_life_str, "[DC IN]");
-		} else {
-			int batt_life_time = scePowerGetBatteryLifeTime();
-			int batt_life_hour = (batt_life_time / 60) % 100;
-			int batt_life_min = batt_life_time % 60;
-			
-			if(batt_life_time < 0) {
-				strcpy(batt_life_str, "[--:--]");
-			} else {
-				sprintf(batt_life_str, "[%2d:%02d]", batt_life_hour, batt_life_min);
-			}
-		}
-
-	strcat(batt_str, batt_life_str);
-}
 void draw_ui_main()
 {
 	char buf[320];
-	if(bgIndex!=1)
-	{
-		if(access("bg1.png",0)==0)
-		{
-			loadImage(bgBuf,"bg1.png", &bgW, &bgH);
-			bgIndex=1;				
-		}
-	}
-	if(bgIndex!=1)
-	{
-		drawRect(GU_FRAME_ADDR(work_frame), 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, UI_BGCOLOR);
-	}else
-	{
-		drawImage(GU_FRAME_ADDR(work_frame), 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 
-			(unsigned short*)bgBuf, bgW, bgH);
-	}
-	
-	drawString(LBVer, GU_FRAME_ADDR(work_frame), 10, 10, UI_COLOR);
-	update_status_str(buf);
-	drawString(buf, GU_FRAME_ADDR(work_frame), 470 - getDrawStringLength(buf), 10, UI_COLOR);
-    drawRect(GU_FRAME_ADDR(work_frame), 8, 28, 464, 1, UI_COLOR);
+	drawRect((unsigned short*)up_screen_addr, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, UI_BGCOLOR);
+	drawString(LBVer, (unsigned short*)up_screen_addr, 10, 10, UI_COLOR);
+    drawRect((unsigned short*)up_screen_addr, 8, 28, 464, 1, UI_COLOR);
     
         
     for(int i=0; i<MENU_COUNT; i++)  {
@@ -355,17 +305,18 @@ void draw_ui_main()
 	    	sprintf( buf, ui_main_menu[i]);
     	}
     	drawString(buf, 
-	    			GU_FRAME_ADDR(work_frame), 
+	    			(unsigned short*)up_screen_addr, 
 	    			80+240*(i/10),
 	    			44 + (i%10) * 18, UI_COLOR);
 	}
-	drawRect(GU_FRAME_ADDR(work_frame), 2+240*(ui_mainmenu_select/10), 40+(ui_mainmenu_select%10)*18, 236, 18, UI_COLOR,0x40);
+	drawRect((unsigned short*)up_screen_addr, 2+240*(ui_mainmenu_select/10), 40+(ui_mainmenu_select%10)*18, 236, 18, UI_COLOR,0x40);
 	
-    drawRect(GU_FRAME_ADDR(work_frame), 8, 230, 464, 1, UI_COLOR);
-    drawString("FB Alpha contains parts of MAME & Final Burn. (C) 2004, Team FB Alpha.", GU_FRAME_ADDR(work_frame), 10, 238, UI_COLOR);
-    drawString("FinalBurn Alpha for PSP (C) 2008, OopsWare and LBICELYNE", GU_FRAME_ADDR(work_frame), 10, 255, UI_COLOR);
+    drawRect((unsigned short*)up_screen_addr, 8, 230, 464, 1, UI_COLOR);
+    drawString("FB Alpha contains parts of MAME & Final Burn. (C) 2004, Team FB Alpha.", (unsigned short*)up_screen_addr, 10, 238, UI_COLOR);
+    drawString("FinalBurn Alpha for PSP (C) 2008, OopsWare and LBICELYNE", (unsigned short*)up_screen_addr, 10, 255, UI_COLOR);
 	
 	//Draw preview
+	#if 0
 	if(ui_mainmenu_select==LOAD_GAME&&needPreview&&nBurnDrvSelect < nBurnDrvCount)
 	{
 	    strcpy(buf,szAppCachePath);
@@ -381,37 +332,22 @@ void draw_ui_main()
 			(unsigned short*)previewBuf, imgW, imgH);
 		}
 	}
-	
+	#endif
 }
 
 void draw_ui_browse(bool rebuiltlist)
 {
 	unsigned int bds = nBurnDrvSelect;
 	char buf[1024];
-	if(bgIndex!=2)
-	{
-		if(access("bg2.png",0)==0)
-		{
-			loadImage(bgBuf,"bg2.png", &bgW, &bgH);
-			bgIndex=2;				
-		}
-	}
-	if(bgIndex!=2)
-	{
-		drawRect(GU_FRAME_ADDR(work_frame), 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, UI_BGCOLOR);
-	}else
-	{
-		drawImage(GU_FRAME_ADDR(work_frame), 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 
-			(unsigned short*)bgBuf, bgW, bgH);
-	}
+	drawRect((unsigned short*)up_screen_addr, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, UI_BGCOLOR);
 
 	find_rom_count = findRomsInDir( rebuiltlist );
 
 	strcpy(buf, "PATH: ");
 	strcat(buf, ui_current_path);
 	
-	drawString(buf, GU_FRAME_ADDR(work_frame), 10, 10, UI_COLOR, 460);
-    drawRect(GU_FRAME_ADDR(work_frame), 8, 28, 464, 1, UI_COLOR);
+	drawString(buf, (unsigned short*)up_screen_addr, 10, 10, UI_COLOR, 460);
+    drawRect((unsigned short*)up_screen_addr, 8, 28, 464, 1, UI_COLOR);
 	
 	for(int i=0; i<find_rom_list_cnt; i++) {
 		char *p = getRomsFileName(i+find_rom_top);
@@ -421,37 +357,37 @@ void draw_ui_browse(bool rebuiltlist)
 			switch( getRomsFileStat(i+find_rom_top) ) {
 			case -2: // unsupport
 			case -3: // not working
-				drawString(p, GU_FRAME_ADDR(work_frame), 12, 44+i*18, R8G8B8_to_B5G6R5(0x808080), 180);
+				drawString(p, (unsigned short*)up_screen_addr, 12, 44+i*18, R8G8B8_to_B5G6R5(0x808080), 180);
 				break;
 			case -1: // directry
-				//drawString("<DIR>", GU_FRAME_ADDR(work_frame), 194, 44 + i*18, fc);
+				//drawString("<DIR>", (unsigned short*)up_screen_addr, 194, 44 + i*18, fc);
 				break;
 			default:
-				drawString(p, GU_FRAME_ADDR(work_frame), 12, 44+i*18, UI_COLOR, 180);
+				drawString(p, (unsigned short*)up_screen_addr, 12, 44+i*18, UI_COLOR, 180);
 			}
 		}
 		if ((i+find_rom_top) == find_rom_select) {
-			drawRect(GU_FRAME_ADDR(work_frame), 10, 40+i*18, 140, 18, UI_COLOR, 0x40);
+			drawRect((unsigned short*)up_screen_addr, 10, 40+i*18, 140, 18, UI_COLOR, 0x40);
 		}
 		if ( find_rom_count > find_rom_list_cnt ) {
-			drawRect(GU_FRAME_ADDR(work_frame), 154, 40, 5, 18 * find_rom_list_cnt, R8G8B8_to_B5G6R5(0x807060));
+			drawRect((unsigned short*)up_screen_addr, 154, 40, 5, 18 * find_rom_list_cnt, R8G8B8_to_B5G6R5(0x807060));
 		
-			drawRect(GU_FRAME_ADDR(work_frame), 154, 
+			drawRect((unsigned short*)up_screen_addr, 154, 
 					40 + find_rom_top * 18 * find_rom_list_cnt / find_rom_count , 5, 
 					find_rom_list_cnt * 18 * find_rom_list_cnt / find_rom_count, UI_COLOR);
 		} else
-			drawRect(GU_FRAME_ADDR(work_frame), 154, 40, 5, 18 * find_rom_list_cnt, UI_COLOR);
+			drawRect((unsigned short*)up_screen_addr, 154, 40, 5, 18 * find_rom_list_cnt, UI_COLOR);
 
 	}
 	
-    drawRect(GU_FRAME_ADDR(work_frame), 8, 230, 464, 1, UI_COLOR);
+    drawRect((unsigned short*)up_screen_addr, 8, 230, 464, 1, UI_COLOR);
 
 	nBurnDrvSelect = getRomsFileStat(find_rom_select);
 
 	strcpy(buf, "Game Info: ");
 	if ( nBurnDrvSelect < nBurnDrvCount)
 		strcat(buf, BurnDrvGetTextA( DRV_FULLNAME ) );
-    drawString(buf, GU_FRAME_ADDR(work_frame), 10, 238, UI_COLOR, 460);
+    drawString(buf, (unsigned short*)up_screen_addr, 10, 238, UI_COLOR, 460);
 
 	strcpy(buf, "Released by: ");
 	if ( nBurnDrvSelect < nBurnDrvCount ) {
@@ -462,9 +398,9 @@ void draw_ui_browse(bool rebuiltlist)
 		strcat(buf, BurnDrvGetTextA( DRV_SYSTEM ));
 		strcat(buf, " hardware)");
 	}
-    drawString(buf, GU_FRAME_ADDR(work_frame), 10, 255, UI_COLOR, 460);
+    drawString(buf, (unsigned short*)up_screen_addr, 10, 255, UI_COLOR, 460);
    
-
+   #if 0
     if (needPreview&&nBurnDrvSelect < nBurnDrvCount ) {
 	    strcpy(buf,szAppCachePath);
 		strcat(buf,BurnDrvGetTextA(DRV_NAME));
@@ -486,31 +422,18 @@ void draw_ui_browse(bool rebuiltlist)
 		{
 			unsigned int imgW,imgH;
 			loadImage(previewBuf,buf, &imgW, &imgH);
-			drawImage(GU_FRAME_ADDR(work_frame), 160, 40, 320, 180, 
+			drawImage((unsigned short*)up_screen_addr, 160, 40, 320, 180, 
 			(unsigned short*)previewBuf, imgW, imgH);
 			
 		}
     }
+	#endif
 	nBurnDrvSelect = bds;
 }
 
 static void return_to_game()
 {
-	if ( nPrevGame < nBurnDrvCount ) {
-		if(wifiStatus)
-			adhocInit(BurnDrvGetTextA(DRV_NAME));
-		else
-			adhocTerm();
-		if(wifiStatus!=2)
-		{
-				scePowerSetClockFrequency(
-								cpu_speeds[cpu_speeds_select].cpu, 
-								cpu_speeds[cpu_speeds_select].cpu, 
-								cpu_speeds[cpu_speeds_select].bus );				
-				sound_continue();
-		}			
-		setGameStage(0);
-	}
+	setGameStage(0);
 }
 
 static void process_key( int key, int down, int repeat )
@@ -522,14 +445,14 @@ static void process_key( int key, int down, int repeat )
 	case 1:		
 		//ui_mainmenu_select
 		switch( key ) {
-		case PSP_CTRL_UP:
+		case KEY_UP:
 			if (ui_mainmenu_select <= 0)
 				ui_mainmenu_select = MENU_COUNT-1;
 			else
 				ui_mainmenu_select--;
 			draw_ui_main();
 			break;
-		case PSP_CTRL_DOWN:
+		case KEY_DOWN:
 			if (ui_mainmenu_select >=MENU_COUNT-1 )
 				ui_mainmenu_select = 0;
 			else
@@ -537,7 +460,7 @@ static void process_key( int key, int down, int repeat )
 			draw_ui_main();
 			break;
 
-		case PSP_CTRL_LEFT:
+		case KEY_LEFT:
 			switch(ui_mainmenu_select) {
 			case LOAD_GAME:
 			case SAVE_GAME:
@@ -621,7 +544,7 @@ static void process_key( int key, int down, int repeat )
 				break;
 			}
 			break;
-		case PSP_CTRL_RIGHT:
+		case KEY_RIGHT:
 			switch(ui_mainmenu_select) {
 			case LOAD_GAME:
 			case SAVE_GAME:
@@ -708,7 +631,7 @@ static void process_key( int key, int down, int repeat )
 			}
 			break;
 			
-		case PSP_CTRL_CIRCLE:
+		case KEY_A:
 			switch( ui_mainmenu_select ) {
 			case SELECT_ROM:
 				setGameStage(2);
@@ -726,10 +649,6 @@ static void process_key( int key, int down, int repeat )
 									
 					if(!BurnStateLoad(ui_current_path,1,&DrvInitCallback))
 					{
-						scePowerSetClockFrequency(
-									cpu_speeds[cpu_speeds_select].cpu, 
-									cpu_speeds[cpu_speeds_select].cpu, 
-									cpu_speeds[cpu_speeds_select].bus );
 						setGameStage(0);
 						sound_continue();
 					}
@@ -748,11 +667,7 @@ static void process_key( int key, int down, int repeat )
 						strcat(ui_current_path,BurnDrvGetTextA(DRV_NAME));
 						sprintf(buf,"_%1u.png",saveIndex);	
 						strcat(ui_current_path,buf);
-						screenshot(ui_current_path);
-						scePowerSetClockFrequency(
-									cpu_speeds[cpu_speeds_select].cpu, 
-									cpu_speeds[cpu_speeds_select].cpu, 
-									cpu_speeds[cpu_speeds_select].bus );
+						//screenshot(ui_current_path);
 						setGameStage(0);
 						sound_continue();
 					}
@@ -762,13 +677,7 @@ static void process_key( int key, int down, int repeat )
 			case RESET_GAME:
 				if(nPrevGame != ~0U)
 				{					
-						scePowerSetClockFrequency(
-								cpu_speeds[cpu_speeds_select].cpu, 
-								cpu_speeds[cpu_speeds_select].cpu, 
-								cpu_speeds[cpu_speeds_select].bus );
-						resetGame();
-						if(wifiStatus==3)
-							wifiSend(WIFI_CMD_RESET);					
+					resetGame();
 				}
 				break;
 			case SCREEN_SHOT:
@@ -777,11 +686,7 @@ static void process_key( int key, int down, int repeat )
 						strcpy(ui_current_path,szAppCachePath);
 						strcat(ui_current_path,BurnDrvGetTextA(DRV_NAME));
 						strcat(ui_current_path,".png");
-						screenshot(ui_current_path);
-						scePowerSetClockFrequency(
-									cpu_speeds[cpu_speeds_select].cpu, 
-									cpu_speeds[cpu_speeds_select].cpu, 
-									cpu_speeds[cpu_speeds_select].bus );
+						//screenshot(ui_current_path);
 						setGameStage(0);
 						sound_continue();
 				}
@@ -790,7 +695,6 @@ static void process_key( int key, int down, int repeat )
 				if(nPrevGame != ~0U)
 				{					
 						return_to_game();
-						sendSyncGame();
 				}
 				break;
 			case EXIT_FBA:	// Exit
@@ -800,7 +704,7 @@ static void process_key( int key, int down, int repeat )
 			}
 			break;
 			
-		case PSP_CTRL_CROSS:
+		case KEY_B:
 			return_to_game();
 			break;
 		}
@@ -808,19 +712,19 @@ static void process_key( int key, int down, int repeat )
 	/* ---------------------------- Rom Browse ---------------------------- */
 	case 2:		
 		switch( key ) {
-		case PSP_CTRL_UP:
+		case KEY_UP:
 			if (find_rom_select == 0) break;
 			if (find_rom_top >= find_rom_select) find_rom_top--;
 			find_rom_select--;
 			draw_ui_browse(false);
 			break;
-		case PSP_CTRL_DOWN:
+		case KEY_DOWN:
 			if ((find_rom_select+1) >= find_rom_count) break;
 			find_rom_select++;
 			if ((find_rom_top + find_rom_list_cnt) <= find_rom_select) find_rom_top++;
 			draw_ui_browse(false);
 			break;
-		case PSP_CTRL_LTRIGGER:
+		case KEY_L:
 			find_rom_top=find_rom_top-find_rom_list_cnt;
 			find_rom_select=find_rom_select-find_rom_list_cnt;
 			if (find_rom_top < 0)
@@ -830,7 +734,7 @@ static void process_key( int key, int down, int repeat )
 			}
 			draw_ui_browse(false);
 			break;
-		case PSP_CTRL_RTRIGGER:
+		case KEY_R:
 			find_rom_top=find_rom_top+find_rom_list_cnt;
 			find_rom_select=find_rom_select+find_rom_list_cnt;
 			if (find_rom_select >= find_rom_count)
@@ -841,7 +745,7 @@ static void process_key( int key, int down, int repeat )
 			draw_ui_browse(false);
 			break;
 			
-		case PSP_CTRL_CIRCLE:
+		case KEY_A:
 			switch( getRomsFileStat(find_rom_select) ) {
 			case -1:	// directry
 			/*	{		// printf("change dir %s\n", getRomsFileName(find_rom_select) );
@@ -878,7 +782,6 @@ static void process_key( int key, int down, int repeat )
 						nPrevGame = ~0U;
 						DrvExit();
 						InpExit();
-						adhocTerm();
 						loadDefaultInput();
 						nCurrentFrame=0;
 						
@@ -917,7 +820,7 @@ static void process_key( int key, int down, int repeat )
 				
 			}
 			break;
-		case PSP_CTRL_CROSS:	// cancel
+		case KEY_B:	// cancel
 			setGameStage (1);
 			draw_ui_main();
 			break;
@@ -934,7 +837,7 @@ static void process_key( int key, int down, int repeat )
 int do_ui_key(unsigned int key)
 {
 	// mask keys
-	key &= PSP_CTRL_UP | PSP_CTRL_DOWN | PSP_CTRL_LEFT | PSP_CTRL_RIGHT | PSP_CTRL_LTRIGGER | PSP_CTRL_RTRIGGER | PSP_CTRL_CIRCLE | PSP_CTRL_CROSS ;
+	key &= KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT | KEY_L | KEY_R | KEY_A | KEY_B ;
 	static int prvkey = 0;
 	static int repeat = 0;
 	static int repeat_time = 0;
@@ -946,7 +849,7 @@ int do_ui_key(unsigned int key)
 		process_key( def, def & key, 0 );
 		if (def & key) {
 			// auto repeat up / down only
-			repeat = def & (PSP_CTRL_UP | PSP_CTRL_DOWN | PSP_CTRL_LEFT | PSP_CTRL_RIGHT | PSP_CTRL_LTRIGGER | PSP_CTRL_RTRIGGER);
+			repeat = def & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT | KEY_L | KEY_R);
 		} else repeat = 0;
 		prvkey = key;
 	} else {
@@ -963,24 +866,25 @@ int do_ui_key(unsigned int key)
 void ui_update_progress(float size, char * txt)
 {
 	if(bgIndex!=2)
-		drawRect( GU_FRAME_ADDR(work_frame), 10, 238, 460, 30, UI_BGCOLOR );
+		drawRect( (unsigned short*)up_screen_addr, 10, 238, 460, 30, UI_BGCOLOR );
 	else
-		drawImage(GU_FRAME_ADDR(work_frame), 10, 238, 460, 30, 
-			(unsigned short*)(bgBuf+238*PSP_LINE_SIZE*2+10*2), 460, 30);
-	drawRect( GU_FRAME_ADDR(work_frame), 10, 238, 460, 12, R8G8B8_to_B5G6R5(0x807060) );
-	drawRect( GU_FRAME_ADDR(work_frame), 10, 238, ui_process_pos, 12, R8G8B8_to_B5G6R5(0xffc090) );
+		drawImage((unsigned short*)up_screen_addr, 10, 238, 460, 30, 
+			(unsigned short*)(bgBuf+238*SCREEN_WIDTH*2+10*2), 460, 30);
+	drawRect( (unsigned short*)up_screen_addr, 10, 238, 460, 12, R8G8B8_to_B5G6R5(0x807060) );
+	drawRect( (unsigned short*)up_screen_addr, 10, 238, ui_process_pos, 12, R8G8B8_to_B5G6R5(0xffc090) );
 
 	int sz = (int)(460 * size + 0.5);
 	if (sz + ui_process_pos > 460) sz = 460 - ui_process_pos;
-	drawRect( GU_FRAME_ADDR(work_frame), 10 + ui_process_pos, 238, sz, 12, R8G8B8_to_B5G6R5(0xc09878) );
-	drawString(txt, GU_FRAME_ADDR(work_frame), 10, 255, UI_COLOR, 460);
+	drawRect( (unsigned short*)up_screen_addr, 10 + ui_process_pos, 238, sz, 12, R8G8B8_to_B5G6R5(0xc09878) );
+	drawString(txt, (unsigned short*)up_screen_addr, 10, 255, UI_COLOR, 460);
 	
 	ui_process_pos += sz;
 	if (ui_process_pos > 460) ui_process_pos = 460;
 
 	update_gui();
-	show_frame = draw_frame;
-	draw_frame = sceGuSwapBuffers();
+	//TODO:
+	//show_frame = draw_frame;
+	//draw_frame = sceGuSwapBuffers();
 }
 
 void ui_update_progress2(float size, const char * txt)
@@ -990,25 +894,25 @@ void ui_update_progress2(float size, const char * txt)
 	if ( txt ) ui_process_pos2 = sz;
 	else ui_process_pos2 += sz;
 	if ( ui_process_pos2 > 460 ) ui_process_pos2 = 460;
-	drawRect( GU_FRAME_ADDR(work_frame), 10, 245, ui_process_pos2, 3, R8G8B8_to_B5G6R5(0xf06050) );
+	drawRect( (unsigned short*)up_screen_addr, 10, 245, ui_process_pos2, 3, R8G8B8_to_B5G6R5(0xf06050) );
 	
 	if ( txt ) {
 		if(bgIndex!=2)	
-			drawRect( GU_FRAME_ADDR(work_frame), 10, 255, 460, 13, UI_BGCOLOR );
+			drawRect( (unsigned short*)up_screen_addr, 10, 255, 460, 13, UI_BGCOLOR );
 		else
-			drawImage(GU_FRAME_ADDR(work_frame), 10,  255, 460, 13, 
-			(unsigned short*)(bgBuf+255*PSP_LINE_SIZE*2+10*2), 460, 13);
-		drawString(txt, GU_FRAME_ADDR(work_frame), 10, 255, UI_COLOR, 460);	
+			drawImage((unsigned short*)up_screen_addr, 10,  255, 460, 13, 
+			(unsigned short*)(bgBuf+255*SCREEN_WIDTH*2+10*2), 460, 13);
+		drawString(txt, (unsigned short*)up_screen_addr, 10, 255, UI_COLOR, 460);	
 	}
 
 	update_gui();
-	show_frame = draw_frame;
-	draw_frame = sceGuSwapBuffers();
+	//TODO:
+	//show_frame = draw_frame;
+	//draw_frame = sceGuSwapBuffers();
 }
 void setGameStage(int stage)
 {
 	nGameStage=stage;
-	configureVertices();
 }
 
 

@@ -980,7 +980,7 @@ static int GetRoms()
 
 static int DrvDoReset()
 {
-#ifdef BUILD_PSP
+#ifdef NDS
 	extern void clear_gui_texture(int color, int w, int h);
 	clear_gui_texture( 0, 256, 256);
 #endif
@@ -1094,7 +1094,7 @@ static inline void draw_tile(int sy, int sx, int num, int color, int transp)
 
 			int pxl = Palette[color | src[0]];
 
-#ifdef BUILD_PSP
+#ifdef NDS
 			PutPix(pBurnDraw + ((y << 9) + x) * nBurnBpp, BurnHighCol(pxl >> 16, pxl >> 8, pxl, 0));
 #else
 			PutPix(pBurnDraw + ((y << 8) + x) * nBurnBpp, BurnHighCol(pxl >> 16, pxl >> 8, pxl, 0));

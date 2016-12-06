@@ -1,4 +1,5 @@
 #if !defined(_STATE_H)
+#include "string.h"
 
 #ifdef __cplusplus
  extern "C" {
