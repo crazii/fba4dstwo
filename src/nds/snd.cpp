@@ -12,7 +12,7 @@ unsigned char monoSound=0;
 
 static void ds2_play_sound()
 {
-	if(ds2_checkAudiobuff() >= 4 || !sound_active || sound_paused)
+	if(ds2_checkAudiobuff() >= 4)
 		return;	
 	
 	unsigned short* ds2_aubuff = (unsigned short*)ds2_getAudiobuff();
@@ -59,7 +59,8 @@ int sound_stop()
 
 void sound_next()
 {	
-	ds2_play_sound();
+	if(sound_active && !sound_paused)
+		ds2_play_sound();
 }
 
 void sound_pause()
