@@ -9,14 +9,16 @@
 
 //note: font(gui) directly write to screen buffer (DOWN_SCREEN, down_screen_addr, SCREEN_WIDTH, SCREEN_HEIGHT)
 
-#define find_rom_list_cnt	6
+#define find_rom_list_cnt	8
+#define menu_item_list_cnt	8
 #define menu_item_height 18
+#define INDENT 4
 
 short gameSpeedCtrl = 1;
 unsigned int hotButtons = (KEY_A|KEY_B|KEY_Y);
 short screenMode=0;
 short saveIndex=0;
-char LBVer[]="FinalBurn Alpha for NDS "SUB_VERSION" (ver: 1.0)";
+char LBVer[]="FB Alpha for DS2 "SUB_VERSION" (v1.0) by Crazii";
 static int find_rom_count = 0;
 static int find_rom_select = 0;
 static int find_rom_top = 0;
@@ -67,14 +69,16 @@ void draw_ui_main()
 {
 	char buf[320];
 	int x = 0, y = 0;
+	//clear
 	drawRect((unsigned short*)down_screen_addr, x, y, SCREEN_WIDTH, SCREEN_HEIGHT, UI_BGCOLOR);
-	x = 10; y = 10;
+	x = 2; y = 2;
 	
 	drawString(LBVer, (unsigned short*)down_screen_addr, x, y, UI_COLOR);
-	y += FONT_HEIGHT + 6;	//font + spacing
+	y += FONT_HEIGHT + 3;	//font + spacing
 	x -= 2;
-	
+	//draw line
     drawRect((unsigned short*)down_screen_addr, x, y, SCREEN_WIDTH-x*2, 1, UI_COLOR);
+	y += 5;
     
     for(int i=0; i<MENU_COUNT; i++)  {
 	    	    
@@ -109,14 +113,15 @@ void draw_ui_main()
     	}
     	drawString(buf, 
 	    			(unsigned short*)down_screen_addr, 
-	    			40+SCREEN_WIDTH/2*(i/10),
-	    			44 + (i%10) * menu_item_height, UI_COLOR);
+	    			INDENT+SCREEN_WIDTH/2*(i/menu_item_list_cnt),
+	    			y + (i%menu_item_list_cnt) * menu_item_height, UI_COLOR);
 	}
-	drawRect((unsigned short*)down_screen_addr, 2+SCREEN_WIDTH/2*(ui_mainmenu_select/10), 40+(ui_mainmenu_select%10)*menu_item_height, SCREEN_HEIGHT-FONT_HEIGHT*2, menu_item_height, UI_COLOR,0x40);
+	drawRect((unsigned short*)down_screen_addr, INDENT+SCREEN_WIDTH/2*(ui_mainmenu_select/menu_item_list_cnt), y-2+(ui_mainmenu_select%menu_item_list_cnt)*menu_item_height,
+		(SCREEN_WIDTH-8)/2, menu_item_height, UI_COLOR,0x40);
 	
-    drawRect((unsigned short*)down_screen_addr, x, SCREEN_HEIGHT-FONT_HEIGHT*2-1, SCREEN_WIDTH-x*2, 1, UI_COLOR);
-    drawString("FB Alpha contains parts of MAME & Final Burn. (C) 2004, Team FB Alpha.", (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT*2, UI_COLOR);
-    drawString("FinalBurn Alpha for DS (C) 2008, Crazii", (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR);	
+    drawRect((unsigned short*)down_screen_addr, x, SCREEN_HEIGHT-FONT_HEIGHT*2-3, SCREEN_WIDTH-x*2, 1, UI_COLOR);
+    drawString("FBA contains parts of MAME & Final Burn.", (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, UI_COLOR);
+	drawString("(C) 2004, Team FB Alpha.", (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR);
 }
 
 void draw_ui_browse(bool rebuiltlist)
@@ -130,11 +135,12 @@ void draw_ui_browse(bool rebuiltlist)
 	strcpy(buf, "PATH: ");
 	strcat(buf, ui_current_path);
 	
-	int x = 10, y = 10;
+	int x = 2, y = 2;
 	drawString(buf, (unsigned short*)down_screen_addr, x, y, UI_COLOR, SCREEN_WIDTH-20);
-	y += FONT_HEIGHT + 6;	//font + spacing
+	y += FONT_HEIGHT + 3;	//font + spacing
 	x -= 2;
     drawRect((unsigned short*)down_screen_addr, x, y, SCREEN_WIDTH-x*2, 1, UI_COLOR);
+	y += 3;
 	
 	for(int i=0; i<find_rom_list_cnt; i++) {
 		char *p = getRomsFileName(i+find_rom_top);
@@ -144,38 +150,39 @@ void draw_ui_browse(bool rebuiltlist)
 			switch( getRomsFileStat(i+find_rom_top) ) {
 			case -2: // unsupport
 			case -3: // not working
-				drawString(p, (unsigned short*)down_screen_addr, 12, 44+i*menu_item_height, R8G8B8_to_B5G6R5(0x808080), SCREEN_WIDTH/2-20);
+				drawString(p, (unsigned short*)down_screen_addr, INDENT, y+i*menu_item_height, R8G8B8_to_B5G6R5(0x808080), (SCREEN_WIDTH-8)/2);
 				break;
 			case -1: // directry
 				break;
 			default:
-				drawString(p, (unsigned short*)down_screen_addr, 12, 44+i*menu_item_height, UI_COLOR, SCREEN_WIDTH/2-20);
+				drawString(p, (unsigned short*)down_screen_addr, INDENT, y+i*menu_item_height, UI_COLOR, (SCREEN_WIDTH-8)/2);
 			}
 		}
 		if ((i+find_rom_top) == find_rom_select) {
-			drawRect((unsigned short*)down_screen_addr, 10, 40+i*menu_item_height, 140, menu_item_height, UI_COLOR, 0x40);
+			drawRect((unsigned short*)down_screen_addr, INDENT, y+i*menu_item_height, (SCREEN_WIDTH-8)/2, menu_item_height, UI_COLOR, 0x40);
 		}
+		//vscroll bar
 		if ( find_rom_count > find_rom_list_cnt ) {
-			drawRect((unsigned short*)down_screen_addr, 154, 40, 5, menu_item_height * find_rom_list_cnt, R8G8B8_to_B5G6R5(0x807060));
+			drawRect((unsigned short*)down_screen_addr, SCREEN_WIDTH/2, y, 5, menu_item_height * find_rom_list_cnt, R8G8B8_to_B5G6R5(0x807060));
 		
-			drawRect((unsigned short*)down_screen_addr, 154, 
-					40 + find_rom_top * menu_item_height * find_rom_list_cnt / find_rom_count , 5, 
+			drawRect((unsigned short*)down_screen_addr, SCREEN_WIDTH/2, 
+					y + find_rom_top * menu_item_height * find_rom_list_cnt / find_rom_count , 5, 
 					find_rom_list_cnt * menu_item_height * find_rom_list_cnt / find_rom_count, UI_COLOR);
 		} else
-			drawRect((unsigned short*)down_screen_addr, 154, 40, 5, menu_item_height * find_rom_list_cnt, UI_COLOR);
+			drawRect((unsigned short*)down_screen_addr, SCREEN_WIDTH/2, y, 5, menu_item_height * find_rom_list_cnt, UI_COLOR);
 
 	}
 	
-    drawRect((unsigned short*)down_screen_addr, x, SCREEN_HEIGHT-FONT_HEIGHT*3, SCREEN_WIDTH-x*2, 1, UI_COLOR);
+    drawRect((unsigned short*)down_screen_addr, x, SCREEN_HEIGHT-FONT_HEIGHT*2-3, SCREEN_WIDTH-x*2, 1, UI_COLOR);
 
 	nBurnDrvSelect = getRomsFileStat(find_rom_select);
 
-	strcpy(buf, "Game Info: ");
+	*buf = '\0';
 	if ( nBurnDrvSelect < nBurnDrvCount)
 		strcat(buf, BurnDrvGetTextA( DRV_FULLNAME ) );
-    drawString(buf, (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT*2, UI_COLOR, SCREEN_WIDTH-20);
+    drawString(buf, (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, UI_COLOR, SCREEN_WIDTH);
 
-	strcpy(buf, "Released by: ");
+	*buf = '\0';
 	if ( nBurnDrvSelect < nBurnDrvCount ) {
 		strcat(buf, BurnDrvGetTextA( DRV_MANUFACTURER ));
 		strcat(buf, " (");
@@ -184,7 +191,7 @@ void draw_ui_browse(bool rebuiltlist)
 		strcat(buf, BurnDrvGetTextA( DRV_SYSTEM ));
 		strcat(buf, " hardware)");
 	}
-    drawString(buf, (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR, SCREEN_WIDTH-20);
+    drawString(buf, (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR, SCREEN_WIDTH);
 	nBurnDrvSelect = bds;
 }
 
@@ -259,10 +266,8 @@ static void process_key( int key, int down, int repeat )
 				draw_ui_main();
 				break;
 			default:
-				if(ui_mainmenu_select>=10)
-					ui_mainmenu_select=ui_mainmenu_select-10;
-				else
-					ui_mainmenu_select=ui_mainmenu_select+10;
+				if(ui_mainmenu_select>=menu_item_list_cnt && ui_mainmenu_select-menu_item_list_cnt >= 0)
+					ui_mainmenu_select=ui_mainmenu_select-menu_item_list_cnt;
 				draw_ui_main();
 				break;
 			}
@@ -303,10 +308,8 @@ static void process_key( int key, int down, int repeat )
 				draw_ui_main();
 				break;
 			default:
-				if(ui_mainmenu_select>=10)
-					ui_mainmenu_select=ui_mainmenu_select-10;
-				else
-					ui_mainmenu_select=ui_mainmenu_select+10;
+				if(ui_mainmenu_select<menu_item_list_cnt && ui_mainmenu_select+menu_item_list_cnt < MENU_COUNT)
+					ui_mainmenu_select=ui_mainmenu_select+menu_item_list_cnt;
 				draw_ui_main();
 				break;
 			}
@@ -450,10 +453,10 @@ static void process_key( int key, int down, int repeat )
 						nCurrentFrame=0;
 						
 					}
-					
+									
 					nBurnDrvSelect = (unsigned int)getRomsFileStat( find_rom_select );
 					if (nBurnDrvSelect <= nBurnDrvCount && BurnDrvIsWorking() ) {
-						
+												
 						setGameStage(3);
 						ui_process_pos = 0;
 
@@ -474,10 +477,6 @@ static void process_key( int key, int down, int repeat )
 						nBurnDrvSelect = ~0U; 
 
 					nPrevGame = nBurnDrvSelect;
-											
-					//if (nBurnDrvSelect == ~0U) {
-					//	bprintf(0, "unkown rom %s", getRomsFileName(find_rom_select));
-					//}
 				}
 				
 				
@@ -529,14 +528,14 @@ int do_ui_key(unsigned int key)
 
 void ui_update_progress(float size, char * txt)
 {
-	drawRect( (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT*2, SCREEN_WIDTH-20, 30, UI_BGCOLOR );
-	drawRect( (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT*2, SCREEN_WIDTH-20, 12, R8G8B8_to_B5G6R5(0x807060) );
-	drawRect( (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT*2, ui_process_pos, 12, R8G8B8_to_B5G6R5(0xffc090) );
+	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, SCREEN_WIDTH, 30, UI_BGCOLOR );
+	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, SCREEN_WIDTH, 12, R8G8B8_to_B5G6R5(0x807060) );
+	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, ui_process_pos, 12, R8G8B8_to_B5G6R5(0xffc090) );
 
 	int sz = (int)((SCREEN_WIDTH-20) * size + 0.5);
 	if (sz + ui_process_pos > (SCREEN_WIDTH-20)) sz = (SCREEN_WIDTH-20) - ui_process_pos;
-	drawRect( (unsigned short*)down_screen_addr, 10 + ui_process_pos, SCREEN_HEIGHT-FONT_HEIGHT*2, sz, 12, R8G8B8_to_B5G6R5(0xc09878) );
-	drawString(txt, (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR, (SCREEN_WIDTH-20));
+	drawRect( (unsigned short*)down_screen_addr, 0 + ui_process_pos, SCREEN_HEIGHT-FONT_HEIGHT*2, sz, 12, R8G8B8_to_B5G6R5(0xc09878) );
+	drawString(txt, (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR, (SCREEN_WIDTH-20));
 	
 	ui_process_pos += sz;
 	if (ui_process_pos > (SCREEN_WIDTH-20)) ui_process_pos = (SCREEN_WIDTH-20);
@@ -551,11 +550,11 @@ void ui_update_progress2(float size, const char * txt)
 	if ( txt ) ui_process_pos2 = sz;
 	else ui_process_pos2 += sz;
 	if ( ui_process_pos2 > (SCREEN_WIDTH-20) ) ui_process_pos2 = (SCREEN_WIDTH-20);
-	drawRect( (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT-10, ui_process_pos2, 3, R8G8B8_to_B5G6R5(0xf06050) );
+	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT-10, ui_process_pos2, 3, R8G8B8_to_B5G6R5(0xf06050) );
 	
 	if ( txt ) {
-		drawRect( (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT, (SCREEN_WIDTH-20), 13, UI_BGCOLOR );
-		drawString(txt, (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR, (SCREEN_WIDTH-20));	
+		drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT, SCREEN_WIDTH, 13, UI_BGCOLOR );
+		drawString(txt, (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR, (SCREEN_WIDTH-20));	
 	}
 
 	update_gui();

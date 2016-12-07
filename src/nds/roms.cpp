@@ -13,8 +13,6 @@ typedef struct rom_ent {
 
 static ROM_FILE_ENT * pRom_ent = NULL;
 static int rom_count = 0;
-static dirent* fi;
-
 
 static inline int stricmp(const char* lhs, const char* rhs)
 {
@@ -46,7 +44,14 @@ static int FindDrvInfoByName(char * fn)
 static int isValidFile(dirent * pfd, ROM_FILE_ENT * pre)
 {
 	struct stat st;
-	lstat(pfd->d_name, &st);
+	
+	char fullpath[MAX_PATH];
+	strcpy(fullpath, ui_current_path);
+	strcat(fullpath, "/");
+	strcat(fullpath, pfd->d_name);
+	
+	lstat(fullpath, &st);
+
 	if ( (st.st_mode&S_IFDIR) ) {
 		if ( strcmp(".", pfd->d_name) == 0 ) return 0;
 		if ( pre ) {
@@ -60,7 +65,7 @@ static int isValidFile(dirent * pfd, ROM_FILE_ENT * pre)
 	
 	if ( pre ) {
 		strcpy( pre->name, pfd->d_name );
-		pre->stat = FindDrvInfoByName( pfd->d_name );;
+		pre->stat = FindDrvInfoByName( pfd->d_name );
 		if ( (unsigned int)pre->stat >= nBurnDrvCount ) pre->stat = -2;
 	}
 	return 1;
@@ -71,6 +76,8 @@ static int findloop( ROM_FILE_ENT * pre )
 	int count = 0;
 	
 	DIR* dir = opendir(ui_current_path);
+	dirent* fi;
+	
 	if (dir) {
 		while ( (fi=readdir(dir))  ) {
 			if ( isValidFile(fi, pre) ) {

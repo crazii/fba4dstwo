@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fs_api.h>
+#include <ds2_malloc.h>
 #include "zlib.h"
 #include "unzip.h"
 

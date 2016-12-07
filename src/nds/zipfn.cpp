@@ -5,6 +5,16 @@
 static unzFile Zip=NULL;
 static int nCurrFile=0; // The current file we are pointing to
 
+extern "C" void zprintf(int s, char* pszFormat, ...)
+{
+	va_list vaFormat;
+	va_start(vaFormat, pszFormat);
+	char buf[256];
+	vsprintf(buf, pszFormat, vaFormat);
+	va_end(vaFormat);
+	bprintf(s, pszFormat);
+}
+
 int ZipOpen(char *szZip)
 {
   Zip=unzOpen(szZip);

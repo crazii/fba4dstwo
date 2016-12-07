@@ -298,6 +298,7 @@ $(NAME) : $(BIN) $(ELF)
 	$(NM) $(ELF) | sort > $(BIN:.bin=.sym)
 	$(OBJDUMP) -h $(ELF) > $(BIN:.bin=.map)
 	@$(FIXUP) $(BIN) $@
+	#-@cp ${BINDIR}/gamelist.txt $(dir $(NAME))
 
 ifdef	DEBUG
 

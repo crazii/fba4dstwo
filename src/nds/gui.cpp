@@ -23,7 +23,7 @@ int AppDebugPrintf(int nStatus, char* pszFormat, ...)
 	va_start(vaFormat, pszFormat);
 	char buf[256];
 	
-	sprintf(buf, pszFormat, vaFormat);
+	vsprintf(buf, pszFormat, vaFormat);
 	
 	unsigned short fc;
 	switch (nStatus) {
@@ -33,6 +33,7 @@ int AppDebugPrintf(int nStatus, char* pszFormat, ...)
 	default:				fc = R8G8B8_to_B5G6R5(0x404040); break;
 	}
 	
+	drawRect((unsigned short*)down_screen_addr, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
 	drawRect((unsigned short*)down_screen_addr, 0, 0, SCREEN_WIDTH, 20, fc);
 	drawString(buf, (unsigned short*)down_screen_addr, 4, 4, R8G8B8_to_B5G6R5(0xffffff));
 
@@ -41,16 +42,20 @@ int AppDebugPrintf(int nStatus, char* pszFormat, ...)
 	
 	va_end(vaFormat);
 	
-	ds2_flipScreen(DOWN_SCREEN, 0);	
+	ds2_flipScreen(DOWN_SCREEN, 2);
+	
+	struct key_buf pad;
+	do {ds2_getrawInput(&pad);}while((pad.key&KEY_SELECT) == 0);
+	do {ds2_getrawInput(&pad);}while((pad.key&KEY_SELECT) != 0);
 	return 0;
 }
 
 
 void init_gui()
 {
-	ds2_clearScreen(DOWN_SCREEN, 0);
+	ds2_clearScreen(DOWN_SCREEN, 2);
 
-	//bprintf = AppDebugPrintf;
+	bprintf = AppDebugPrintf;
 	
 	BurnExtProgressRangeCallback = myProgressRangeCallback;
 	BurnExtProgressUpdateCallback = myProgressUpdateCallback;
@@ -63,7 +68,7 @@ void exit_gui()
 
 void update_gui()
 {
-	ds2_flipScreen(DOWN_SCREEN, 0);
+	ds2_flipScreen(DOWN_SCREEN, 2);
 }
 
 void clear_gui_texture(int color, int w, int h)

@@ -2,6 +2,8 @@
 #define _H_NDS_
 #include <ds2io.h>
 #include <ds2_cpu.h>
+#include <ds2_malloc.h>
+#define memalign(n, size) malloc(size)
 
 #define SCREEN_WIDTH	256
 #define SCREEN_HEIGHT	192
