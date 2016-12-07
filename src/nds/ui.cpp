@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-//#include <png.h>
 
 #include "nds.h"
 #include "font.h"
@@ -8,17 +7,16 @@
 #include "UniCache.h"
 #include "burner.h"
 
-#define find_rom_list_cnt	10
+//note: font(gui) directly write to screen buffer (DOWN_SCREEN, down_screen_addr, SCREEN_WIDTH, SCREEN_HEIGHT)
+
+#define find_rom_list_cnt	6
+#define menu_item_height 18
 
 short gameSpeedCtrl = 1;
 unsigned int hotButtons = (KEY_A|KEY_B|KEY_Y);
-
 short screenMode=0;
-short wifiStatus=0;
 short saveIndex=0;
-short gameScreenWidth=SCREEN_WIDTH, gameScreenHeight=SCREEN_HEIGHT;
-bool enableJoyStick=true;
-char LBVer[]="FinalBurn Alpha for PSP "SUB_VERSION" (ver: LB_V12.5.4)";
+char LBVer[]="FinalBurn Alpha for NDS "SUB_VERSION" (ver: 1.0)";
 static int find_rom_count = 0;
 static int find_rom_select = 0;
 static int find_rom_top = 0;
@@ -31,159 +29,13 @@ static int ui_mainmenu_select = 0;
 static int ui_process_pos = 0;
 int InpMake(unsigned int);
 int DoInputBlank(int bDipSwitch);
-static unsigned int bgW=0,bgH=0,bgIndex=0;
-static bool needPreview=true;
-
-#if 0
-static void screenshot(const char* filename)
-{
-        u16* vram16;
-       	int VideoBufferWidth,VideoBufferHeight;
-      	
-        int i, x, y;
-        png_structp png_ptr;
-        png_infop info_ptr;
-        FILE* fp;
-        u8* line;
-        
-        fp = fopen(filename, "wb");
-        if (!fp) return;
-        png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-        if (!png_ptr) return;
-        info_ptr = png_create_info_struct(png_ptr);
-        if (!info_ptr) {
-                png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-                fclose(fp);
-                return;
-        }
-        png_init_io(png_ptr, fp);
-        BurnDrvGetFullSize(&VideoBufferWidth, &VideoBufferHeight);
-        png_set_IHDR(png_ptr, info_ptr, VideoBufferWidth, VideoBufferHeight,
-                8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
-                PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-        png_write_info(png_ptr, info_ptr);
-        line = (u8*)tmpBuf;         
-        vram16 = GU_FRAME_ADDR(tex_frame);
-        for (y = 0; y < VideoBufferHeight; y++) {
-                for (i = 0, x = 0; x < VideoBufferWidth; x++) {
-                        u32 color = 0;
-                        u8 r = 0, g = 0, b = 0;
-                                         color = vram16[x + y * PSP_LINE_SIZE];
-                                        r = (color & 0x1f) << 3; 
-                                        g = ((color >> 5) & 0x3f) << 2 ;
-                                        b = ((color >> 11) & 0x1f) << 3 ;
-   		                line[i++] = r;
-                        line[i++] = g;
-                        line[i++] = b;
-                }
-                png_write_row(png_ptr, line);
-        }
-        //free(line);
-        png_write_end(png_ptr, info_ptr);
-        png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-        fclose(fp);
-}
-
-static void user_warning_fn(png_structp png_ptr, png_const_charp warning_msg)
-{
-        // ignore PNG warnings
-}
-
-static void loadImage(const unsigned char* imgBuf, const char* filename, unsigned int* previewWidth, unsigned int* previewHeight)
-{
-
-        u16* vram16;
-
-
-        png_structp png_ptr;
-        png_infop info_ptr;
-        unsigned int sig_read = 0;
-
-        int bit_depth, color_type, interlace_type, x, y;
-        u32* line;
-        FILE *fp;
-
-        if ((fp = fopen(filename, "rb")) == NULL) return;
-        png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-        if (png_ptr == NULL) {
-                fclose(fp);
-                return;
-        }
-        png_set_error_fn(png_ptr, (png_voidp) NULL, (png_error_ptr) NULL, user_warning_fn);
-        info_ptr = png_create_info_struct(png_ptr);
-        if (info_ptr == NULL) {
-                fclose(fp);
-                png_destroy_read_struct(&png_ptr, png_infopp_NULL, png_infopp_NULL);
-                return;
-        }
-        png_init_io(png_ptr, fp);
-        png_set_sig_bytes(png_ptr, sig_read);
-        png_read_info(png_ptr, info_ptr);
-        png_get_IHDR(png_ptr, info_ptr, (png_uint_32*)previewWidth, (png_uint_32*)previewHeight, &bit_depth, &color_type, &interlace_type, int_p_NULL, int_p_NULL);
-        png_set_strip_16(png_ptr);
-        png_set_packing(png_ptr);
-        if (color_type == PNG_COLOR_TYPE_PALETTE) png_set_palette_to_rgb(png_ptr);
-        if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) png_set_gray_1_2_4_to_8(png_ptr);
-        if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) png_set_tRNS_to_alpha(png_ptr);
-        png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
-        line = (u32*)tmpBuf; 
-        if (!line) {
-                fclose(fp);
-                png_destroy_read_struct(&png_ptr, png_infopp_NULL, png_infopp_NULL);
-                return;
-        }
-        vram16 = (u16*)imgBuf;
-        for (y = 0; y < *previewHeight; y++) {
-                png_read_row(png_ptr, (u8*) line, png_bytep_NULL);
-                for (x = 0; x < *previewWidth; x++) {
-                        u32 color32 = line[x];
-                        u16 color16;
-                        int r = color32 & 0xff;
-                        int g = (color32 >> 8) & 0xff;
-                        int b = (color32 >> 16) & 0xff;
-                                        color16 = (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
-                                        vram16[x + y * PSP_LINE_SIZE] = color16;
-                  }
-        }
-
-        png_read_end(png_ptr, info_ptr);
-        png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
-        fclose(fp);
-}
-#endif
-
-void processScreenMode()
-{
-	switch(screenMode)
-	{
-		case 3:
-		case 7:
-			gameScreenWidth=204;			
-			break;
-		case 1:
-		case 5:
-			gameScreenWidth=162;			
-			break;		
-		case 2:
-		case 4:
-		case 6:
-		default:
-			gameScreenWidth=SCREEN_WIDTH;			
-			break;
-	}
-}
 
 int DrvInitCallback()
 {
 	return DrvInit(nBurnDrvSelect,false);
 }
 
-
-
-static struct {
-	int cpu, bus; 
-} cpu_speeds[] = { { 222, 111}, { 266, 133}, { 300, 150}, { 333, 166} };
-
+int cpu_speeds[] = { 336, 350, 384, 396 };
 static int cpu_speeds_select = 3;
 
 enum uiMainIndex
@@ -192,17 +44,9 @@ enum uiMainIndex
 	LOAD_GAME,
 	SAVE_GAME,
 	RESET_GAME,
-	SCREEN_SHOT,
 	CONTROLLER,
 	SKIP_FRAMES,
-	SCREEN_MODE,
-	GAME_SCREEN_WIDTH,
-	GAME_SCREEN_HEIGHT,
 	CPU_SPEED,
-	JOYSTICK,
-	WIFI_GAME,
-	SYNC_GAME,
-	PREVIEW,
 	MONO_SOUND,
 	EXIT_FBA,
 	MENU_COUNT
@@ -212,17 +56,9 @@ static char *ui_main_menu[] = {
 	"%1u Load Game ",
 	"%1u Save Game ",
 	"Reset Game ",
-	"Screen Shot ",
 	"Controller: %1uP ",
 	"Max Skip Frames: %d",
-	"Screen Mode: %u ",
-	"Screen Width: %3u ",
-	"Screen Height: %3u ",
 	"CPU Speed: %3dMHz ",
-	"JoyStick: %s ",
-	"Wifi Game: %s ",
-	"P2P Sync Game ",
-	"Preview: %s ",
 	"Mono Sound: %s ",
 	"Exit FinaBurn Alpha"	
 };
@@ -230,11 +66,16 @@ static char *ui_main_menu[] = {
 void draw_ui_main()
 {
 	char buf[320];
-	drawRect((unsigned short*)up_screen_addr, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, UI_BGCOLOR);
-	drawString(LBVer, (unsigned short*)up_screen_addr, 10, 10, UI_COLOR);
-    drawRect((unsigned short*)up_screen_addr, 8, 28, 464, 1, UI_COLOR);
+	int x = 0, y = 0;
+	drawRect((unsigned short*)down_screen_addr, x, y, SCREEN_WIDTH, SCREEN_HEIGHT, UI_BGCOLOR);
+	x = 10; y = 10;
+	
+	drawString(LBVer, (unsigned short*)down_screen_addr, x, y, UI_COLOR);
+	y += FONT_HEIGHT + 6;	//font + spacing
+	x -= 2;
+	
+    drawRect((unsigned short*)down_screen_addr, x, y, SCREEN_WIDTH-x*2, 1, UI_COLOR);
     
-        
     for(int i=0; i<MENU_COUNT; i++)  {
 	    	    
 	    switch ( i ) {
@@ -254,46 +95,8 @@ void draw_ui_main()
 	    case SKIP_FRAMES:
 	    	sprintf( buf, ui_main_menu[i],gameSpeedCtrl );
 			break;
-		case SCREEN_MODE:
-	    	sprintf( buf, ui_main_menu[i],screenMode );
-			break;
-		case GAME_SCREEN_WIDTH:
-	    	sprintf( buf, ui_main_menu[i],gameScreenWidth );
-			break;
-		case GAME_SCREEN_HEIGHT:
-	    	sprintf( buf, ui_main_menu[i],gameScreenHeight );
-			break;		
 	    case CPU_SPEED:
-	    	sprintf( buf, ui_main_menu[i], cpu_speeds[cpu_speeds_select].cpu );
-			break;
-		case JOYSTICK:
-			if(enableJoyStick)
-	    		sprintf( buf, ui_main_menu[i], "ENABLED" );
-	    	else
-	    		sprintf( buf, ui_main_menu[i], "DISABLED" );
-			break;
-		case WIFI_GAME:
-			switch(wifiStatus)
-			{
-				case 1:
-					sprintf( buf, ui_main_menu[i], "HOST" );
-					break;
-				case 2:
-					sprintf( buf, ui_main_menu[i], "CLIENT" );
-					break;
-				case 3:
-					sprintf( buf, ui_main_menu[i], "P2P" );
-					break;
-				default:
-					sprintf( buf, ui_main_menu[i], "OFF" );
-					break;
-			}
-			break;
-		case PREVIEW:
-			if(needPreview)
-				sprintf( buf, ui_main_menu[i], "ON" );
-			else
-				sprintf( buf, ui_main_menu[i], "OFF" );
+	    	sprintf( buf, ui_main_menu[i], cpu_speeds[cpu_speeds_select] );
 			break;
 		case MONO_SOUND:
 			if(monoSound==1)
@@ -305,49 +108,33 @@ void draw_ui_main()
 	    	sprintf( buf, ui_main_menu[i]);
     	}
     	drawString(buf, 
-	    			(unsigned short*)up_screen_addr, 
-	    			80+240*(i/10),
-	    			44 + (i%10) * 18, UI_COLOR);
+	    			(unsigned short*)down_screen_addr, 
+	    			40+SCREEN_WIDTH/2*(i/10),
+	    			44 + (i%10) * menu_item_height, UI_COLOR);
 	}
-	drawRect((unsigned short*)up_screen_addr, 2+240*(ui_mainmenu_select/10), 40+(ui_mainmenu_select%10)*18, 236, 18, UI_COLOR,0x40);
+	drawRect((unsigned short*)down_screen_addr, 2+SCREEN_WIDTH/2*(ui_mainmenu_select/10), 40+(ui_mainmenu_select%10)*menu_item_height, SCREEN_HEIGHT-FONT_HEIGHT*2, menu_item_height, UI_COLOR,0x40);
 	
-    drawRect((unsigned short*)up_screen_addr, 8, 230, 464, 1, UI_COLOR);
-    drawString("FB Alpha contains parts of MAME & Final Burn. (C) 2004, Team FB Alpha.", (unsigned short*)up_screen_addr, 10, 238, UI_COLOR);
-    drawString("FinalBurn Alpha for PSP (C) 2008, OopsWare and LBICELYNE", (unsigned short*)up_screen_addr, 10, 255, UI_COLOR);
-	
-	//Draw preview
-	#if 0
-	if(ui_mainmenu_select==LOAD_GAME&&needPreview&&nBurnDrvSelect < nBurnDrvCount)
-	{
-	    strcpy(buf,szAppCachePath);
-		strcat(buf,BurnDrvGetTextA(DRV_NAME));
-		sprintf(buf+300,"_%1u.png",saveIndex);	
-		strcat(buf,buf+300);
-		
-		if(access(buf,0)==0)
-		{
-			unsigned int imgW,imgH;
-			loadImage(previewBuf,buf, &imgW, &imgH);
-			drawImage(GU_FRAME_ADDR(work_frame), 80, 90, 320, 180, 
-			(unsigned short*)previewBuf, imgW, imgH);
-		}
-	}
-	#endif
+    drawRect((unsigned short*)down_screen_addr, x, SCREEN_HEIGHT-FONT_HEIGHT*2-1, SCREEN_WIDTH-x*2, 1, UI_COLOR);
+    drawString("FB Alpha contains parts of MAME & Final Burn. (C) 2004, Team FB Alpha.", (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT*2, UI_COLOR);
+    drawString("FinalBurn Alpha for DS (C) 2008, Crazii", (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR);	
 }
 
 void draw_ui_browse(bool rebuiltlist)
 {
 	unsigned int bds = nBurnDrvSelect;
 	char buf[1024];
-	drawRect((unsigned short*)up_screen_addr, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, UI_BGCOLOR);
+	drawRect((unsigned short*)down_screen_addr, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, UI_BGCOLOR);
 
 	find_rom_count = findRomsInDir( rebuiltlist );
 
 	strcpy(buf, "PATH: ");
 	strcat(buf, ui_current_path);
 	
-	drawString(buf, (unsigned short*)up_screen_addr, 10, 10, UI_COLOR, 460);
-    drawRect((unsigned short*)up_screen_addr, 8, 28, 464, 1, UI_COLOR);
+	int x = 10, y = 10;
+	drawString(buf, (unsigned short*)down_screen_addr, x, y, UI_COLOR, SCREEN_WIDTH-20);
+	y += FONT_HEIGHT + 6;	//font + spacing
+	x -= 2;
+    drawRect((unsigned short*)down_screen_addr, x, y, SCREEN_WIDTH-x*2, 1, UI_COLOR);
 	
 	for(int i=0; i<find_rom_list_cnt; i++) {
 		char *p = getRomsFileName(i+find_rom_top);
@@ -357,37 +144,36 @@ void draw_ui_browse(bool rebuiltlist)
 			switch( getRomsFileStat(i+find_rom_top) ) {
 			case -2: // unsupport
 			case -3: // not working
-				drawString(p, (unsigned short*)up_screen_addr, 12, 44+i*18, R8G8B8_to_B5G6R5(0x808080), 180);
+				drawString(p, (unsigned short*)down_screen_addr, 12, 44+i*menu_item_height, R8G8B8_to_B5G6R5(0x808080), SCREEN_WIDTH/2-20);
 				break;
 			case -1: // directry
-				//drawString("<DIR>", (unsigned short*)up_screen_addr, 194, 44 + i*18, fc);
 				break;
 			default:
-				drawString(p, (unsigned short*)up_screen_addr, 12, 44+i*18, UI_COLOR, 180);
+				drawString(p, (unsigned short*)down_screen_addr, 12, 44+i*menu_item_height, UI_COLOR, SCREEN_WIDTH/2-20);
 			}
 		}
 		if ((i+find_rom_top) == find_rom_select) {
-			drawRect((unsigned short*)up_screen_addr, 10, 40+i*18, 140, 18, UI_COLOR, 0x40);
+			drawRect((unsigned short*)down_screen_addr, 10, 40+i*menu_item_height, 140, menu_item_height, UI_COLOR, 0x40);
 		}
 		if ( find_rom_count > find_rom_list_cnt ) {
-			drawRect((unsigned short*)up_screen_addr, 154, 40, 5, 18 * find_rom_list_cnt, R8G8B8_to_B5G6R5(0x807060));
+			drawRect((unsigned short*)down_screen_addr, 154, 40, 5, menu_item_height * find_rom_list_cnt, R8G8B8_to_B5G6R5(0x807060));
 		
-			drawRect((unsigned short*)up_screen_addr, 154, 
-					40 + find_rom_top * 18 * find_rom_list_cnt / find_rom_count , 5, 
-					find_rom_list_cnt * 18 * find_rom_list_cnt / find_rom_count, UI_COLOR);
+			drawRect((unsigned short*)down_screen_addr, 154, 
+					40 + find_rom_top * menu_item_height * find_rom_list_cnt / find_rom_count , 5, 
+					find_rom_list_cnt * menu_item_height * find_rom_list_cnt / find_rom_count, UI_COLOR);
 		} else
-			drawRect((unsigned short*)up_screen_addr, 154, 40, 5, 18 * find_rom_list_cnt, UI_COLOR);
+			drawRect((unsigned short*)down_screen_addr, 154, 40, 5, menu_item_height * find_rom_list_cnt, UI_COLOR);
 
 	}
 	
-    drawRect((unsigned short*)up_screen_addr, 8, 230, 464, 1, UI_COLOR);
+    drawRect((unsigned short*)down_screen_addr, x, SCREEN_HEIGHT-FONT_HEIGHT*3, SCREEN_WIDTH-x*2, 1, UI_COLOR);
 
 	nBurnDrvSelect = getRomsFileStat(find_rom_select);
 
 	strcpy(buf, "Game Info: ");
 	if ( nBurnDrvSelect < nBurnDrvCount)
 		strcat(buf, BurnDrvGetTextA( DRV_FULLNAME ) );
-    drawString(buf, (unsigned short*)up_screen_addr, 10, 238, UI_COLOR, 460);
+    drawString(buf, (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT*2, UI_COLOR, SCREEN_WIDTH-20);
 
 	strcpy(buf, "Released by: ");
 	if ( nBurnDrvSelect < nBurnDrvCount ) {
@@ -398,42 +184,19 @@ void draw_ui_browse(bool rebuiltlist)
 		strcat(buf, BurnDrvGetTextA( DRV_SYSTEM ));
 		strcat(buf, " hardware)");
 	}
-    drawString(buf, (unsigned short*)up_screen_addr, 10, 255, UI_COLOR, 460);
-   
-   #if 0
-    if (needPreview&&nBurnDrvSelect < nBurnDrvCount ) {
-	    strcpy(buf,szAppCachePath);
-		strcat(buf,BurnDrvGetTextA(DRV_NAME));
-		strcat(buf,".png");
-		int i=-1;
-		if(access(buf,0)!=0)
-		{
-			for(i=0;i<10;i++)
-			{
-				strcpy(buf,szAppCachePath);
-				strcat(buf,BurnDrvGetTextA(DRV_NAME));
-				sprintf(buf+512,"_%1u.png",i);	
-				strcat(buf,buf+512);
-				if(access(buf,0)==0)
-					break;
-			}
-		}
-		if(i<10)
-		{
-			unsigned int imgW,imgH;
-			loadImage(previewBuf,buf, &imgW, &imgH);
-			drawImage((unsigned short*)up_screen_addr, 160, 40, 320, 180, 
-			(unsigned short*)previewBuf, imgW, imgH);
-			
-		}
-    }
-	#endif
+    drawString(buf, (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR, SCREEN_WIDTH-20);
 	nBurnDrvSelect = bds;
 }
 
 static void return_to_game()
 {
 	setGameStage(0);
+	
+	if( cpu_speeds_select > 3)
+		cpu_speeds_select = 3;
+	else if(cpu_speeds_select < 0)
+		cpu_speeds_select = 0;
+	ds2_setCPUclocklevel(10 + cpu_speeds_select);
 }
 
 static void process_key( int key, int down, int repeat )
@@ -485,51 +248,11 @@ static void process_key( int key, int down, int repeat )
 				}
 				draw_ui_main();
 				break;
-			case SCREEN_MODE:				
-				screenMode--;
-				if ( screenMode < 0 ) {
-					screenMode=8;
-				}	
-				if(nPrevGame!=~0U)
-					DoInputBlank(0);
-				processScreenMode();
-				draw_ui_main();					
-				break;
-			case GAME_SCREEN_WIDTH:				
-				gameScreenWidth=gameScreenWidth-2;
-				if ( gameScreenWidth < 2 ) {
-					gameScreenWidth=SCREEN_WIDTH;
-				}	
-				draw_ui_main();					
-				break;
-			case GAME_SCREEN_HEIGHT:				
-				gameScreenHeight=gameScreenHeight-2;
-				if ( gameScreenHeight < 2 ) {
-					gameScreenHeight=SCREEN_HEIGHT;
-				}	
-				draw_ui_main();					
-				break;
 			case CPU_SPEED:
 				if ( cpu_speeds_select > 0 ) {
 					cpu_speeds_select--;
 					draw_ui_main();
 				}
-				break;
-			case JOYSTICK:
-				enableJoyStick=!enableJoyStick;
-				draw_ui_main();
-				break;
-			case WIFI_GAME:
-				wifiStatus--;
-				if(wifiStatus<0)
-				{
-					wifiStatus=3;
-				}
-				draw_ui_main();
-				break;
-			case PREVIEW:
-				needPreview=!needPreview;
-				draw_ui_main();
 				break;
 			case MONO_SOUND:
 				monoSound=!monoSound;
@@ -569,53 +292,11 @@ static void process_key( int key, int down, int repeat )
 				}
 				draw_ui_main();
 				break;
-			case SCREEN_MODE:				
-				screenMode++;
-				if ( screenMode>8 ) {
-					screenMode=0;
-				}
-					
-				if(nPrevGame!=~0U)
-					DoInputBlank(0);
-				processScreenMode();
-				draw_ui_main();					
-								
-				break;
-			case GAME_SCREEN_WIDTH:				
-				gameScreenWidth=gameScreenWidth+2;
-				if ( gameScreenWidth > SCREEN_WIDTH ) {
-					gameScreenWidth=2;
-				}	
-				draw_ui_main();					
-				break;
-			case GAME_SCREEN_HEIGHT:				
-				gameScreenHeight=gameScreenHeight+2;
-				if ( gameScreenHeight > SCREEN_HEIGHT ) {
-					gameScreenHeight=2;
-				}	
-				draw_ui_main();					
-				break;
 			case CPU_SPEED:
 				if ( cpu_speeds_select < 3 ) {
 					cpu_speeds_select++;
 					draw_ui_main();
 				}
-				break;
-			case JOYSTICK:
-				enableJoyStick=!enableJoyStick;
-				draw_ui_main();
-				break;
-			case WIFI_GAME:
-				wifiStatus++;
-				if(wifiStatus>3)
-				{
-					wifiStatus=0;
-				}
-				draw_ui_main();
-				break;
-			case PREVIEW:
-				needPreview=!needPreview;
-				draw_ui_main();
 				break;
 			case MONO_SOUND:
 				monoSound=!monoSound;
@@ -640,7 +321,7 @@ static void process_key( int key, int down, int repeat )
 				draw_ui_browse(true);
 				break;
 			case LOAD_GAME:
-				if(nPrevGame != ~0U&&wifiStatus!=2)
+				if(nPrevGame != ~0U)
 				{
 					strcpy(ui_current_path,szAppCachePath);
 					strcat(ui_current_path,BurnDrvGetTextA(DRV_NAME));
@@ -655,7 +336,7 @@ static void process_key( int key, int down, int repeat )
 				}
 				break;
 			case SAVE_GAME:
-				if(nPrevGame != ~0U&&wifiStatus!=2)
+				if(nPrevGame != ~0U)
 				{
 					strcpy(ui_current_path,szAppCachePath);
 					strcat(ui_current_path,BurnDrvGetTextA(DRV_NAME));
@@ -678,23 +359,6 @@ static void process_key( int key, int down, int repeat )
 				if(nPrevGame != ~0U)
 				{					
 					resetGame();
-				}
-				break;
-			case SCREEN_SHOT:
-				if(nPrevGame != ~0U)
-				{		
-						strcpy(ui_current_path,szAppCachePath);
-						strcat(ui_current_path,BurnDrvGetTextA(DRV_NAME));
-						strcat(ui_current_path,".png");
-						//screenshot(ui_current_path);
-						setGameStage(0);
-						sound_continue();
-				}
-				break;
-			case SYNC_GAME:
-				if(nPrevGame != ~0U)
-				{					
-						return_to_game();
 				}
 				break;
 			case EXIT_FBA:	// Exit
@@ -865,50 +529,36 @@ int do_ui_key(unsigned int key)
 
 void ui_update_progress(float size, char * txt)
 {
-	if(bgIndex!=2)
-		drawRect( (unsigned short*)up_screen_addr, 10, 238, 460, 30, UI_BGCOLOR );
-	else
-		drawImage((unsigned short*)up_screen_addr, 10, 238, 460, 30, 
-			(unsigned short*)(bgBuf+238*SCREEN_WIDTH*2+10*2), 460, 30);
-	drawRect( (unsigned short*)up_screen_addr, 10, 238, 460, 12, R8G8B8_to_B5G6R5(0x807060) );
-	drawRect( (unsigned short*)up_screen_addr, 10, 238, ui_process_pos, 12, R8G8B8_to_B5G6R5(0xffc090) );
+	drawRect( (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT*2, SCREEN_WIDTH-20, 30, UI_BGCOLOR );
+	drawRect( (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT*2, SCREEN_WIDTH-20, 12, R8G8B8_to_B5G6R5(0x807060) );
+	drawRect( (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT*2, ui_process_pos, 12, R8G8B8_to_B5G6R5(0xffc090) );
 
-	int sz = (int)(460 * size + 0.5);
-	if (sz + ui_process_pos > 460) sz = 460 - ui_process_pos;
-	drawRect( (unsigned short*)up_screen_addr, 10 + ui_process_pos, 238, sz, 12, R8G8B8_to_B5G6R5(0xc09878) );
-	drawString(txt, (unsigned short*)up_screen_addr, 10, 255, UI_COLOR, 460);
+	int sz = (int)((SCREEN_WIDTH-20) * size + 0.5);
+	if (sz + ui_process_pos > (SCREEN_WIDTH-20)) sz = (SCREEN_WIDTH-20) - ui_process_pos;
+	drawRect( (unsigned short*)down_screen_addr, 10 + ui_process_pos, SCREEN_HEIGHT-FONT_HEIGHT*2, sz, 12, R8G8B8_to_B5G6R5(0xc09878) );
+	drawString(txt, (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR, (SCREEN_WIDTH-20));
 	
 	ui_process_pos += sz;
-	if (ui_process_pos > 460) ui_process_pos = 460;
+	if (ui_process_pos > (SCREEN_WIDTH-20)) ui_process_pos = (SCREEN_WIDTH-20);
 
 	update_gui();
-	//TODO:
-	//show_frame = draw_frame;
-	//draw_frame = sceGuSwapBuffers();
 }
 
 void ui_update_progress2(float size, const char * txt)
 {
 	static int ui_process_pos2 = 0;
-	int sz = (int)(460.0 * size + 0.5);
+	int sz = (int)((SCREEN_WIDTH-20) * size + 0.5);
 	if ( txt ) ui_process_pos2 = sz;
 	else ui_process_pos2 += sz;
-	if ( ui_process_pos2 > 460 ) ui_process_pos2 = 460;
-	drawRect( (unsigned short*)up_screen_addr, 10, 245, ui_process_pos2, 3, R8G8B8_to_B5G6R5(0xf06050) );
+	if ( ui_process_pos2 > (SCREEN_WIDTH-20) ) ui_process_pos2 = (SCREEN_WIDTH-20);
+	drawRect( (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT-10, ui_process_pos2, 3, R8G8B8_to_B5G6R5(0xf06050) );
 	
 	if ( txt ) {
-		if(bgIndex!=2)	
-			drawRect( (unsigned short*)up_screen_addr, 10, 255, 460, 13, UI_BGCOLOR );
-		else
-			drawImage((unsigned short*)up_screen_addr, 10,  255, 460, 13, 
-			(unsigned short*)(bgBuf+255*SCREEN_WIDTH*2+10*2), 460, 13);
-		drawString(txt, (unsigned short*)up_screen_addr, 10, 255, UI_COLOR, 460);	
+		drawRect( (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT, (SCREEN_WIDTH-20), 13, UI_BGCOLOR );
+		drawString(txt, (unsigned short*)down_screen_addr, 10, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR, (SCREEN_WIDTH-20));	
 	}
 
 	update_gui();
-	//TODO:
-	//show_frame = draw_frame;
-	//draw_frame = sceGuSwapBuffers();
 }
 void setGameStage(int stage)
 {

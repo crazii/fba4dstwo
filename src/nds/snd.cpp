@@ -2,44 +2,18 @@
 
 #include "burnint.h"
 #include "nds.h"
-static short mixbuf[SND_FRAME_SIZE * 2 * 8];
-static short * pmixbuf[] = {
-	&mixbuf[SND_FRAME_SIZE * 2 * 0],
-	&mixbuf[SND_FRAME_SIZE * 2 * 1],
-	&mixbuf[SND_FRAME_SIZE * 2 * 2],
-	&mixbuf[SND_FRAME_SIZE * 2 * 3],
-	&mixbuf[SND_FRAME_SIZE * 2 * 4],
-	&mixbuf[SND_FRAME_SIZE * 2 * 5],
-	&mixbuf[SND_FRAME_SIZE * 2 * 6],
-	&mixbuf[SND_FRAME_SIZE * 2 * 7]
-};
+static short mixbuf[SND_FRAME_SIZE * 2];
 static unsigned int mixbufid = 0;
 static unsigned int mixbufidPlay = 0;
 int mixbufidDiff = 0;
-unsigned char monoSound=0;
 static short sound_active = 0;
+static short sound_paused = 0;
+unsigned char monoSound=0;
 
 static void ds2_play_sound()
 {
-	short * currentMixBuf; 
-	if(mixbufidDiff < 0 || ds2_checkAudiobuff() >= 4)
-		return;
-	
-	mixbufidDiff = mixbufid-mixbufidPlay;
-	if(mixbufidDiff>1)
-	{
-		mixbufidPlay++;
-	}
-	
-	currentMixBuf=pmixbuf[mixbufidPlay & 0x7];
-	if(monoSound)
-	{
-		for(int i=0;i<SND_FRAME_SIZE*2;i=i+2)
-		{
-			 currentMixBuf[i+1]=currentMixBuf[i];
-		}
-	}
-	
+	if(ds2_checkAudiobuff() >= 4 || !sound_active || sound_paused)
+		return;	
 	
 	unsigned short* ds2_aubuff = (unsigned short*)ds2_getAudiobuff();
 	if (ds2_aubuff)
@@ -47,14 +21,14 @@ static void ds2_play_sound()
 		if(monoSound)
 		{
 			for(int i = 0; i < SND_FRAME_SIZE; ++i)
-				ds2_aubuff[i+SND_FRAME_SIZE] = ds2_aubuff[i] = currentMixBuf[i*2];
+				ds2_aubuff[i+SND_FRAME_SIZE] = ds2_aubuff[i] = mixbuf[i*2];
 		}
 		else
 		{
 			for(int i = 0; i < SND_FRAME_SIZE; ++i)
 			{
-				ds2_aubuff[i] = currentMixBuf[i*2];
-				ds2_aubuff[i+SND_FRAME_SIZE] = currentMixBuf[i*2+1];
+				ds2_aubuff[i] = mixbuf[i*2];
+				ds2_aubuff[i+SND_FRAME_SIZE] = mixbuf[i*2+1];
 			}
 		}
 		//Update audio  
@@ -70,12 +44,10 @@ int sound_start()
 	nBurnSoundLen = SND_FRAME_SIZE;
 
 	memset(mixbuf, 0, SND_FRAME_SIZE * 2 * 8*2);
-	
-	mixbufid = 0;
-	mixbufidDiff= 0;
 	pBurnSoundOut = &mixbuf[0];
 	
 	sound_active = 1;
+	sound_paused = 0;
 	return 0;
 }
 
@@ -87,19 +59,17 @@ int sound_stop()
 
 void sound_next()
 {	
-	mixbufid ++;
-	pBurnSoundOut = pmixbuf[mixbufid & 0x7];
+	ds2_play_sound();
 }
 
 void sound_pause()
 {
-	mixbufidDiff= -1;
-	memset(mixbuf, 0, SND_FRAME_SIZE * 2 * 8*2);
+	sound_paused = 1;
 }
 
 void sound_continue()
 {
-	mixbufidDiff= 0;
+	sound_paused = 0;
 }
 
 

@@ -3,6 +3,8 @@
 #include "font.h"
 #include "nds.h"
 
+//note: font(gui) directly write to screen buffer (DOWN_SCREEN, down_screen_addr, SCREEN_WIDTH, SCREEN_HEIGHT)
+
 // Tahoma Font 12px Bold
 
 static unsigned short font12[] = {
@@ -132,27 +134,27 @@ static int printChar(unsigned short *screenbuf, unsigned char c, unsigned short 
 
 	unsigned short * pz = &font12[font12inf[c-0x20].offset];
 	for (int i=0; i<w; i++, pz++, screenbuf++) {
-		if (*pz & 0x8000) {screenbuf[ 512 *  0 ] = cl; screenbuf[ 512 *  1 +1 ]=0;}
-		if (*pz & 0x4000) {screenbuf[ 512 *  1 ] = cl; screenbuf[ 512 *  2 +1 ]=0;}
-		if (*pz & 0x2000) {screenbuf[ 512 *  2 ] = cl; screenbuf[ 512 *  3 +1 ]=0;}
-		if (*pz & 0x1000) {screenbuf[ 512 *  3 ] = cl; screenbuf[ 512 *  4 +1 ]=0;}
+		if (*pz & 0x8000) {screenbuf[ SCREEN_WIDTH *  0 ] = cl; screenbuf[ SCREEN_WIDTH *  1 +1 ]=0;}
+		if (*pz & 0x4000) {screenbuf[ SCREEN_WIDTH *  1 ] = cl; screenbuf[ SCREEN_WIDTH *  2 +1 ]=0;}
+		if (*pz & 0x2000) {screenbuf[ SCREEN_WIDTH *  2 ] = cl; screenbuf[ SCREEN_WIDTH *  3 +1 ]=0;}
+		if (*pz & 0x1000) {screenbuf[ SCREEN_WIDTH *  3 ] = cl; screenbuf[ SCREEN_WIDTH *  4 +1 ]=0;}
 
-		if (*pz & 0x0800) {screenbuf[ 512 *  4 ] = cl; screenbuf[ 512 *  5 +1 ]=0;}
-		if (*pz & 0x0400) {screenbuf[ 512 *  5 ] = cl; screenbuf[ 512 *  6 +1 ]=0;}
-		if (*pz & 0x0200) {screenbuf[ 512 *  6 ] = cl; screenbuf[ 512 *  7 +1 ]=0;}
-		if (*pz & 0x0100) {screenbuf[ 512 *  7 ] = cl; screenbuf[ 512 *  8 +1 ]=0;}
-		if (*pz & 0x0080) {screenbuf[ 512 *  8 ] = cl; screenbuf[ 512 *  9 +1 ]=0;}
-		if (*pz & 0x0040) {screenbuf[ 512 *  9 ] = cl; screenbuf[ 512 *  10 +1 ]=0;}
-		if (*pz & 0x0020) {screenbuf[ 512 * 10 ] = cl; screenbuf[ 512 *  11 +1 ]=0;}
-		if (*pz & 0x0010) {screenbuf[ 512 * 11 ] = cl; screenbuf[ 512 *  12 +1 ]=0;}
+		if (*pz & 0x0800) {screenbuf[ SCREEN_WIDTH *  4 ] = cl; screenbuf[ SCREEN_WIDTH *  5 +1 ]=0;}
+		if (*pz & 0x0400) {screenbuf[ SCREEN_WIDTH *  5 ] = cl; screenbuf[ SCREEN_WIDTH *  6 +1 ]=0;}
+		if (*pz & 0x0200) {screenbuf[ SCREEN_WIDTH *  6 ] = cl; screenbuf[ SCREEN_WIDTH *  7 +1 ]=0;}
+		if (*pz & 0x0100) {screenbuf[ SCREEN_WIDTH *  7 ] = cl; screenbuf[ SCREEN_WIDTH *  8 +1 ]=0;}
+		if (*pz & 0x0080) {screenbuf[ SCREEN_WIDTH *  8 ] = cl; screenbuf[ SCREEN_WIDTH *  9 +1 ]=0;}
+		if (*pz & 0x0040) {screenbuf[ SCREEN_WIDTH *  9 ] = cl; screenbuf[ SCREEN_WIDTH *  10 +1 ]=0;}
+		if (*pz & 0x0020) {screenbuf[ SCREEN_WIDTH * 10 ] = cl; screenbuf[ SCREEN_WIDTH *  11 +1 ]=0;}
+		if (*pz & 0x0010) {screenbuf[ SCREEN_WIDTH * 11 ] = cl; screenbuf[ SCREEN_WIDTH *  12 +1 ]=0;}
 	}
 	return w;
 }
 
 void drawString(const char *s, unsigned short *screenbuf, int x, int y, unsigned short c, int w)
 {
-    if (!w) w = 512 - x;
-	screenbuf += x + y * 512;
+    if (!w) w = SCREEN_WIDTH - x;
+	screenbuf += x + y * SCREEN_WIDTH;
 	int len = strlen(s);
     for (int i = 0; i < len; i++) {
         int tw = printChar(screenbuf, s[i], c, w);
@@ -178,8 +180,8 @@ int getDrawStringLength(const char *s)
 void drawRect(unsigned short *screenbuf, int x, int y, int w, int h, unsigned short c, unsigned char alpha)
 {
 	unsigned char r,g,b;
-	screenbuf += x + y * 512;
-	for ( ;h>0; h--, screenbuf+=512) {
+	screenbuf += x + y * SCREEN_WIDTH;
+	for ( ;h>0; h--, screenbuf+=SCREEN_WIDTH) {
 		unsigned short * p = screenbuf;
 		for(int i=0; i<w; i++,p++)
 		{
@@ -194,10 +196,10 @@ void drawRect(unsigned short *screenbuf, int x, int y, int w, int h, unsigned sh
 void drawImage(unsigned short *screenbuf, int x, int y, int w,int h, unsigned short *imgBuf, int imgW, int imgH)
 {
 	int i,j;
-	screenbuf += x + y * 512;
+	screenbuf += x + y * SCREEN_WIDTH;
 	if(w==imgW&&h==imgH)
 	{
-		for (j=0 ;j<h; j++, screenbuf+=512,imgBuf+=512 ) 
+		for (j=0 ;j<h; j++, screenbuf+=SCREEN_WIDTH,imgBuf+=SCREEN_WIDTH ) 
 		{
 			for(i=0; i<w/2; i++) ((unsigned int*)screenbuf)[i] = ((unsigned int*)imgBuf)[i];
 		}
@@ -206,7 +208,7 @@ void drawImage(unsigned short *screenbuf, int x, int y, int w,int h, unsigned sh
 		float wRatio= ((float)imgW)/w;
 		float hRatio= ((float)imgH)/h;
 		
-		for (j=0 ;j<h; j++, screenbuf+=512) {
+		for (j=0 ;j<h; j++, screenbuf+=SCREEN_WIDTH) {
 			unsigned short * p = screenbuf;
 			for(i=0; i<w; i++,p++)
 				*p = *(imgBuf+(int)(wRatio*i+0.5)+(int)(hRatio*j+0.5)*SCREEN_WIDTH);

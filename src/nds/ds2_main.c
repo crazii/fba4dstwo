@@ -24,6 +24,7 @@ void ds2_main(void)
 	main(0, 0);
 
 _failure:
+	ds2_setCPUclocklevel(0);
 	ds2_plug_exit();
 }
 

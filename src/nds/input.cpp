@@ -28,6 +28,7 @@ static keyDef keyDefArray[KEY_DEF_ARRAY_SIZE]={
 	{"fire 6",	0x8}
 };
 // Mapping of PC inputs to game inputs
+unsigned int inputKeys[3][3]={{0,},};
 struct GameInp *GameInp = NULL;
 unsigned int nGameInpCount = 0;
 short currentInp=1;
@@ -68,7 +69,6 @@ void loadDefaultInput()
 	
 	monoSound=0;
 	gameSpeedCtrl=1;
-	screenMode=0;
 	FILE * fp = fopen("FBA4DSTWO.ini", "r");
 	
 	char IniLine[256];
@@ -123,48 +123,6 @@ void loadDefaultInput()
 					hotButtons=hotButtons|(0x1<<value);
 				}
 				
-			}else if(p = strstr(IniLine, "screenMode"))
-			{
-				p = strstr(p, "0x");
-				if(p==0||p[2]=='\0')
-					continue;
-				int value=hex2int(p[2]);
-				if(value>=0&&value<=8)
-					screenMode=value;
-			}else if(p = strstr(IniLine, "gameScreenWidth"))
-			{
-				p = strstr(p, " ");
-				if(p==0||p[1]=='\0')
-					continue;
-				do{
-					p++;
-				}while(*p==' ');
-				int value=0;
-				for(int i=0;i<3&&*p>='0'&&*p<='9';i++)
-				{
-					value=value*10+*p-'0';
-					p++;
-				}		
-				
-				if(value>0&&value<=SCREEN_WIDTH)
-					gameScreenWidth=value;
-			}else if(p = strstr(IniLine, "gameScreenHeight"))
-			{
-				p = strstr(p, " ");
-				if(p==0||p[1]=='\0')
-					continue;
-				do{
-					p++;
-				}while(*p==' ');
-				int value=0;
-				for(int i=0;i<3&&*p>='0'&&*p<='9';i++)
-				{
-					value=value*10+*p-'0';
-					p++;
-				}		
-				
-				if(value>0&&value<=SCREEN_HEIGHT)
-					gameScreenHeight=value;
 			}
 		}
 		fclose(fp);
@@ -178,10 +136,7 @@ int DoInputBlank(int bDipSwitch)
   // Reset all inputs to undefined (even dip switches, if bDipSwitch==1)
   if (GameInp==NULL) return 1;
   int bVert;
-  if(screenMode<2||(screenMode>3&&screenMode<6)||screenMode>7)
-  	bVert = BurnDrvGetFlags() & BDF_ORIENTATION_VERTICAL;
-  else
-  	bVert = (BurnDrvGetFlags() & BDF_ORIENTATION_VERTICAL)?0:BDF_ORIENTATION_VERTICAL;
+  bVert = BurnDrvGetFlags() & BDF_ORIENTATION_VERTICAL;
 
   // Get the targets in the library for the Input Values
   for (i=0,pgi=GameInp; i<nGameInpCount; i++,pgi++)
@@ -331,14 +286,6 @@ else
 					hotButtons=hotButtons|(0x1<<value);
 				}
 				
-			}else if(p = strstr(IniLine, "screenMode"))
-			{
-				p = strstr(p, "0x");
-				if(p==0||p[2]=='\0')
-					continue;
-				int value=hex2int(p[2]);
-				if(value>=0&&value<=8)
-					screenMode=value;
 			}else if(p = strstr(IniLine, "monoSound"))
 			{
 				p = strstr(p, "0x");
@@ -346,40 +293,6 @@ else
 					continue;
 				int value=hex2int(p[2]);
 				monoSound=value;
-			}else if(p = strstr(IniLine, "gameScreenWidth"))
-			{
-				p = strstr(p, " ");
-				if(p==0||p[1]=='\0')
-					continue;
-				do{
-					p++;
-				}while(*p==' ');
-				int value=0;
-				for(int i=0;i<3&&*p>='0'&&*p<='9';i++)
-				{
-					value=value*10+*p-'0';
-					p++;
-				}		
-				
-				if(value>0&&value<=SCREEN_WIDTH)
-					gameScreenWidth=value;
-			}else if(p = strstr(IniLine, "gameScreenHeight"))
-			{
-				p = strstr(p, " ");
-				if(p==0||p[1]=='\0')
-					continue;
-				do{
-					p++;
-				}while(*p==' ');
-				int value=0;
-				for(int i=0;i<3&&*p>='0'&&*p<='9';i++)
-				{
-					value=value*10+*p-'0';
-					p++;
-				}		
-				
-				if(value>0&&value<=SCREEN_HEIGHT)
-					gameScreenHeight=value;
 			}
 		}
 		fclose(fp);

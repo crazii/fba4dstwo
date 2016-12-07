@@ -4,20 +4,7 @@
 #include "nds.h"
 #include "font.h"
 
-
-void * show_frame = (void *)(SCREEN_WIDTH * SCREEN_HEIGHT * 2 * 0);
-void * draw_frame = (void *)(SCREEN_WIDTH * SCREEN_HEIGHT * 2 * 1);
-void * work_frame = (void *)(SCREEN_WIDTH * SCREEN_HEIGHT * 2 * 2);
-void * tex_frame  = (void *)(SCREEN_WIDTH * SCREEN_HEIGHT * 2 * 3);
-
-static unsigned char* list=(unsigned char*)((SCREEN_WIDTH * SCREEN_HEIGHT * 2 * 4)|0x4000000);
-unsigned char* bgBuf=(unsigned char*)((SCREEN_WIDTH * SCREEN_HEIGHT * 2 * 5)|0x4000000);
-unsigned char* previewBuf=(unsigned char*)((SCREEN_WIDTH * SCREEN_HEIGHT * 2 * 6)|0x4000000);
-unsigned char* tmpBuf=(unsigned char*)((SCREEN_WIDTH * SCREEN_HEIGHT * 2 * 7)|0x4000000);
-
-static int nPrevStage;
-
-static int VideoBufferWidth, VideoBufferHeight;
+//note: font(gui) directly write to screen buffer (DOWN_SCREEN, down_screen_addr, SCREEN_WIDTH, SCREEN_HEIGHT)
 
 static int myProgressRangeCallback(double dProgressRange)
 {
@@ -46,27 +33,24 @@ int AppDebugPrintf(int nStatus, char* pszFormat, ...)
 	default:				fc = R8G8B8_to_B5G6R5(0x404040); break;
 	}
 	
-	drawRect((unsigned short*)up_screen_addr, 0, 0, 480, 20, fc);
-	drawString(buf, (unsigned short*)up_screen_addr, 4, 4, R8G8B8_to_B5G6R5(0xffffff));
+	drawRect((unsigned short*)down_screen_addr, 0, 0, SCREEN_WIDTH, 20, fc);
+	drawString(buf, (unsigned short*)down_screen_addr, 4, 4, R8G8B8_to_B5G6R5(0xffffff));
 
-	drawRect((unsigned short*)up_screen_addr, 0, 0, 480, 20, fc);
-	drawString(buf, (unsigned short*)up_screen_addr, 4, 4, R8G8B8_to_B5G6R5(0xffffff));
+	drawRect((unsigned short*)down_screen_addr, 0, 0, SCREEN_WIDTH, 20, fc);
+	drawString(buf, (unsigned short*)down_screen_addr, 4, 4, R8G8B8_to_B5G6R5(0xffffff));
 	
 	va_end(vaFormat);
 	
-	update_gui();
-	
+	ds2_flipScreen(DOWN_SCREEN, 0);	
 	return 0;
 }
 
 
 void init_gui()
 {
-	ds2_clearScreen(UP_SCREEN, 0);
-	
-	nPrevStage = nGameStage;
+	ds2_clearScreen(DOWN_SCREEN, 0);
+
 	//bprintf = AppDebugPrintf;
-	
 	
 	BurnExtProgressRangeCallback = myProgressRangeCallback;
 	BurnExtProgressUpdateCallback = myProgressUpdateCallback;
@@ -79,21 +63,11 @@ void exit_gui()
 
 void update_gui()
 {
-	if ( nPrevStage != nGameStage ) {
-		if ( nGameStage ) {
-			//sceGuTexImage(0, 512, 512, 512, GU_FRAME_ADDR(work_frame));
-			//sceGuTexFilter(GU_NEAREST, GU_NEAREST);
-		} else {
-			BurnDrvGetFullSize(&VideoBufferWidth, &VideoBufferHeight);
-			//sceGuTexImage(0, 512, 512, 512, GU_FRAME_ADDR(tex_frame));
-			//sceGuTexFilter(GU_LINEAR, GU_LINEAR);
-		}
-		nPrevStage = nGameStage;
-	}
-	//TODO:
+	ds2_flipScreen(DOWN_SCREEN, 0);
 }
 
 void clear_gui_texture(int color, int w, int h)
 {
+	//used in game. clear up screen
 	ds2_clearScreen(UP_SCREEN, 0);
 }

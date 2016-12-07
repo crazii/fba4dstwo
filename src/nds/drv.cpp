@@ -4,6 +4,11 @@
 
 int bDrvOkay=0; // 1 if the Driver has been initted okay, and it's okay to use the BurnDrv functions
 
+int drvWidth;
+int drvHeight;
+int iAdd;
+int iModulo;
+
 static bool bSaveRAM = false;
 
 static int DoLibInit() // Do Init of Burn library driver
@@ -136,6 +141,44 @@ extern "C" int DrvInit(int nDrvNum, bool bRestore)
   // Reset the speed throttling code, so we don't 'jump' after the load
 //	RunReset();
 
+	int width = SCREEN_WIDTH;
+	int height = SCREEN_HEIGHT;
+	if (BurnDrvGetFlags() & BDF_ORIENTATION_VERTICAL) {
+		BurnDrvGetFullSize(&height, &width);
+	} else {
+		BurnDrvGetFullSize(&width, &height);
+	}
+	drvWidth = width;
+	drvHeight = height;
+
+	int iAddX, iModuloX,iAddY,iModuloY;
+	iAddX = iModuloX = iAddY = iModuloY = 1;
+
+	if (SCREEN_WIDTH < width)
+	{
+		iAddX = SCREEN_WIDTH;
+		iModuloX = width;
+	}
+	if (SCREEN_HEIGHT < height)
+	{
+		iAddY = SCREEN_HEIGHT;
+		iModuloY = height;
+	}
+	if (SCREEN_WIDTH < width || SCREEN_HEIGHT < height)
+	{
+		if (height * SCREEN_WIDTH < SCREEN_HEIGHT * width)
+		{
+			// scale is determined by horizontal scale
+			iAdd = iAddX;
+			iModulo = iModuloX;
+		}
+		else
+		{
+			// scale is determined by vertical scale
+			iAdd = iAddY;
+			iModulo = iModuloY;
+		}
+	}
 	return 0;
 }
 
