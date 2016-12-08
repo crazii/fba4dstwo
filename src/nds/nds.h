@@ -55,6 +55,8 @@ extern int drvWidth;
 extern int drvHeight;
 extern int iAdd;
 extern int iModulo;
+extern int xOff;
+extern int yOff;
 #ifdef __cplusplus
 extern "C" int DrvInit(int nDrvNum, bool bRestore);
 #endif

@@ -4,6 +4,8 @@
 
 int bDrvOkay=0; // 1 if the Driver has been initted okay, and it's okay to use the BurnDrv functions
 
+int xOff;
+int yOff;
 int drvWidth;
 int drvHeight;
 int iAdd;
@@ -153,16 +155,19 @@ extern "C" int DrvInit(int nDrvNum, bool bRestore)
 
 	int iAddX, iModuloX,iAddY,iModuloY;
 	iAddX = iModuloX = iAddY = iModuloY = 1;
+	int scaledW,scaledH;
 
 	if (SCREEN_WIDTH < width)
 	{
 		iAddX = SCREEN_WIDTH;
 		iModuloX = width;
+		scaledW = SCREEN_WIDTH;
 	}
 	if (SCREEN_HEIGHT < height)
 	{
 		iAddY = SCREEN_HEIGHT;
 		iModuloY = height;
+		scaledH = SCREEN_HEIGHT;
 	}
 	if (SCREEN_WIDTH < width || SCREEN_HEIGHT < height)
 	{
@@ -171,14 +176,23 @@ extern "C" int DrvInit(int nDrvNum, bool bRestore)
 			// scale is determined by horizontal scale
 			iAdd = iAddX;
 			iModulo = iModuloX;
+			scaledH = (height * SCREEN_WIDTH + width - 1) / width;
+			if (scaledH > SCREEN_HEIGHT)
+				scaledH = SCREEN_HEIGHT;
 		}
 		else
 		{
 			// scale is determined by vertical scale
 			iAdd = iAddY;
 			iModulo = iModuloY;
+			scaledW = (width * SCREEN_HEIGHT + height - 1) / height;
+			if (scaledW > SCREEN_WIDTH)
+				scaledW = SCREEN_WIDTH;
 		}
 	}
+	
+	xOff = (SCREEN_WIDTH - scaledW) / 2;
+	yOff = (SCREEN_HEIGHT - scaledH) / 2;
 	return 0;
 }
 

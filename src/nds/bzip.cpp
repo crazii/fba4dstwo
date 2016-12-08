@@ -401,8 +401,7 @@ int BzipOpen(bool bootApp)
 		if (ZipOpen(szBzipName[z]) == 0) {		// Open the rom zip file
 			nCurrentZip = z;
 
-			if( ZipGetList(&List, &nListCount) )								// Get the list of entries
-				bprintf(PRINT_ERROR, "failed to get file list in zip");
+			ZipGetList(&List, &nListCount);								// Get the list of entries
 			
 			for (int i = 0; i < nRomCount; i++) {
 				struct BurnRomInfo ri;

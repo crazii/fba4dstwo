@@ -53,7 +53,8 @@ int AppDebugPrintf(int nStatus, char* pszFormat, ...)
 
 void init_gui()
 {
-	ds2_clearScreen(DOWN_SCREEN, 2);
+	ds2_clearScreen(DOWN_SCREEN, 0);
+	ds2_flipScreen(DOWN_SCREEN, 2);
 
 	bprintf = AppDebugPrintf;
 	
@@ -69,10 +70,4 @@ void exit_gui()
 void update_gui()
 {
 	ds2_flipScreen(DOWN_SCREEN, 2);
-}
-
-void clear_gui_texture(int color, int w, int h)
-{
-	//used in game. clear up screen
-	ds2_clearScreen(UP_SCREEN, 0);
 }

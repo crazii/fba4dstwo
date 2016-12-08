@@ -54,6 +54,7 @@ int sound_start()
 int sound_stop()
 {
 	sound_active = 0;
+	sound_paused = 0;
 	return 0;
 }
 

@@ -70,7 +70,7 @@ int ZipGetList(struct ZipEntry **pList,int *pnListCount)
     List[nCurrFile].szName=szName;
     List[nCurrFile].nLen=FileInfo.uncompressed_size;
     List[nCurrFile].nCrc=FileInfo.crc;
-	bprintf(PRINT_ERROR,"%s: %d", szName, FileInfo.crc);
+	//bprintf(PRINT_ERROR,"%s: %x", szName, FileInfo.crc);
   }
 
   // return the file list

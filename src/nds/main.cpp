@@ -30,8 +30,9 @@ void returnToMenu()
 static unsigned int HighCol16(int r, int g, int b, int  /* i */)
 {
 	unsigned int t;
-	t  = (b << 8) & 0x7C00;
-	t |= (g << 3) & 0x03E0;
+	//5551
+	t  = (b << 7) & 0x7C00;
+	t |= (g << 2) & 0x03E0;
 	t |= (r >> 3) & 0x001F;
 	return t;
 }
@@ -76,6 +77,9 @@ int main(int argc, char** argv) {
 	nBurnPitch  = VIDEO_BUFFER_WIDTH * nBurnBpp;
 	BurnHighCol = HighCol16;
 	
+	ds2_clearScreen(UP_SCREEN, 0);
+	ds2_flipScreen(UP_SCREEN, 1);
+	ds2_clearScreen(UP_SCREEN, 0);
 	videoBuffer = (unsigned short*)malloc(VIDEO_BUFFER_WIDTH*VIDEO_BUFFER_HEIGHT*nBurnBpp);
 	if(!videoBuffer)
 		return -1;
@@ -161,8 +165,10 @@ GAME_RUNNING:
 			drawString(fps, (unsigned short*)((unsigned int)up_screen_addr, 11, 11, R8G8B8_to_B5G6R5(0x404040));
 			drawString(fps, (unsigned short*)((unsigned int)up_screen_addr, 10, 10, R8G8B8_to_B5G6R5(0xffffff));
 #endif
+			//bprintf(PRINT_ERROR,"main 0");
 			BurnDrvFrame();
 			
+			//bprintf(PRINT_ERROR,"main 1");
 			if(pBurnDraw)
 			{
 				swapBuffer();
@@ -206,7 +212,7 @@ void resetGame()
 void swapBuffer()
 {
 	unsigned short* src = videoBuffer;
-	unsigned short* dst = (unsigned short*)up_screen_addr;
+	unsigned short* dst = (unsigned short*)up_screen_addr + xOff + (yOff * SCREEN_WIDTH);
 	int accumulatorY = 0;
 
 	for (int h = 0; h < drvHeight; h++)
@@ -241,3 +247,20 @@ void swapBuffer()
   
 	ds2_flipScreen(UP_SCREEN, 0);
 }
+
+void clear_gui_texture(int color, int w, int h)
+{
+	//used in game. clear video buffer
+	color |= 1<<15;
+	//2 pixels
+	color = (color&0xFFFF)|(color<<16);
+	
+	int* src = (int*)videoBuffer;
+	for(int i = 0; i < h; ++i)
+	{
+		for(int j = 0; j < w/2; ++j)
+			src[j] = color;
+		src += VIDEO_BUFFER_WIDTH/2;
+	}
+}
+

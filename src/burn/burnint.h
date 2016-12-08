@@ -29,15 +29,15 @@
 // sek.cpp
 #include "sek.h"
 
-// zet.cpp
-#include "zet.h"
-
 typedef union
 {
 	struct { UINT8 l,h,h2,h3; } b;
 	struct { UINT16 l,h; } w;
 	UINT32 d;
 } PAIR;
+
+// zet.cpp
+#include "zet.h"
 
 // ---------------------------------------------------------------------------
 // Driver information

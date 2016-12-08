@@ -30,7 +30,7 @@ void CaveClearScreen(unsigned int nColour)
 #ifdef NDS
 
 	extern void clear_gui_texture(int color, int w, int h);
-	clear_gui_texture(((nColour & 0x001f ) << 3) | ((nColour & 0x07e0 ) << 5) | ((nColour & 0xf800 ) << 8), nCaveXSize, nCaveYSize);
+	clear_gui_texture(((nColour & 0x001f ) << 3) | ((nColour & 0x03e0 ) << 2) | ((nColour & 0x7c00 ) << 7), nCaveXSize, nCaveYSize);
 
 #else
 

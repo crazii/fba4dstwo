@@ -116,7 +116,7 @@ void draw_ui_main()
 	    			INDENT+SCREEN_WIDTH/2*(i/menu_item_list_cnt),
 	    			y + (i%menu_item_list_cnt) * menu_item_height, UI_COLOR);
 	}
-	drawRect((unsigned short*)down_screen_addr, INDENT+SCREEN_WIDTH/2*(ui_mainmenu_select/menu_item_list_cnt), y-2+(ui_mainmenu_select%menu_item_list_cnt)*menu_item_height,
+	drawRect((unsigned short*)down_screen_addr, INDENT+SCREEN_WIDTH/2*(ui_mainmenu_select/menu_item_list_cnt), y-3+(ui_mainmenu_select%menu_item_list_cnt)*menu_item_height,
 		(SCREEN_WIDTH-8)/2, menu_item_height, UI_COLOR,0x40);
 	
     drawRect((unsigned short*)down_screen_addr, x, SCREEN_HEIGHT-FONT_HEIGHT*2-3, SCREEN_WIDTH-x*2, 1, UI_COLOR);
@@ -159,7 +159,7 @@ void draw_ui_browse(bool rebuiltlist)
 			}
 		}
 		if ((i+find_rom_top) == find_rom_select) {
-			drawRect((unsigned short*)down_screen_addr, INDENT, y+i*menu_item_height, (SCREEN_WIDTH-8)/2, menu_item_height, UI_COLOR, 0x40);
+			drawRect((unsigned short*)down_screen_addr, INDENT, y-3+i*menu_item_height, (SCREEN_WIDTH-8)/2, menu_item_height, UI_COLOR, 0x40);
 		}
 		//vscroll bar
 		if ( find_rom_count > find_rom_list_cnt ) {
@@ -198,6 +198,10 @@ void draw_ui_browse(bool rebuiltlist)
 static void return_to_game()
 {
 	setGameStage(0);
+	sound_continue();
+	ds2_clearScreen(UP_SCREEN, 0);
+	ds2_flipScreen(UP_SCREEN, 1);
+	ds2_clearScreen(UP_SCREEN, 0);
 	
 	if( cpu_speeds_select > 3)
 		cpu_speeds_select = 3;
@@ -459,6 +463,7 @@ static void process_key( int key, int down, int repeat )
 												
 						setGameStage(3);
 						ui_process_pos = 0;
+						//bprintf(PRINT_IMPORTANT, "%s : %d", getRomsFileName(find_rom_select), nBurnDrvSelect);
 
 						if ( DrvInit( nBurnDrvSelect, false ) == 0 ) {
 							

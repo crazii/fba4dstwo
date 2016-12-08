@@ -13,19 +13,36 @@ struct keyDef
 	unsigned char keyValue;
 };
 #define KEY_DEF_ARRAY_SIZE 12
+//those from dsio.h
+// typedef enum KEYPAD_BITS {
+	// KEY_A      = BIT(0),  //!< Keypad A button.
+	// KEY_B      = BIT(1),  //!< Keypad B button.
+	// KEY_SELECT = BIT(2),  //!< Keypad SELECT button.
+	// KEY_START  = BIT(3),  //!< Keypad START button.
+	// KEY_RIGHT  = BIT(4),  //!< Keypad RIGHT button.
+	// KEY_LEFT   = BIT(5),  //!< Keypad LEFT button.
+	// KEY_UP     = BIT(6),  //!< Keypad UP button.
+	// KEY_DOWN   = BIT(7),  //!< Keypad DOWN button.
+	// KEY_R      = BIT(8),  //!< Right shoulder button.
+	// KEY_L      = BIT(9),  //!< Left shoulder button.
+	// KEY_X      = BIT(10), //!< Keypad X button.
+	// KEY_Y      = BIT(11), //!< Keypad Y button.
+	// KEY_TOUCH  = BIT(12), //!< Touchscreen pendown.
+	// KEY_LID    = BIT(13)  //!< Lid state.
+// } KEYPAD_BITS;
 static keyDef keyDefArray[KEY_DEF_ARRAY_SIZE]={
-	{"coin",	0x0},
-	{"start",	0x3},
-	{"up",		0x4},
-	{"right",	0x5},
-	{"down",	0x6},
-	{"left",	0x7},
-	{"fire 1",	0xE},
-	{"fire 2",	0xD},
-	{"fire 3",	0xF},
-	{"fire 4",	0xC},
-	{"fire 5",	0x9},
-	{"fire 6",	0x8}
+	{"coin",	2},
+	{"start",	3},
+	{"up",		6},
+	{"right",	4},
+	{"down",	7},
+	{"left",	5},
+	{"fire 1",	0},
+	{"fire 2",	1},
+	{"fire 3",	10},
+	{"fire 4",	11},
+	{"fire 5",	9},
+	{"fire 6",	8}
 };
 // Mapping of PC inputs to game inputs
 unsigned int inputKeys[3][3]={{0,},};
@@ -69,7 +86,7 @@ void loadDefaultInput()
 	
 	monoSound=0;
 	gameSpeedCtrl=1;
-	FILE * fp = fopen("FBA4DSTWO.ini", "r");
+	FILE * fp = fopen("/FBA4DSTWO/FBA4DSTWO.ini", "r");
 	
 	char IniLine[256];
 	char FindName[32]={'\0',};
@@ -169,7 +186,7 @@ int DoInputBlank(int bDipSwitch)
     	}else{
     	// map my keypad def
 
-	    if (strcmp(bii.szInfo+3, keyDefArray[0].keyString) == 0)		// PSP_CTRL_SELECT = 0x000001,
+	    if (strcmp(bii.szInfo+3, keyDefArray[0].keyString) == 0)		// KEY_SELECT = 0x000001,
 	    	pgi->nBit  = keyDefArray[0].keyValue;
 	    else
 	    if (strcmp(bii.szInfo+3, keyDefArray[1].keyString) == 0)	// PSP_CTRL_START = 0x000008,

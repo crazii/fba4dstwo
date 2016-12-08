@@ -6,8 +6,8 @@
 #endif
 
 //#define EMU_DOZE					// Use Dave's 'Doze' Assembler Z80 emulator
-//#define EMU_MAME_Z80
-#define EMU_CZ80
+#define EMU_MAME_Z80
+//#define EMU_CZ80
 
 #ifdef EMU_DOZE
  #include "doze.h"
