@@ -266,4 +266,8 @@ void   zcfree  OF((voidpf opaque, voidpf ptr));
 #define ZFREE(strm, addr)  (*((strm)->zfree))((strm)->opaque, (voidpf)(addr))
 #define TRY_FREE(s, p) {if (p) ZFREE(s, p);}
 
+#ifdef NDS
+#include <ds2_malloc.h>
+#endif
+
 #endif /* ZUTIL_H */

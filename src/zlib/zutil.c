@@ -296,9 +296,6 @@ extern voidp  malloc OF((uInt size));
 extern voidp  calloc OF((uInt items, uInt size));
 extern void   free   OF((voidpf ptr));
 #endif
-#ifdef NDS
-#include <ds2_malloc.h>
-#endif
 
 voidpf zcalloc (opaque, items, size)
     voidpf opaque;
