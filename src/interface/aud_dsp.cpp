@@ -8,6 +8,10 @@
 
 
 #include <stdlib.h>
+#ifdef NDS
+	#include <ds2_malloc.h>
+	#include <fs_api.h>
+#endif
 #include "burner.h"
 #include "lowpass2.h"
 

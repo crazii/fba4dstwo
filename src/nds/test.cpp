@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#ifdef NDS
+	#include <ds2_malloc.h>
+	#include <fs_api.h>
+#endif
 
 static int testi,testj;
 unsigned char uniCacheHead2[13*1024*1024];

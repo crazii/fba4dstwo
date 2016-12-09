@@ -12,7 +12,7 @@ extern "C" void zprintf(int s, char* pszFormat, ...)
 	char buf[256];
 	vsprintf(buf, pszFormat, vaFormat);
 	va_end(vaFormat);
-	bprintf(s, pszFormat);
+	bprintf(s, buf);
 }
 
 int ZipOpen(char *szZip)

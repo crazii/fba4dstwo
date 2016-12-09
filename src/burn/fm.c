@@ -128,6 +128,11 @@
 	#include "ymdeltat.h"
 #endif
 
+#ifdef NDS
+	#include <ds2_malloc.h>
+	#include <fs_api.h>
+#endif
+
 /* shared function building option */
 #define BUILD_OPN (BUILD_YM2203||BUILD_YM2608||BUILD_YM2610||BUILD_YM2610B||BUILD_YM2612)
 #define BUILD_OPN_PRESCALER (BUILD_YM2203||BUILD_YM2608)

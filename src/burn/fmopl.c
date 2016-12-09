@@ -81,7 +81,10 @@ Revision History:
 #define PI 3.14159265358979323846
 #endif
 
-
+#ifdef NDS
+	#include <ds2_malloc.h>
+	#include <fs_api.h>
+#endif
 
 /* output final shift */
 #if (OPL_SAMPLE_BITS==16)

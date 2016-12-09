@@ -13,6 +13,10 @@
 #include "state.h"
 #include "ym2151.h"
 
+#ifdef NDS
+	#include <ds2_malloc.h>
+	#include <fs_api.h>
+#endif
 
 /* undef this to not use MAME timer system */
 // #define USE_MAME_TIMERS
@@ -1474,10 +1478,10 @@ static void ym2151_state_save_register( int numchips )
 *	'clock' is the chip clock in Hz
 *	'rate' is sampling rate
 */
+#define PRINT_IMPORTANT (2)
 int YM2151Init(int num, int clock, int rate)
 {
 	int i;
-
 	if (YMPSG)
 		return -1;	/* duplicate init. */
 

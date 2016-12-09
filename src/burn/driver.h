@@ -20,6 +20,11 @@
 
 #define FBA
 
+#ifdef NDS
+	#include <ds2_malloc.h>
+	#include <fs_api.h>
+#endif
+
 typedef signed char INT8;
 typedef unsigned char UINT8;
 typedef signed short INT16;

@@ -44,6 +44,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#ifdef NDS
+	#include <ds2_malloc.h>
+	#include <fs_api.h>
+#endif
 
 #include "nec.h"
 #include "necintrf.h"

@@ -381,6 +381,11 @@
 #  include <malloc.h>
 #endif
 
+#ifdef NDS
+	#include <ds2_malloc.h>
+	#include <fs_api.h>
+#endif
+
 /* This controls how fine the dithering gets.  As this allocates
  * a largish chunk of memory (32K), those who are not as concerned
  * with dithering quality can decrease some or all of these.

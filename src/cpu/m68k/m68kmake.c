@@ -63,7 +63,10 @@ const char* g_version = "3.3";
 #include <string.h>
 #include <ctype.h>
 #include <stdarg.h>
-
+#ifdef NDS
+	#include <ds2_malloc.h>
+	#include <fs_api.h>
+#endif
 
 
 /* ======================================================================== */

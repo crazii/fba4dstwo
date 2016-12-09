@@ -28,6 +28,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef NDS
+	#include <ds2_malloc.h>
+	#include <fs_api.h>
+#endif
 #include "m68k.h"
 
 #ifndef DECL_SPEC

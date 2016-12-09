@@ -54,6 +54,15 @@
 #define RET(A)															\
         if ((CPU->nCyclesLeft -= A) > 0) goto Cz80_Exec;				\
         goto Cz80_Exec_End;
+		
+#ifdef NDS
+
+#define SET_PC(A)															\
+	CPU->BasePC = (unsigned int)CPU->FetchData[(A) >> CZ80_FETCH_SFT];		\
+	PCDiff = (UINT32)CPU->Fetch[(A) >> CZ80_FETCH_SFT] - (UINT32)CPU->FetchData[(A) >> CZ80_FETCH_SFT];\
+	PC = (unsigned int)(A) + CPU->BasePC;
+
+#else
 
 #define SET_PC(A)															\
 	CPU->BasePC = (unsigned int)CPU->FetchData[(A) >> CZ80_FETCH_SFT];		\
@@ -63,7 +72,11 @@
 		goto Cz80_Exec_Really_End; \
 	} \
 	PCDiff = (UINT32)CPU->Fetch[(A) >> CZ80_FETCH_SFT] - (UINT32)CPU->FetchData[(A) >> CZ80_FETCH_SFT];\
-	PC = (unsigned int)(A) + CPU->BasePC;
+	PC = (unsigned int)(A) + CPU->BasePC;	
+
+#endif
+
+
 
 #define GET_OP()			(*(UINT8 *)(PC + PCDiff))
 
@@ -288,7 +301,6 @@ inline static INT32 Cz80_Exec(cz80_struc* CPU)
     
 //	CPU->nEI = 0;
 	
-	bprintf(PRINT_ERROR,"Cz80_Exec 0");
 	goto Cz80_Try_Int;
 
 Cz80_Exec:
@@ -312,29 +324,21 @@ Cz80_Try_Int:
 		
 		zIFF = 0;
 		if ( zIM == 0 ) {
-			bprintf(PRINT_ERROR,"Cz80_Exec 0a");
 			PUSH_16( zRealPC );
-			bprintf(PRINT_ERROR,"Cz80_Exec 0a2");
 			SET_PC( CPU->nInterruptLatch & 0x38 );
 			if ( CPU->nInterruptLatch & CZ80_IRQSTATUS_AUTO ) CPU->nInterruptLatch = CZ80_IRQSTATUS_NONE;
 			CPU->nCyclesLeft -= 13;
 		} else {
 			if ( zIM == 2 ) {
-				bprintf(PRINT_ERROR,"Cz80_Exec 0b");
 				int nTabAddr = 0, nIntAddr = 0;
 				nTabAddr = ((unsigned short)zI << 8) + (CPU->nInterruptLatch & 0xFF);
 				READ_MEM16( nTabAddr, nIntAddr );
-				bprintf(PRINT_ERROR,"Cz80_Exec 0b2");
 				PUSH_16( zRealPC );
-				bprintf(PRINT_ERROR,"Cz80_Exec 0b3");
 				SET_PC( nIntAddr );
-				bprintf(PRINT_ERROR,"Cz80_Exec 0b4");
 				if ( CPU->nInterruptLatch & CZ80_IRQSTATUS_AUTO ) CPU->nInterruptLatch = CZ80_IRQSTATUS_NONE;
 				CPU->nCyclesLeft -= 19;
 			} else {
-				bprintf(PRINT_ERROR,"Cz80_Exec 0c");
 				PUSH_16( zRealPC );
-				bprintf(PRINT_ERROR,"Cz80_Exec 0c2");
 				SET_PC( 0x38 );
 				if ( CPU->nInterruptLatch & CZ80_IRQSTATUS_AUTO ) CPU->nInterruptLatch = CZ80_IRQSTATUS_NONE;
 				CPU->nCyclesLeft -= 13;
@@ -342,37 +346,27 @@ Cz80_Try_Int:
 		}
 	}
 	
-	bprintf(PRINT_ERROR,"Cz80_Exec 00");
 	if ( CPU->nEI == 8 ) {
 		CPU->nEI = 0;
 		goto Cz80_Exec;
 	}
 
-	bprintf(PRINT_ERROR,"Cz80_Exec 01");
 	if ( CPU->nCyclesLeft < 0 ) {
 		goto Cz80_Exec_Really_End;
 	}
 	
-	bprintf(PRINT_ERROR,"Cz80_Exec 02");
-	bprintf(PRINT_ERROR,"Cz80_Exec PC:%x PCDiff:%x", CPU->PC, PCDiff);
 	if ( GET_OP() == 0x76 ) {
-		bprintf(PRINT_ERROR,"Cz80_Exec 0a");
 		int nDid = (CPU->nCyclesLeft >> 2) + 1;
-		bprintf(PRINT_ERROR,"Cz80_Exec 0b");
 		zR1 = (zR + nDid) & 0x7F;
-		bprintf(PRINT_ERROR,"Cz80_Exec 0c");
 		CPU->nCyclesLeft -= nDid;
-		bprintf(PRINT_ERROR,"Cz80_Exec 0d");
 		goto Cz80_Exec_Really_End;
 	}
 		
 	CPU->nEI = 1;
-	bprintf(PRINT_ERROR,"Cz80_Exec 1");
 	goto Cz80_Exec;
 
 Cz80_Exec_End:
 
-	bprintf(PRINT_ERROR,"Cz80_Exec 2");
 	if ( CPU->nEI == 8 ) {
 		CPU->nEI = 0;
 		goto Cz80_Exec;
@@ -397,7 +391,6 @@ Cz80_Exec_End:
 	
 Cz80_Exec_Really_End:
 	
-	bprintf(PRINT_ERROR,"Cz80_Exec 3");
     CPU->PC = PC;
     // update R register
     zR1 = (zR + ((CPU->nCyclesSegment - CPU->nCyclesLeft) >> 2)) & 0x7F;
@@ -430,8 +423,13 @@ inline static void Cz80_Set_PC(cz80_struc *CPU, UINT32 val)
 {
 	// don't not use this while CZ80 is executting !!!
     CPU->BasePC = (UINT32) CPU->FetchData[val >> CZ80_FETCH_SFT];
+#ifdef NDS
+	//note: dstwo allocation may map to hi memory, i.e. 0x8fff0000
+	CPU->PC = val + CPU->BasePC;
+#else
     if(CPU->BasePC<=0) return;
     CPU->PC = val + CPU->BasePC;
+#endif
 }
 
 inline static void Cz80_Reset(cz80_struc *CPU)

@@ -28,6 +28,10 @@
 #include "M6502.h"
 #include "Console.h"
 #include <stdlib.h>
+#ifdef NDS
+	#include <ds2_malloc.h>
+	#include <fs_api.h>
+#endif
 
 #define Debug6502 OriginalDebug6502
 #include "Debug.c"

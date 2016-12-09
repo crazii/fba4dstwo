@@ -8,7 +8,10 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-
+#ifdef NDS
+	#include <ds2_malloc.h>
+	#include <fs_api.h>
+#endif
 
 static FILE *OpCodeFile=NULL;
 

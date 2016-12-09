@@ -90,7 +90,7 @@ extern "C" {
 #define zlSP		CPU->SP.B.L
 #define zhSP		CPU->SP.B.H
 
-#define zRealPC		(PC - CPU->BasePC)
+#define zRealPC		(PC - (unsigned int)CPU->BasePC)
 #define zPC			PC
 
 #define zI			CPU->I
