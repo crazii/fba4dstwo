@@ -626,7 +626,7 @@ static int shadfrceInit()
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");
-	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+	}else if(fseek(cacheFile,0,SEEK_END)!=0 || ftell(cacheFile) != cacheFileSize)
 	{
 		needCreateCache = true;
 		fclose(cacheFile);

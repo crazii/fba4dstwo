@@ -1039,7 +1039,7 @@ static int grdiansInit()
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");
-	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+	}else if(fseek(cacheFile,0,SEEK_END)!=0 || ftell(cacheFile) != cacheFileSize)
 	{
 		needCreateCache = true;
 		fclose(cacheFile);
@@ -1241,7 +1241,7 @@ static int mj4simaiInit()
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");
-	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+	}else if(fseek(cacheFile,0,SEEK_END)!=0 || ftell(cacheFile) != cacheFileSize)
 	{
 		needCreateCache = true;
 		fclose(cacheFile);
@@ -1427,7 +1427,7 @@ static int myangelInit()
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");
-	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+	}else if(fseek(cacheFile,0,SEEK_END)!=0 || ftell(cacheFile) != cacheFileSize)
 	{
 		needCreateCache = true;
 		fclose(cacheFile);
@@ -1610,7 +1610,7 @@ cacheFileSize=0x1800000;
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");
-	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+	}else if(fseek(cacheFile,0,SEEK_END)!=0 || ftell(cacheFile) != cacheFileSize)
 	{
 		needCreateCache = true;
 		fclose(cacheFile);
@@ -1804,7 +1804,7 @@ static int pzlbowlInit()
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");
-	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+	}else if(fseek(cacheFile,0,SEEK_END)!=0 || ftell(cacheFile) != cacheFileSize)
 	{
 		needCreateCache = true;
 		fclose(cacheFile);
@@ -1982,7 +1982,7 @@ static int penbrosInit()
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");
-	}else if(fseek(cacheFile,0,SEEK_END)!=cacheFileSize)
+	}else if(fseek(cacheFile,0,SEEK_END)!=0 || ftell(cacheFile) != cacheFileSize)
 	{
 		needCreateCache = true;
 		fclose(cacheFile);

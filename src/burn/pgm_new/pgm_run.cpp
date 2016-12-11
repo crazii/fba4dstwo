@@ -613,7 +613,7 @@ int pgmInit()
 		{
 			bPgmCreateCache = true;
 			cacheFile = fopen( filePathName, "wb+");
-		}else if(fseek(cacheFile,0,SEEK_END)!=(nPGMTileROMLen+nPGMSPRColROMLen+nPGMSPRMaskROMLen+nPGMSNDROMLen))
+		}else if(fseek(cacheFile,0,SEEK_END)!= 0 || ftell(cacheFile) != (nPGMTileROMLen+nPGMSPRColROMLen+nPGMSPRMaskROMLen+nPGMSNDROMLen))
 		{
 			bPgmCreateCache = true;
 			fclose(cacheFile);
