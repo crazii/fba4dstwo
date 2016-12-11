@@ -370,9 +370,8 @@ static void pgm_calendar_w(unsigned short data)
 
 inline static unsigned int CalcCol(unsigned short nColour)
 {
-
-	return ((nColour & 0x001f) << 11) | 
-	       ((nColour & 0x03e0) <<  1) | 
+	return ((nColour & 0x001f) << 10) | 
+	       ((nColour & 0x03e0) <<  0) | 
 	       ((nColour & 0x7c00) >> 10);
 }
 

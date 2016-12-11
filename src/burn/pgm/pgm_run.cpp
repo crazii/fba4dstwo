@@ -405,8 +405,8 @@ inline static unsigned int CalcCol(unsigned short nColour)
 
 	return BurnHighCol(b, g, r, 0);
 #else
-	return ((nColour & 0x001f) << 11) | 
-	       ((nColour & 0x03e0) <<  1) | 
+	return ((nColour & 0x001f) << 10) | 
+	       ((nColour & 0x03e0) <<  0) | 
 	       ((nColour & 0x7c00) >> 10);
 #endif
 }
