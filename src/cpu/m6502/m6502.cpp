@@ -23,9 +23,9 @@
 /** __inline for the same purpose.                          **/
 /*************************************************************/
 #ifdef __C99__
-#define INLINE static inline
+#define INLINE static inline __attribute__((always_inline))
 #else
-#define INLINE static __inline
+#define INLINE static __inline __attribute__((always_inline))
 #endif
 
 /** System-Dependent Stuff ***********************************/

@@ -14,7 +14,7 @@
 #define menu_item_height 18
 #define INDENT 4
 
-short gameSpeedCtrl = 1;
+short gameSpeedCtrl = DEF_FRAME_SKIP;
 unsigned int hotButtons = (KEY_A|KEY_B|KEY_Y);
 short screenMode=0;
 short saveIndex=0;
@@ -59,9 +59,9 @@ static char *ui_main_menu[] = {
 	"%1u Save Game ",
 	"Reset Game ",
 	"Controller: %1uP ",
-	"Max Skip Frames: %d",
+	"Skip Frames: %3.1f%%",
 	"CPU Speed: %3dMHz ",
-	"Mono Sound: %s ",
+	"Sound Mode: %s ",
 	"Exit FinaBurn Alpha"	
 };
 
@@ -97,16 +97,18 @@ void draw_ui_main()
 	    		strcpy(buf,"Controller: ALL");
 			break;
 	    case SKIP_FRAMES:
-	    	sprintf( buf, ui_main_menu[i],gameSpeedCtrl );
+	    	sprintf( buf, ui_main_menu[i], (float)gameSpeedCtrl*100/(float)FRAME_RATE );
 			break;
 	    case CPU_SPEED:
 	    	sprintf( buf, ui_main_menu[i], cpu_speeds[cpu_speeds_select] );
 			break;
 		case MONO_SOUND:
-			if(monoSound==1)
-				sprintf( buf, ui_main_menu[i], "ON" );
+			if(soundMode==0)
+				sprintf( buf, ui_main_menu[i], "Mute" );
+			else if(soundMode==1)
+				sprintf( buf, ui_main_menu[i], "Mono" );
 			else
-				sprintf( buf, ui_main_menu[i], "OFF" );
+				sprintf( buf, ui_main_menu[i], "Stereo" );
 			break;
 	    default:
 	    	sprintf( buf, ui_main_menu[i]);
@@ -202,6 +204,11 @@ static void return_to_game()
 	ds2_clearScreen(UP_SCREEN, 0);
 	ds2_flipScreen(UP_SCREEN, 1);
 	ds2_clearScreen(UP_SCREEN, 0);
+	draw_ui_main();
+	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, SCREEN_WIDTH, 30, UI_BGCOLOR );
+	drawString("Press START+L/R to set frame skip", (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, UI_COLOR, (SCREEN_WIDTH));
+	drawString("Press START+SELECT to activate menu", (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR, (SCREEN_WIDTH));
+	update_gui();
 	
 	if( cpu_speeds_select > 3)
 		cpu_speeds_select = 3;
@@ -252,12 +259,7 @@ static void process_key( int key, int down, int repeat )
 				draw_ui_main();
 				break;
 			case SKIP_FRAMES:
-				gameSpeedCtrl--;
-				if ( gameSpeedCtrl<0 ) 
-				{
-					gameSpeedCtrl=8;
-				}
-				draw_ui_main();
+				ui_dec_frame_skip();
 				break;
 			case CPU_SPEED:
 				if ( cpu_speeds_select > 0 ) {
@@ -266,7 +268,8 @@ static void process_key( int key, int down, int repeat )
 				}
 				break;
 			case MONO_SOUND:
-				monoSound=!monoSound;
+				if(--soundMode < 0)
+					soundMode = 2;
 				draw_ui_main();
 				break;
 			default:
@@ -294,12 +297,7 @@ static void process_key( int key, int down, int repeat )
 				draw_ui_main();
 				break;
 			case SKIP_FRAMES:
-				gameSpeedCtrl++;
-				if ( gameSpeedCtrl > 8) 
-				{
-					gameSpeedCtrl=0;
-				}
-				draw_ui_main();
+				ui_inc_frame_skip();
 				break;
 			case CPU_SPEED:
 				if ( cpu_speeds_select < 3 ) {
@@ -308,7 +306,8 @@ static void process_key( int key, int down, int repeat )
 				}
 				break;
 			case MONO_SOUND:
-				monoSound=!monoSound;
+				if(++soundMode > 2)
+					soundMode = 0;
 				draw_ui_main();
 				break;
 			default:
@@ -537,13 +536,13 @@ void ui_update_progress(float size, char * txt)
 	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, SCREEN_WIDTH, 12, R8G8B8_to_B5G6R5(0x807060) );
 	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, ui_process_pos, 12, R8G8B8_to_B5G6R5(0xffc090) );
 
-	int sz = (int)((SCREEN_WIDTH-20) * size + 0.5);
-	if (sz + ui_process_pos > (SCREEN_WIDTH-20)) sz = (SCREEN_WIDTH-20) - ui_process_pos;
+	int sz = (int)((SCREEN_WIDTH) * size + 0.5);
+	if (sz + ui_process_pos > (SCREEN_WIDTH)) sz = (SCREEN_WIDTH) - ui_process_pos;
 	drawRect( (unsigned short*)down_screen_addr, 0 + ui_process_pos, SCREEN_HEIGHT-FONT_HEIGHT*2, sz, 12, R8G8B8_to_B5G6R5(0xc09878) );
-	drawString(txt, (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR, (SCREEN_WIDTH-20));
+	drawString(txt, (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR, (SCREEN_WIDTH));
 	
 	ui_process_pos += sz;
-	if (ui_process_pos > (SCREEN_WIDTH-20)) ui_process_pos = (SCREEN_WIDTH-20);
+	if (ui_process_pos > (SCREEN_WIDTH)) ui_process_pos = (SCREEN_WIDTH);
 
 	update_gui();
 }
@@ -569,5 +568,19 @@ void setGameStage(int stage)
 	nGameStage=stage;
 }
 
+void ui_inc_frame_skip()
+{
+	gameSpeedCtrl += FRAME_SKIP_STEP;
+	if ( gameSpeedCtrl>MAX_FRAME_SKIP ) 
+		gameSpeedCtrl=0;
+	draw_ui_main();
+}
 
+void ui_dec_frame_skip()
+{
+	gameSpeedCtrl -= FRAME_SKIP_STEP;
+	if ( --gameSpeedCtrl<0 ) 
+		gameSpeedCtrl=MAX_FRAME_SKIP;
+	draw_ui_main();
+}
 

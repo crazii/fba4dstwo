@@ -84,9 +84,9 @@ void loadDefaultInput()
 {
 	//Read customized input info from ini file.
 	
-	monoSound=0;
-	gameSpeedCtrl=1;
-	FILE * fp = fopen("/FBA4DSTWO/FBA4DSTWO.ini", "r");
+	//soundMode=2;
+	//gameSpeedCtrl=1;
+	FILE * fp = fopen("/FBA4DSTWO/FBA.ini", "r");
 	
 	char IniLine[256];
 	char FindName[32]={'\0',};
@@ -189,37 +189,37 @@ int DoInputBlank(int bDipSwitch)
 	    if (strcmp(bii.szInfo+3, keyDefArray[0].keyString) == 0)		// KEY_SELECT = 0x000001,
 	    	pgi->nBit  = keyDefArray[0].keyValue;
 	    else
-	    if (strcmp(bii.szInfo+3, keyDefArray[1].keyString) == 0)	// PSP_CTRL_START = 0x000008,
+	    if (strcmp(bii.szInfo+3, keyDefArray[1].keyString) == 0)	// KEY_START = 0x000008,
 	    	pgi->nBit  = keyDefArray[1].keyValue;
 	    else
-	    if (strcmp(bii.szInfo+3, keyDefArray[2].keyString) == 0)		//PSP_CTRL_UP = 0x000010,
+	    if (strcmp(bii.szInfo+3, keyDefArray[2].keyString) == 0)		//KEY_UP = 0x000010,
 	    	pgi->nBit  = (bVert) ? keyDefArray[3].keyValue : keyDefArray[2].keyValue;
 	    else
-	    if (strcmp(bii.szInfo+3, keyDefArray[4].keyString) == 0)		// PSP_CTRL_DOWN = 0x000040,
+	    if (strcmp(bii.szInfo+3, keyDefArray[4].keyString) == 0)		// KEY_DOWN = 0x000040,
 	    	pgi->nBit  = (bVert) ? keyDefArray[5].keyValue : keyDefArray[4].keyValue;
 	    else
-	    if (strcmp(bii.szInfo+3, keyDefArray[5].keyString) == 0)		// PSP_CTRL_LEFT = 0x000080,
+	    if (strcmp(bii.szInfo+3, keyDefArray[5].keyString) == 0)		// KEY_LEFT = 0x000080,
 	    	pgi->nBit  = (bVert) ? keyDefArray[2].keyValue : keyDefArray[5].keyValue;
 	    else
-	    if (strcmp(bii.szInfo+3, keyDefArray[3].keyString) == 0)	// PSP_CTRL_RIGHT = 0x000020,
+	    if (strcmp(bii.szInfo+3, keyDefArray[3].keyString) == 0)	// KEY_RIGHT = 0x000020,
 	    	pgi->nBit  = (bVert) ? keyDefArray[4].keyValue : keyDefArray[3].keyValue;
 	    else
-	    if (strcmp(bii.szInfo+3, keyDefArray[6].keyString) == 0)	// PSP_CTRL_CROSS = 0x004000,
+	    if (strcmp(bii.szInfo+3, keyDefArray[6].keyString) == 0)	// PKEY_B = 0x004000,
 	    	pgi->nBit  = keyDefArray[6].keyValue;
 	    else
-	    if (strcmp(bii.szInfo+3, keyDefArray[7].keyString) == 0)	// PSP_CTRL_CIRCLE = 0x002000,
+	    if (strcmp(bii.szInfo+3, keyDefArray[7].keyString) == 0)	// KEY_A = 0x002000,
 	    	pgi->nBit  = keyDefArray[7].keyValue;
 	    else
-	    if (strcmp(bii.szInfo+3, keyDefArray[8].keyString) == 0)	// PSP_CTRL_SQUARE = 0x008000
+	    if (strcmp(bii.szInfo+3, keyDefArray[8].keyString) == 0)	// KEY_Y = 0x008000
 	    	pgi->nBit  = keyDefArray[8].keyValue;
 	    else
-	    if (strcmp(bii.szInfo+3, keyDefArray[9].keyString) == 0)	// PSP_CTRL_TRIANGLE = 0x001000,
+	    if (strcmp(bii.szInfo+3, keyDefArray[9].keyString) == 0)	// KEY_X = 0x001000,
 	    	pgi->nBit  = keyDefArray[9].keyValue;
 	    else
-	    if (strcmp(bii.szInfo+3, keyDefArray[10].keyString) == 0)	// PSP_CTRL_RTRIGGER = 0x000200
+	    if (strcmp(bii.szInfo+3, keyDefArray[10].keyString) == 0)	// KEY_R = 0x000200
 	    	pgi->nBit  = keyDefArray[10].keyValue;
 	    else
-	    if (strcmp(bii.szInfo+3, keyDefArray[11].keyString) == 0)	// PSP_CTRL_LTRIGGER = 0x000100,
+	    if (strcmp(bii.szInfo+3, keyDefArray[11].keyString) == 0)	// KEY_L  = 0x000100,
 	    	pgi->nBit  = keyDefArray[11].keyValue;
     	}
 		    	
@@ -243,7 +243,7 @@ else
   }
   	//Read customized input info from ini file.
 	char InputDIPConfigFileName[256];
-	sprintf(InputDIPConfigFileName, "roms/%s.ini", BurnDrvGetTextA(DRV_NAME));
+	sprintf(InputDIPConfigFileName, "/FBA4DSTWO/cfg/%s.ini", BurnDrvGetTextA(DRV_NAME));
 	FILE * fp = fopen(InputDIPConfigFileName, "r");
 	
 	char IniLine[256];
@@ -303,13 +303,13 @@ else
 					hotButtons=hotButtons|(0x1<<value);
 				}
 				
-			}else if(p = strstr(IniLine, "monoSound"))
+			}else if(p = strstr(IniLine, "soundMode"))
 			{
 				p = strstr(p, "0x");
 				if(p==0||p[2]=='\0')
 					continue;
 				int value=hex2int(p[2]);
-				monoSound=value;
+				soundMode=value;
 			}
 		}
 		fclose(fp);
@@ -453,7 +453,7 @@ void InpDIP()
 	//printf("nDIPOffset = %d\n", nDIPOffset);
 	
 	char InputDIPConfigFileName[256];
-	sprintf(InputDIPConfigFileName, "roms/%s.ini", BurnDrvGetTextA(DRV_NAME));
+	sprintf(InputDIPConfigFileName, "/FBA4DSTWO/cfg/%s.ini", BurnDrvGetTextA(DRV_NAME));
 	FILE * fp = fopen(InputDIPConfigFileName, "r");
 	
 	char IniLine[256];

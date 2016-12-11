@@ -67,7 +67,7 @@ typedef unsigned long long UINT64;
 
 #define SH2_INT_15			15
 
-#define INLINE inline static
+#define INLINE inline static __attribute__((always_inline))
 
 #if FAST_OP_FETCH
 

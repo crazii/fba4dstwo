@@ -11,6 +11,11 @@
 #define FONT_WIDTH	12
 #define FONT_HEIGHT 12
 
+#define FRAME_RATE	100
+#define MAX_FRAME_SKIP 50
+#define DEF_FRAME_SKIP 35
+#define FRAME_SKIP_STEP 5
+
 /* main.cpp */
 extern int nGameStage;
 extern int bGameRunning;
@@ -31,6 +36,8 @@ void draw_ui_browse(bool rebuiltlist);
 
 void ui_update_progress(float size, char * txt);
 void ui_update_progress2(float size, const char * txt);
+void ui_inc_frame_skip();
+void ui_dec_frame_skip();
 extern short gameSpeedCtrl;
 extern unsigned int hotButtons;
 
@@ -71,10 +78,10 @@ void loadDefaultInput();
 
 /* snd.cpp */
 #define SND_RATE		22050
-#define SND_FRAME_SIZE	((SND_RATE * 100 + 5999) / 6000)
+//#define SND_FRAME_SIZE	((SND_RATE * 100 + 5999) / 6000)
+#define SND_FRAME_SIZE	512
 
-extern int mixbufidDiff;
-extern unsigned char monoSound;
+extern signed char soundMode; //0: mute, 1: mono 2: stereo
 int sound_start();
 int sound_stop();
 void sound_next();

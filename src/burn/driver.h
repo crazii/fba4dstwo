@@ -15,7 +15,7 @@
 #endif
 
 #ifndef INLINE
- #define INLINE __inline static
+ #define INLINE inline static __attribute__((always_inline))
 #endif
 
 #define FBA

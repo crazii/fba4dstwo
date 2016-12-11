@@ -187,7 +187,7 @@ void initUniCache(unsigned int cacheSize,float ratio)
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
 	cacheFile = fopen( filePathName, "rb");
-	if (cacheFile<0)
+	if (!cacheFile)
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");

@@ -217,8 +217,12 @@ FIXUP	= makeplug
 
 CFLAGS	 = $(incdir) $(DEF) \
 		-mips32 -O3 -mno-abicalls -fno-pic -fno-builtin \
-	   -fno-exceptions -ffunction-sections -mlong-calls\
-	   -fomit-frame-pointer -msoft-float -G 4
+	   -fno-exceptions -ffunction-sections -mlong-calls \
+	   -fomit-frame-pointer -msoft-float -G 4 \
+	   -ffast-math -fsingle-precision-constant -funsafe-math-optimizations \
+	   -fno-common -Wa,-mno-shared -Wstrict-aliasing \
+	   -funroll-loops -funswitch-loops
+	   #-ftree-vectorize
 
 
 NATIVE_CC = gcc

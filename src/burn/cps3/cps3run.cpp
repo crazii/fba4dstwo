@@ -1116,7 +1116,7 @@ int cps3Init()
 	needCreateCache = false;
 	cacheFile = fopen( filePathName, "rb");
 	
-	if (cacheFile<0)
+	if (!cacheFile)
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");

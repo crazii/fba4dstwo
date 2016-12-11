@@ -31,6 +31,7 @@
 #ifdef NDS
 	#include <ds2_malloc.h>
 	#include <fs_api.h>
+
 #endif
 
 #define Debug6502 OriginalDebug6502

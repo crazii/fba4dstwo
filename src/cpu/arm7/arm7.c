@@ -43,11 +43,15 @@ typedef unsigned int UINT32;
 typedef long long INT64;
 typedef unsigned long long UINT64;
 typedef unsigned int offs_t;
-#define INLINE inline static
+#define INLINE inline static __attribute__((always_inline))
 #define NULL 0
 
 #include "arm7.h"
 #include "state.h"
+#ifdef NDS
+	#include <ds2_malloc.h>
+	#include <fs_api.h>
+#endif
 
 //#include "debugger.h"
 

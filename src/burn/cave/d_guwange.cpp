@@ -571,7 +571,7 @@ cacheFileSize=0x3000000;
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
 	cacheFile = fopen( filePathName, "rb");
-	if (cacheFile<0)
+	if (!cacheFile)
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");

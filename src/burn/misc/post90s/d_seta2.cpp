@@ -1035,7 +1035,7 @@ static int grdiansInit()
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
 	cacheFile = fopen( filePathName, "rb");
-	if (cacheFile<0)
+	if (!cacheFile)
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");
@@ -1237,7 +1237,7 @@ static int mj4simaiInit()
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
 	cacheFile = fopen( filePathName, "rb");
-	if (cacheFile<0)
+	if (!cacheFile)
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");
@@ -1423,7 +1423,7 @@ static int myangelInit()
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
 	cacheFile = fopen( filePathName, "rb");
-	if (cacheFile<0)
+	if (!cacheFile)
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");
@@ -1606,7 +1606,7 @@ cacheFileSize=0x1800000;
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
 	cacheFile = fopen( filePathName, "rb");
-	if (cacheFile<0)
+	if (!cacheFile)
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");
@@ -1800,7 +1800,7 @@ static int pzlbowlInit()
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
 	cacheFile = fopen( filePathName, "rb");
-	if (cacheFile<0)
+	if (!cacheFile)
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");
@@ -1978,7 +1978,7 @@ static int penbrosInit()
 	strcat(filePathName, "_LB");
 	needCreateCache = false;
 	cacheFile = fopen( filePathName, "rb");
-	if (cacheFile<0)
+	if (!cacheFile)
 	{
 		needCreateCache = true;
 		cacheFile = fopen( filePathName, "wb+");

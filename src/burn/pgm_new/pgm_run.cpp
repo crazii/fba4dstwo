@@ -609,7 +609,7 @@ int pgmInit()
 		strcat(filePathName, "_LB");
 		bPgmCreateCache = false;
 		cacheFile = fopen( filePathName, "rb");
-		if (cacheFile<0)
+		if (!cacheFile)
 		{
 			bPgmCreateCache = true;
 			cacheFile = fopen( filePathName, "wb+");

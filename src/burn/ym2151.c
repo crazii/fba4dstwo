@@ -23,7 +23,7 @@
 
 /*#define FM_EMU*/
 #ifdef FM_EMU
-	#define INLINE static __inline__
+	#define INLINE static inline __attribute__((always_inline))
 	#ifdef USE_MAME_TIMERS
 		#undef USE_MAME_TIMERS
 	#endif

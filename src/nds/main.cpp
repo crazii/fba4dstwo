@@ -11,20 +11,27 @@
 #define VIDEO_BUFFER_WIDTH 512
 #define VIDEO_BUFFER_HEIGHT 512
 
-short skipFrame=0;
 int nGameStage = 0;
 int bGameRunning = 0;
 unsigned int debugValue[2]={0,};
+char szAppCachePath[256];
 
 static unsigned short* videoBuffer = NULL;
 static bool p2pFrameStatus=false;
 
+static void swapBuffer();
+void clear_gui_texture(int color, int w, int h);
+
 void returnToMenu()
 {
+	clear_gui_texture(0, VIDEO_BUFFER_WIDTH, VIDEO_BUFFER_HEIGHT);
+	swapBuffer();
+	
 	ds2_setCPUclocklevel(10);
 	setGameStage(1);
 	sound_pause();
 	draw_ui_main();
+	ui_update_progress(0, "Press B to return to game");
 }
 
 static unsigned int HighCol16(int r, int g, int b, int  /* i */)
@@ -36,10 +43,6 @@ static unsigned int HighCol16(int r, int g, int b, int  /* i */)
 	t |= (r >> 3) & 0x001F;
 	return t;
 }
-
-static void swapBuffer();
-
-char szAppCachePath[256];
 
 void chech_and_mk_dir(const char * dir)
 {
@@ -97,9 +100,10 @@ int main(int argc, char** argv) {
 	ptk = ctk;
 #endif
 
-	int ndsinput = 0;
+	struct key_buf lastpad = {0, 0, 0};
+	struct key_buf pad = {0, 0, 0};
+	int frameskip = 0;
 	while( bGameRunning ) {
-GAME_RUNNING:
 		
 #ifdef SHOW_FPS
 		//sceRtcGetCurrentTick( &ctk );
@@ -113,71 +117,71 @@ GAME_RUNNING:
 		nframes ++;
 #endif
 
-		struct key_buf pad;
+		lastpad = pad;
 		ds2_getrawInput(&pad);
 
 		if ( nGameStage ) {
 			
 			do_ui_key( pad.key );
 			update_gui();
-			//swapBuffer();
 
 		} else {
 			
-			if ( (pad.key & (KEY_L|KEY_R|KEY_START)) == (KEY_L|KEY_R|KEY_START) ) 
+			if ( (pad.key & (KEY_SELECT|KEY_START)) == (KEY_SELECT|KEY_START) ) 
 			{
-				returnToMenu();								
+				returnToMenu();
 				continue;
-			}		
-						
+			}
+			
+			if ( (pad.key & (KEY_L|KEY_START)) != (KEY_L|KEY_START) 
+				&& (lastpad.key & (KEY_L|KEY_START)) == (KEY_L|KEY_START) )
+			{
+				ui_dec_frame_skip();
+				update_gui();
+				continue;
+			}
+			
+			if ( (pad.key & (KEY_R|KEY_START)) != (KEY_R|KEY_START) 
+				&& (lastpad.key & (KEY_R|KEY_START)) == (KEY_R|KEY_START) )
+			{
+				ui_inc_frame_skip();
+				update_gui();
+				continue;
+			}
+			
 			if((nCurrentFrame&0x3)<2)
 			{
 				autoFireButtons=autoFireButtons&pad.key;
 				if(pad.key&KEY_SELECT)
-				{
 					autoFireButtons=autoFireButtons|KEY_SELECT;
-				}
 				if ( pad.key & KEY_R ) 
-				{
-					{
-						autoFireButtons=autoFireButtons|(pad.key&(~KEY_R));
-					}
-				}
-			}else
+					autoFireButtons=autoFireButtons|(pad.key&(~KEY_R));
+			}
+			else
 				pad.key=pad.key&(~autoFireButtons);
 			
 			nCurrentFrame++;
 			InpMake(pad.key);
 			
-			//TODO:
-			const bool skip = false;
-			#if 0
-			if(mixbufidDiff<3 && skipFrame<gameSpeedCtrl && skip)
+			int currentSkip = (nCurrentFrame*gameSpeedCtrl) % FRAME_RATE;
+			if( currentSkip < frameskip)
 			{
-				skipFrame++;
-			}else
-			#endif
-			{
-				skipFrame=0;
+				pBurnDraw = NULL;
+				BurnDrvFrame();
 				pBurnDraw = (unsigned char *)videoBuffer;
 			}
-#ifdef SHOW_FPS			
-			drawString(fps, (unsigned short*)((unsigned int)up_screen_addr, 11, 11, R8G8B8_to_B5G6R5(0x404040));
-			drawString(fps, (unsigned short*)((unsigned int)up_screen_addr, 10, 10, R8G8B8_to_B5G6R5(0xffffff));
-#endif
-			//bprintf(PRINT_ERROR,"main 0");
-			BurnDrvFrame();
-			
-			//bprintf(PRINT_ERROR,"main 1");
-			if(pBurnDraw)
+			else
 			{
+				BurnDrvFrame();
+#ifdef SHOW_FPS
+				drawString(fps, (unsigned short*)((unsigned int)up_screen_addr, 11, 11, R8G8B8_to_B5G6R5(0x404040));
+				drawString(fps, (unsigned short*)((unsigned int)up_screen_addr, 10, 10, R8G8B8_to_B5G6R5(0xffffff));
+#endif	
 				swapBuffer();
-				//update_gui();
 			}
-			//pBurnDraw = NULL;
+			frameskip = currentSkip;
 			sound_next();
 		}
-		
 	}
 
 	ds2_setCPUclocklevel(10);
@@ -214,34 +218,41 @@ void swapBuffer()
 	unsigned short* src = videoBuffer;
 	unsigned short* dst = (unsigned short*)up_screen_addr + xOff + (yOff * SCREEN_WIDTH);
 	int accumulatorY = 0;
+	int mix = 0;
 
 	for (int h = 0; h < drvHeight; h++)
 	{
+		int accumulatorX = 0;
+		unsigned short pixel = 0;
+		unsigned short* dstX = dst;
+		
+		for (int w = 0; w < drvWidth; ++w)
+		{
+			if (accumulatorX >= iAdd)
+				pixel = _mix(pixel, src[w]);
+			else
+				pixel = src[w];
+
+			accumulatorX += iAdd;
+			if (accumulatorX >= iModulo || w == drvWidth-1)
+			{
+				accumulatorX -= iModulo;
+				if (mix)
+					pixel = _mix(*dstX, pixel);
+				*dstX++ = pixel;
+			}
+		}
+		
 		accumulatorY += iAdd;
-		if (accumulatorY >= iModulo || h == drvHeight - 1)
+	    if (accumulatorY >= iModulo)
 		{
 			accumulatorY -= iModulo;
-			
-			unsigned short pixel = 0;
-			unsigned short *dstX=dst;
-			int accumulatorX = 0;
-
-			for (int w = 0; w < drvWidth; ++w)
-			{
-				if (accumulatorX >= iAdd)
-					pixel = _mix(pixel, src[w]);
-				else
-					pixel = src[w];
-
-				accumulatorX += iAdd;
-				if (accumulatorX >= iModulo || w == drvWidth - 1)
-				{
-					accumulatorX -= iModulo;
-					*dstX++ = pixel;
-				}
-			}
 			dst += SCREEN_WIDTH;
+			mix = 0;
 		}
+		else
+			mix = 1;
+		
 		src += VIDEO_BUFFER_WIDTH;
 	}
   
@@ -254,11 +265,12 @@ void clear_gui_texture(int color, int w, int h)
 	color |= 1<<15;
 	//2 pixels
 	color = (color&0xFFFF)|(color<<16);
+	w /= 2;
 	
 	int* src = (int*)videoBuffer;
 	for(int i = 0; i < h; ++i)
 	{
-		for(int j = 0; j < w/2; ++j)
+		for(int j = 0; j < w; ++j)
 			src[j] = color;
 		src += VIDEO_BUFFER_WIDTH/2;
 	}

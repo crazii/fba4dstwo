@@ -85,7 +85,7 @@ int MSM6295Scan(int nChip, int /*nAction*/)
 	return 0;
 }
 
-static void MSM6295Render_Linear(int nChip, int* pBuf, int nSegmentLength)
+static inline __attribute__((always_inline)) void MSM6295Render_Linear(int nChip, int* pBuf, int nSegmentLength)
 {
 	static int nPreviousSample[MAX_MSM6295], nCurrentSample[MAX_MSM6295];
 	int nVolume = MSM6295[nChip].nVolume;
@@ -301,16 +301,15 @@ int MSM6295Render(int nChip, short* pSoundBuf, int nSegmentLength)
 			} else {
 				BurnSoundCopyClamp_Mono_A(pBuffer, pSoundBuf, nSegmentLength);
 			}
-		} else {
+		} else
 #endif
+		{
 			if (bAdd) {
 				BurnSoundCopyClamp_Mono_Add_C(pBuffer, pSoundBuf, nSegmentLength);
 			} else {
 				BurnSoundCopyClamp_Mono_C(pBuffer, pSoundBuf, nSegmentLength);
 			}
-#ifndef NDS
 		}
-#endif
 	}
 
 	return 0;
