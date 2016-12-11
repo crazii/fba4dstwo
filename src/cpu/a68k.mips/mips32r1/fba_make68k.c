@@ -1,14 +1,45 @@
 /*---------------------------------------------------------------
  * Motorola 68000 32 Bit emulator
  *
- * Copyright 1998-2001 Mike Coates, 	All rights reserved
- *							Darren Olafson
+ * Make68K for x86
+ *   Copyright (c) 1998-2001 Mike Coates, Darren Olafson
+ *
+ * MIPS Make68K for PSP
+ *   Copyright (c) 2005 Manuel Geran
+ *
+ * MIPS Make68K for OpenDingux
+ *   Copyright (c) 2012-2013 Dmitry Smagin
  *---------------------------------------------------------------
  *
  * Thanks to ...
  *
  * Neil Bradley	 (lots of optimisation help & ideas)
  *
+ *---------------------------------------------------------------
+ * Changelog for OpenDingux
+ *
+ * 2013-11-28 - Fix setting Carry Flag for LSL.L #imm, Dreg. It was being
+                always zeroed for long shift. This fixes ddonpach.zip
+ * 2013-11-27 - Save $gp around calls to memory callbacks. This fixes kov.zip
+ *              In rare occasions $gp is changed inside callbacks and accessing
+ *              variables via $gp becomes invalid. Save 
+ * 2013-11-26 - Fix setting N flag in asl.b #1,reg / bpl #addr combo.
+ *              If reg was 0x80 after shifting N received 2 (should have 0/1)
+ *              and the following bpl failed. Now always discard higher bits for N.
+ *              This fixes aurail.zip
+ * 2013-11-25 - Save real PC reg to M68000_regs.pc before calling memory
+ *              callbacks, because PC could be changed from them.
+ *              This fixes hangon.zip
+ * 2013-11-21 - Fix m_seh/m_seb macros (thanks Nebuleon), now a68k-mips works!
+ *              Use both mips32r2 and r1 opcodes, define USE_MIPS32r1 to use r1.
+ *              Add debugging callbacks, now define FBA_DEBUG to activate.
+ *              $gp is saved inside M68000_RUN and reloaded with .cpload $gp
+ * 2012-11-03 - Replace mips32r2 opcodes seh, seb, ror, rorv with macros to
+ *              make it work on mips32 revision 1 (soc jz4740/jz4750)
+ *              Also replace direct jal and j with macros.
+ *              Fix M68000_regs and a68k_memory_intf structures to correspond
+ *              to their definitions in sek.h (struct A68KContext).
+ *              Now a68k-mips doesn't segfault but the emulation is incorrect.
  *---------------------------------------------------------------
  * History (so we know what bugs have been fixed)
  *
@@ -150,7 +181,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#define USE_MIPS32R1
 
 /* New Disassembler */
 
@@ -179,6 +209,9 @@ int		DisOp;
 
 #define TRUE -1
 #define FALSE 0
+
+// undef to use mips32r2 opcodes
+#define USE_MIPS32R1
 
 #define ZERO		 0
 #define AT			 1
@@ -242,53 +275,54 @@ int		DisOp;
 /* Register Location Offsets */
 
 #define MEMBASE		S5
-#define MEMBASESTR	"$21"
+#define MEMBASESTR	"$s5"
 
 #define ICOUNT				PREF "m68k_ICount"
 #define OP_ROM				PREF "OP_ROM"
 #define OP_RAM				PREF "OP_RAM"
 
-#define MEMINTF_DBGCALLBACK	"0x78(" MEMBASESTR ")"
-#define MEMINTF_READBYTE	"0x7C(" MEMBASESTR ")"
-#define MEMINTF_READWORD	"0x80(" MEMBASESTR ")"
-#define MEMINTF_READLONG	"0x84(" MEMBASESTR ")"
-#define MEMINTF_WRITEBYTE	"0x88(" MEMBASESTR ")"
-#define MEMINTF_WRITEWORD	"0x8C(" MEMBASESTR ")"
-#define MEMINTF_WRITELONG	"0x90(" MEMBASESTR ")"
-#define MEMINTF_CHANGEPC	"0x94(" MEMBASESTR ")"
-#define MEMINTF_READBYTEPC	"0x98(" MEMBASESTR ")"
-#define MEMINTF_READWORDPC	"0x9C(" MEMBASESTR ")"
-#define MEMINTF_READLONGPC	"0xA0(" MEMBASESTR ")"
-#define MEMINTF_DIR16		"0xA4(" MEMBASESTR ")"
-#define MEMINTF_DIR32		"0xA8(" MEMBASESTR ")"
+#define MEMINTF_DBGCALLBACK	"0x8C(" MEMBASESTR ")"
+#define MEMINTF_READBYTE	"0x90(" MEMBASESTR ")"
+#define MEMINTF_READWORD	"0x94(" MEMBASESTR ")"
+#define MEMINTF_READLONG	"0x98(" MEMBASESTR ")"
+#define MEMINTF_WRITEBYTE	"0x9C(" MEMBASESTR ")"
+#define MEMINTF_WRITEWORD	"0xA0(" MEMBASESTR ")"
+#define MEMINTF_WRITELONG	"0xA4(" MEMBASESTR ")"
+#define MEMINTF_CHANGEPC	"0xA8(" MEMBASESTR ")"
+#define MEMINTF_READBYTEPC	"0xAC(" MEMBASESTR ")"
+#define MEMINTF_READWORDPC	"0xB0(" MEMBASESTR ")"
+#define MEMINTF_READLONGPC	"0xB4(" MEMBASESTR ")"
+#define MEMINTF_DIR16		"0xB8(" MEMBASESTR ")"
+#define MEMINTF_DIR32		"0xBC(" MEMBASESTR ")"
 
 #define REG_A7				"0x3C(" MEMBASESTR ")"
-#define REG_USP				"0x68(" MEMBASESTR ")"
 #define REG_ISP				"0x40(" MEMBASESTR ")"
 #define REG_SRH				"0x44(" MEMBASESTR ")"
 #define REG_CCR				"0x48(" MEMBASESTR ")"
-#define REG_PC				"0x4C(" MEMBASESTR ")"
-#define REG_IRQ				"0x50(" MEMBASESTR ")"
-#define REG_IRQ_CALLBACK	"0x54(" MEMBASESTR ")"
-#define REG_RESET_CALLBACK	"0x5C(" MEMBASESTR ")"
-#define FULLPC				"0x74(" MEMBASESTR ")"
-#define CPUVERSION			"0x70(" MEMBASESTR ")"
-#define PREVIOUSPC			"0x58(" MEMBASESTR ")"
+// REG_XC - 0x48
+#define REG_PC				"0x50(" MEMBASESTR ")"
+#define REG_IRQ				"0x54(" MEMBASESTR ")"
+// REG_SR - 0x58
+#define REG_IRQ_CALLBACK	"0x5C(" MEMBASESTR ")"
+#define PREVIOUSPC			"0x60(" MEMBASESTR ")" // REG_PPC
+#define REG_RESET_CALLBACK	"0x64(" MEMBASESTR ")"
+// REG_RTE_CALLBACK - 0x68
+// REG_CMP_CALLBACK - 0x6C
+// asmbank - 0x80
+#define CPUVERSION			"0x84(" MEMBASESTR ")"
+#define FULLPC				"0x88(" MEMBASESTR ")"
 
 /* 68010 Regs */
 
-#define REG_SFC_BASE		0x60
-#define REG_VBR				"0x6C(" MEMBASESTR ")"
-#define REG_SFC				"0x60(" MEMBASESTR ")"
-#define REG_DFC				"0x64(" MEMBASESTR ")"
+#define REG_SFC_BASE		0x70
+#define REG_SFC				"0x70(" MEMBASESTR ")"
+#define REG_DFC				"0x74(" MEMBASESTR ")"
+#define REG_USP				"0x78(" MEMBASESTR ")"
+#define REG_VBR				"0x7C(" MEMBASESTR ")"
 
 /* 11 registers + space for 10 work registers + A0 - A3 : Stack must be kept on 16 bytes boundaries */
 #define STACKFRAME_SIZE		(7 * (4 * 4))
-#if (MEMBASE == GP)
 #define LOCALVARBASE		(STACKFRAME_SIZE - 0x2C)
-#else
-#define LOCALVARBASE		(STACKFRAME_SIZE - 0x28)
-#endif
 #define MINSTACK_POS		(1 * (4 * 4))
 
 #define FASTCALL_FIRST_REG	A0
@@ -328,7 +362,7 @@ int  PreDecLongMove = 0;
 
 /* External register preservation */
 
-static char SavedRegs[] = "ZA--------------SSSSSSSS----GSFR";
+static char SavedRegs[] = "ZA--------------SSSSSSSS-----SFR";
 
 
 
@@ -339,8 +373,8 @@ int OpcodeArray[65536];
 /* Lookup Arrays */
 
 static char* regnameslong[] =
-{ "$0","$1","$2","$3","$4","$5","$6","$7","$8","$9","$10","$11","$12","$13","$14","$15","$16","$17","$18","$19","$20","$21","$22","$23","$24","$25","$26","$27","$28","$29","$30","$31" };
-//{ "$zero","$at","$v0","$v1","$a0","$a1","$a2","$a3","$t0","$t1","$t2","$t3","$t4","$t5","$t6","$t7","$s0","$s1","$s2","$s3","$s4","$s5","$s6","$s7","$t8","$t9","$k0","$k1","$gp","$sp","$fp","$ra" };
+//{ "$0","$1","$2","$3","$4","$5","$6","$7","$8","$9","$10","$11","$12","$13","$14","$15","$16","$17","$18","$19","$20","$21","$22","$23","$24","$25","$26","$27","$28","$29","$30","$31" };
+{ "$zero","$at","$v0","$v1","$a0","$a1","$a2","$a3","$t0","$t1","$t2","$t3","$t4","$t5","$t6","$t7","$s0","$s1","$s2","$s3","$s4","$s5","$s6","$s7","$t8","$t9","$k0","$k1","$gp","$sp","$fp","$ra" };
 
 //static char* regnamesword[] =
 //{ "$0","$1","$2","$3","$4","$5","$6","$7","$8","$9","$10","$11","$12","$13","$14","$15","$16","$17","$18","$19","$20","$21","$22","$23","$24","$25","$26","$27","$28","$29","$30","$31" };
@@ -587,39 +621,48 @@ void Completed(void)
 	if (CheckInterrupt) {
 		fprintf(fp, "\t\t bgez  %s,3f\n", regnameslong[ICNT]);
 		fprintf(fp, "\t\t lbu   %s,%s     \t # Delay slot\n", regnameslong[TMPREG0], REG_IRQ);
-		fprintf(fp, "\t\t j     MainExit\n");
+		fprintf(fp, "\t\t m_j   MainExit\n");
+		fprintf(fp, "\t\t nop                    \t # Delay slot\n\n");
 		fprintf(fp, "\t3:\n");
 		fprintf(fp, " # Check for Interrupt waiting\n\n");
-		fprintf(fp, "\t\t andi  %s,%s,0x07       \t # Delay slot\n", regnameslong[TMPREG0], regnameslong[TMPREG0]);
+		fprintf(fp, "\t\t andi  %s,%s,0x07\n", regnameslong[TMPREG0], regnameslong[TMPREG0]);
 		//fprintf(fp, "\t\t bne   %s,$0,interrupt\n", regnameslong[TMPREG0]);
 		fprintf(fp, "\t\t beq   %s,$0,3f\n", regnameslong[TMPREG0]);
 		fprintf(fp, "\t\t nop                    \t # Delay slot\n");
-		fprintf(fp, "\t\t j     interrupt\n");
+		fprintf(fp, "\t\t m_j   interrupt\n");
+		fprintf(fp, "\t\t nop                    \t # Delay slot\n\n");
 		fprintf(fp, "\t3:\n");
 		/* 16 bit memory */
-		fprintf(fp, "\t\t lhu   %s,0x00(%s)    \t # Delay slot\n", regnameslong[OPCODE], regnameslong[PC]);
-
-		//fprintf(fp, "\t\t jmp   [%s_OPCODETABLE+ecx*4]\n\n", CPUtype);
-		fprintf(fp, "\t\t sll   %s,%s,2\n", regnameslong[TMPREG0], regnameslong[OPCODE]);
-		fprintf(fp, "\t\t addu  %s,%s,%s\n", regnameslong[TMPREG0], regnameslong[TMPREG0], regnameslong[OPCODETBL]);
-		fprintf(fp, "\t\t lw    %s,0x00(%s)\n", regnameslong[TMPREG0], regnameslong[TMPREG0]);
-		fprintf(fp, "\t\t jr    %s\n", regnameslong[TMPREG0]);
-		fprintf(fp, "\t\t nop                    \t # Delay slot\n\n");
+		fprintf(fp, "\t\t lhu   %s,0x00(%s)\n", regnameslong[OPCODE], regnameslong[PC]);
 	} else {
 
 		/* 16 bit memory */
 		fprintf(fp, "\t\t bgez  %s,3f\n", regnameslong[ICNT]);
 		fprintf(fp, "\t\t lhu   %s,0x00(%s)    \t # Delay slot\n", regnameslong[OPCODE], regnameslong[PC]);
-		fprintf(fp, "\t\t j     MainExit\n");
-		fprintf(fp, "\t3:\n");
-
-		//fprintf(fp, "\t\t jmp   [%s_OPCODETABLE+ecx*4]\n\n", CPUtype);
-		fprintf(fp, "\t\t sll   %s,%s,2         \t # Delay slot\n", regnameslong[TMPREG0], regnameslong[OPCODE]);
-		fprintf(fp, "\t\t addu  %s,%s,%s\n", regnameslong[TMPREG0], regnameslong[TMPREG0], regnameslong[OPCODETBL]);
-		fprintf(fp, "\t\t lw    %s,0x00(%s)\n", regnameslong[TMPREG0], regnameslong[TMPREG0]);
-		fprintf(fp, "\t\t jr    %s\n", regnameslong[TMPREG0]);
+		fprintf(fp, "\t\t m_j   MainExit\n");
 		fprintf(fp, "\t\t nop                    \t # Delay slot\n\n");
+		fprintf(fp, "\t3:\n");
 	}
+
+#ifdef FBA_DEBUG
+
+	fprintf(fp, "\n# call debug\n\n", PREF);
+	//fprintf(fp, "\t\t #test    byte [%smame_debug],byte 0xff\n", PREF);
+	//fprintf(fp, "\t\t #jns  4f\n");
+	fprintf(fp, "\t\t m_jal FBADebugActive\n");
+	fprintf(fp, "\t\t nop                    \t # Delay slot\n");
+	//fprintf(fp, "\t4:\n");
+
+#endif
+
+	//fprintf(fp, "\t\t jmp   [%s_OPCODETABLE+ecx*4]\n\n", CPUtype);
+	fprintf(fp, "\t\t sll   %s,%s,2\n", regnameslong[TMPREG0], regnameslong[OPCODE]);
+	fprintf(fp, "\t\t addu  %s,%s,%s\n", regnameslong[TMPREG0], regnameslong[TMPREG0], regnameslong[OPCODETBL]);
+	fprintf(fp, "\t\t lw    %s,0x00(%s)\n", regnameslong[TMPREG0], regnameslong[TMPREG0]);
+	fprintf(fp, "\t\t jr    %s\n", regnameslong[TMPREG0]);
+	fprintf(fp, "\t\t nop                    \t # Delay slot\n\n");
+
+
 }
 /*
  * Flag Routines
@@ -651,7 +694,7 @@ void SetFlags(char Size, int Operand, int Rreg, int Sreg1, int Sreg2)
 			fprintf(fp, "\t\t srl   %s,%s,%d%s\n", regnameslong[FLAG_V], regnameslong[FLAG_V], Decal, Size == 'L' ? "        \t # Set Overflow" : "");
 			if (Size != 'L') {
 				fprintf(fp, "\t\t andi  %s,%s,0x01     \t # Set Overflow\n", regnameslong[FLAG_V], regnameslong[FLAG_V]);
-				fprintf(fp, "\t\t se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
+				fprintf(fp, "\t\t m_se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
 				fprintf(fp, "\t\t slt   %s,%s,$0        \t # Set Sign\n", regnameslong[FLAG_N], regnameslong[T9]);
 				fprintf(fp, "\t\t sltiu %s,%s,1         \t # Set Zero\n", regnameslong[FLAG_Z], regnameslong[T9]);
 			} else {
@@ -674,7 +717,7 @@ void SetFlags(char Size, int Operand, int Rreg, int Sreg1, int Sreg2)
 			fprintf(fp, "\t\t srl   %s,%s,%d%s\n", regnameslong[FLAG_V], regnameslong[FLAG_V], Decal, Size == 'L' ? "        \t # Set Overflow" : "");
 			if (Size != 'L') {
 				fprintf(fp, "\t\t andi  %s,%s,0x01     \t # Set Overflow\n", regnameslong[FLAG_V], regnameslong[FLAG_V]);
-				fprintf(fp, "\t\t se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
+				fprintf(fp, "\t\t m_se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
 				fprintf(fp, "\t\t slt   %s,%s,$0        \t # Set Sign\n", regnameslong[FLAG_N], regnameslong[T9]);
 				fprintf(fp, "\t\t sltiu %s,%s,1\n", regnameslong[T9], regnameslong[T9]);
 			} else {
@@ -697,7 +740,7 @@ void SetFlags(char Size, int Operand, int Rreg, int Sreg1, int Sreg2)
 			fprintf(fp, "\t\t srl   %s,%s,%d%s\n", regnameslong[FLAG_V], regnameslong[FLAG_V], Decal, Size == 'L' ? "        \t # Set Overflow" : "");
 			if (Size != 'L') {
 				fprintf(fp, "\t\t andi  %s,%s,0x01     \t # Set Overflow\n", regnameslong[FLAG_V], regnameslong[FLAG_V]);
-				fprintf(fp, "\t\t se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
+				fprintf(fp, "\t\t m_se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
 				fprintf(fp, "\t\t slt   %s,%s,$0        \t # Set Sign\n", regnameslong[FLAG_N], regnameslong[T9]);
 				fprintf(fp, "\t\t sltiu %s,%s,1         \t # Set Zero\n", regnameslong[FLAG_Z], regnameslong[T9]);
 			} else {
@@ -720,7 +763,7 @@ void SetFlags(char Size, int Operand, int Rreg, int Sreg1, int Sreg2)
 			fprintf(fp, "\t\t srl   %s,%s,%d%s\n", regnameslong[FLAG_V], regnameslong[FLAG_V], Decal, Size == 'L' ? "        \t # Set Overflow" : "");
 			if (Size != 'L') {
 				fprintf(fp, "\t\t andi  %s,%s,0x01     \t # Set Overflow\n", regnameslong[FLAG_V], regnameslong[FLAG_V]);
-				fprintf(fp, "\t\t se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
+				fprintf(fp, "\t\t m_se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
 				fprintf(fp, "\t\t slt   %s,%s,$0        \t # Set Sign\n", regnameslong[FLAG_N], regnameslong[T9]);
 				fprintf(fp, "\t\t sltiu %s,%s,1\n", regnameslong[T9], regnameslong[T9]);
 			} else {
@@ -771,7 +814,7 @@ void CheckCPUtype(int Minimum, char* DelaySlot1, char* DelaySlot2)
 		else
 			fprintf(fp, "\t\t nop                    \t # Delay slot\n");
 	}
-	fprintf(fp, "\t\t j     ILLEGAL\n");
+	fprintf(fp, "\t\t m_j   ILLEGAL\n");
 	fprintf(fp, "\t0:\n");
 	if (DelaySlot2 && (strlen(DelaySlot2) > 0))
 		fprintf(fp, DelaySlot2);
@@ -842,11 +885,11 @@ void Exception(int Number, char* DelaySlot)
 {
 	if (Number > -1) {
 		fprintf(fp, "\t\t addiu %s,%s,-2\n", regnameslong[PC], regnameslong[PC]);
-		fprintf(fp, "\t\t jal   Exception\n");
+		fprintf(fp, "\t\t m_jal   Exception\n");
 		fprintf(fp, "\t\t ori   %s,$0,%d\n\n", regnameslong[V0], Number);
 		Completed();
 	} else {
-		fprintf(fp, "\t\t jal   Exception\n");
+		fprintf(fp, "\t\t m_jal   Exception\n");
 		fprintf(fp, "\t\t %s\t # Delay slot\n\n", (DelaySlot != NULL) ? DelaySlot : "nop                    ");
 	}
 }
@@ -1036,10 +1079,18 @@ void Memory_Read(char Size, int AReg, char *Flags, int LocalStack)
 	if (AReg != FASTCALL_FIRST_REG)
 		fprintf(fp, "\t\t or    %s,$0,%s\n", regnameslong[FASTCALL_FIRST_REG], regnameslong[AReg]);
 
-	fprintf(fp, "\t\t jalr  %s\n", regnameslong[T9]);
-
 	/* Save PC */
-	fprintf(fp, "\t\t sw    %s,%s    \t # Delay slot\n", regnameslong[PC], REG_PC);
+#if 0
+	fprintf(fp, "\t\t sw    %s,%s\n", regnameslong[PC], REG_PC);
+#else
+	fprintf(fp, "\t\t .set  noat\n");
+	fprintf(fp, "\t\t subu  %s,%s,%s\n", regnameslong[AT], regnameslong[PC], regnameslong[BASEPC]);
+	fprintf(fp, "\t\t sw    %s,%s\n", regnameslong[AT], REG_PC);
+	fprintf(fp, "\t\t .set  at\n");
+#endif
+
+	fprintf(fp, "\t\t jalr  %s\n", regnameslong[T9]);
+	fprintf(fp, "\t\t nop    \t\t\t # Delay slot\n");
 
 	/* Restore registers */
 
@@ -1118,9 +1169,19 @@ void Memory_Write(char Size, int AReg, int DReg, char *Flags, int LocalStack)
 		fprintf(fp, "\t\t or    %s,$0,%s\n", regnameslong[FASTCALL_SECOND_REG], regnameslong[DReg]);
 	if (AReg != FASTCALL_FIRST_REG)
 		fprintf(fp, "\t\t or    %s,$0,%s\n", regnameslong[FASTCALL_FIRST_REG], regnameslong[AReg]);
-	fprintf(fp, "\t\t jalr  %s\n", regnameslong[T9]);
+
 	/* Save PC */
-	fprintf(fp, "\t\t sw    %s,%s    \t # Delay slot\n", regnameslong[PC], REG_PC);
+#if 0
+	fprintf(fp, "\t\t sw    %s,%s\n", regnameslong[PC], REG_PC);
+#else
+	fprintf(fp, "\t\t .set  noat\n");
+	fprintf(fp, "\t\t subu  %s,%s,%s\n", regnameslong[AT], regnameslong[PC], regnameslong[BASEPC]);
+	fprintf(fp, "\t\t sw    %s,%s\n", regnameslong[AT], REG_PC);
+	fprintf(fp, "\t\t .set  at\n");
+#endif
+
+	fprintf(fp, "\t\t jalr  %s\n", regnameslong[T9]);
+	fprintf(fp, "\t\t nop    \t\t\t # Delay slot\n");
 
 	if (PreDecLongMove) {
 		fprintf(fp, "\t\t lw    %s,%s\n", regnameslong[T9], MEMINTF_WRITEWORD);
@@ -1490,7 +1551,7 @@ void EffectiveAddressRead(int mode, char Size, int Rreg, int Dreg, const char *f
 			Memory_Read(Size, EFFADDR, Flags, LocalStack);
 
 			if (Extend && (Size == 'B' || Size == 'W')) {
-				fprintf(fp, "\t\t se%c   %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[Dreg], regnameslong[V0]);
+				fprintf(fp, "\t\t m_se%c   %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[Dreg], regnameslong[V0]);
 			} else if (Dreg != V0) {
 				fprintf(fp, "\t\t or    %s,$0,%s\n", regnameslong[Dreg], regnameslong[V0]);
 			}
@@ -4620,11 +4681,24 @@ void reset(void)
 		}
 		assert(LocalStack >= MINSTACK_POS);
 
+		/* Save PC */
+	#if 0
+		fprintf(fp, "\t\t sw    %s,%s\n", regnameslong[PC], REG_PC);
+	#else
+		fprintf(fp, "\t\t .set  noat\n");
+		fprintf(fp, "\t\t subu  %s,%s,%s\n", regnameslong[AT], regnameslong[PC], regnameslong[BASEPC]);
+		fprintf(fp, "\t\t sw    %s,%s\n", regnameslong[AT], REG_PC);
+		fprintf(fp, "\t\t .set  at\n");
+	#endif
+
 		fprintf(fp, "\t\t jalr  %s\n", regnameslong[T9]);
-		fprintf(fp, "\t\t sw    %s,%s    \t # Delay slot\n", regnameslong[PC], REG_PC);
+		fprintf(fp, "\t\t nop   \t\t\t # Delay slot\n");
 
 		fprintf(fp, "\t\t lw    %s,%s\n", regnameslong[ICNT], ICOUNT);
 		fprintf(fp, "\t\t lw    %s,%s\n", regnameslong[PC], REG_PC);
+	#if 1
+		fprintf(fp, "\t\t addu  %s,%s,%s\n", regnameslong[PC], regnameslong[PC], regnameslong[BASEPC]);
+	#endif
 
 		if (SavedRegs[FLAG_X] == '-') {
 			fprintf(fp, "\t\t lbu   %s,0x%2.2X(%s)\n", regnameslong[FLAG_X], LocalStack, regnameslong[SP]);
@@ -4715,7 +4789,7 @@ void stop(void)
 		//fprintf(fp, "\t\t beq   %s,$0,procint\n", regnameslong[T9]);
 		fprintf(fp, "\t\t bne   %s,$0,8f\n", regnameslong[T9]);
 		fprintf(fp, "\t\t nop                    \t # Delay slot\n\n");
-		fprintf(fp, "\t\t j     procint\n");
+		fprintf(fp, "\t\t m_j   procint\n");
 		fprintf(fp, "\t\t nop                    \t # Delay slot\n\n");
 		fprintf(fp, "\t8:\n\n");
 
@@ -4725,7 +4799,7 @@ void stop(void)
 		//fprintf(fp, "\t\t bne   %s,$0,procint\n\n", regnameslong[T9]);
 		fprintf(fp, "\t\t bgez  %s,8f\n", regnameslong[T9]);
 		fprintf(fp, "\t\t nop                    \t # Delay slot\n\n");
-		fprintf(fp, "\t\t j     procint\n");
+		fprintf(fp, "\t\t m_j   procint\n");
 		fprintf(fp, "\t\t nop                    \t # Delay slot\n\n");
 		fprintf(fp, "\t8:\n\n");
 
@@ -5155,7 +5229,7 @@ void swap(void)
 			fprintf(fp, "\t\t addu  %s,%s,%s\n", regnameslong[OPCODE], regnameslong[OPCODE], regnameslong[MEMBASE]);
 
 			fprintf(fp, "\t\t lw    %s,0x00(%s)\n", regnameslong[V0], regnameslong[OPCODE]);
-			fprintf(fp, "\t\t ror   %s,%s,16\n", regnameslong[V0], regnameslong[V0]);
+			fprintf(fp, "\t\t m_ror   %s,%s,16\n", regnameslong[V0], regnameslong[V0]);
 			fprintf(fp, "\t\t sw    %s,0x00(%s)\n", regnameslong[V0], regnameslong[OPCODE]);
 			SetFlags('L', FLAGS_BITOP, V0, 0, 0);
 			Completed();
@@ -5730,7 +5804,7 @@ void lsl_lsr(void)
 							} else {
 								if (Size != 'L')
 									fprintf(fp, "\t\t sll   %s,%s,%d\n", regnameslong[FLAG_C], regnameslong[V0], Size == 'W' ? 16 : 24);
-								fprintf(fp, "\t\t sllv  %s,%s,%s\n", regnameslong[FLAG_C], regnameslong[FLAG_C], regnameslong[T2]);
+								fprintf(fp, "\t\t sllv  %s,%s,%s\n", regnameslong[FLAG_C], regnameslong[V0], regnameslong[T2]);
 								fprintf(fp, "\t\t srl   %s,%s,31       \t # Set Carry\n", regnameslong[FLAG_C], regnameslong[FLAG_C]);
 								// The actual work
 								fprintf(fp, "\t\t sllv  %s,%s,%s\n", regnameslong[V0], regnameslong[V0], regnameslong[OPCODE]);
@@ -6328,6 +6402,7 @@ void asl_asr(void)
 					fprintf(fp, "\t\t andi  %s,%s,0x%2.2X\n", regnameslong[FLAG_Z], regnameslong[V0], Size == 'h' ? 0xffff : 0xff);
 				fprintf(fp, "\t\t sltiu %s,%s,1        \t # Set Zero\n", regnameslong[FLAG_Z], regnameslong[FLAG_Z]);
 				fprintf(fp, "\t\t srl   %s,%s,%d        \t # Set Sign\n", regnameslong[FLAG_N], regnameslong[V0], Size == 'w' ? 31 : (Size == 'h' ? 15 : 7));
+				fprintf(fp, "\t\t andi  %s,%s,1\n", regnameslong[FLAG_N], regnameslong[FLAG_N]); // fix
 				fprintf(fp, "\t\t or    %s,$0,%s       \t # Copy Carry to X\n", regnameslong[FLAG_X], regnameslong[FLAG_C]);
 
 				Completed();
@@ -6719,9 +6794,9 @@ void JumpTable(void)
 			fprintf(fp, ".word %d\n", l);
 		} else {
 			if (op > -1)
-				fprintf(fp, "(OP%d_%4.4x - OP%d_1000) + (%d * 1000000h)\n", CPU, op, CPU, l);
+				fprintf(fp, "(OP%d_%4.4x - OP%d_1000) + (%d * 0x1000000)\n", CPU, op, CPU, l);
 			else
-				fprintf(fp, "(ILLEGAL - OP%d_1000) + (%d * 1000000h)\n", CPU, l);
+				fprintf(fp, "(ILLEGAL - OP%d_1000) + (%d * 0x1000000)\n", CPU, l);
 		}
 	}
 #else
@@ -6891,6 +6966,7 @@ char macroinc[] =
 ".endm\n";
 #endif
 
+
 void CodeSegmentBegin(void)
 {
 	int ExLocalStack;
@@ -6900,15 +6976,20 @@ void CodeSegmentBegin(void)
 	fprintf(fp, " # MIPS Make68K - V%s - Copyright 2005, Manuel Geran (bdiamond@free.fr)\n", VERSION);
 	fprintf(fp, " #   based on Make68K - Copyright 1998, Mike Coates (mame@btinternet.com)\n");
 	fprintf(fp, " #                                    & Darren Olafson (deo@mail.island.net)\n");
+	fprintf(fp, " #   OpenDingux adaptation - Copyright 2012-2013 Dmitry Smagin\n\n");
 
 /* Needed code to make it work! */
 
-	fprintf(fp, "\t\t .set arch=allegrex\n\n");
+#ifdef USE_MIPS32R1
+	fprintf(fp, "\t\t .set mips32\n\n");
+#else
+	fprintf(fp, "\t\t .set mips32r2\n\n");
+#endif
 
 	fprintf(fp, "\t\t .set noreorder\n");
-	fprintf(fp, "\t\t .set nomacro\n");
+	//fprintf(fp, "\t\t .set nomacro\n");
 	fprintf(fp, "\t\t .set nobopt\n");
-	fprintf(fp, " #\t\t .set noat\n\n");
+	//fprintf(fp, " #\t\t .set noat\n\n");
 
 	fprintf(fp, "\t\t .globl %s_RUN\n", CPUtype);
 	fprintf(fp, "\t\t .globl %s_RESET\n", CPUtype);
@@ -6921,7 +7002,12 @@ void CodeSegmentBegin(void)
 	/* ASG - only one interface to memory now */
 	fprintf(fp, "\t\t .globl %sa68k_memory_intf\n", PREF);
 
+#ifdef FBA_DEBUG
+	fprintf(fp, "\t\t .globl %sFBADebugActive\n", PREF);
+#endif
+
 	fwrite(macroinc, 1, sizeof(macroinc)-1, fp);
+
 	fprintf(fp, "\n\n # Vars Mame declares / needs access to\n\n");
 
 	fprintf(fp, "\t\t .extern %sm68k_ICount,4\n", PREF);
@@ -6940,7 +7026,7 @@ void CodeSegmentBegin(void)
 	fprintf(fp, "\t\t .extern %sm68k_illegal_opcode,4\n", PREF);
 #endif
 
-	//fprintf(fp, "\n\n\n\t\t .text\n\t\t .align 4\n\n");
+	fprintf(fp, "\n\n\n\t\t .text\n\t\t .align 4\n\n");
 
 
 /* Reset routine */
@@ -7003,11 +7089,9 @@ void CodeSegmentBegin(void)
 	fprintf(fp, "\t .ent   %s_RUN\n", CPUtype);
 	fprintf(fp, "%s_RUN:\n", CPUtype);
 
-	fprintf(fp, "\t\t addiu %s,%s,%d\n", regnameslong[SP], regnameslong[SP], -STACKFRAME_SIZE);
-	fprintf(fp, "\t\t .frame %s, %d, %s\n\n", regnameslong[SP], STACKFRAME_SIZE, regnameslong[RA]);
-#if (MEMBASE == GP)
+	fprintf(fp, "\t\t .frame %s, %d, %s\n", regnameslong[SP], STACKFRAME_SIZE, regnameslong[RA]);
+	fprintf(fp, "\t\t addiu %s,%s,%d\n\n", regnameslong[SP], regnameslong[SP], -STACKFRAME_SIZE);
 	fprintf(fp, "\t\t sw    %s,0x%2.2X(%s)\n", regnameslong[GP], STACKFRAME_SIZE - 0x2C, regnameslong[SP]);
-#endif
 	fprintf(fp, "\t\t sw    %s,0x%2.2X(%s)\n", regnameslong[S0], STACKFRAME_SIZE - 0x28, regnameslong[SP]);
 	fprintf(fp, "\t\t sw    %s,0x%2.2X(%s)\n", regnameslong[S1], STACKFRAME_SIZE - 0x24, regnameslong[SP]);
 	fprintf(fp, "\t\t sw    %s,0x%2.2X(%s)\n", regnameslong[S2], STACKFRAME_SIZE - 0x20, regnameslong[SP]);
@@ -7018,6 +7102,8 @@ void CodeSegmentBegin(void)
 	fprintf(fp, "\t\t sw    %s,0x%2.2X(%s)\n", regnameslong[S7], STACKFRAME_SIZE - 0x0C, regnameslong[SP]);
 	fprintf(fp, "\t\t sw    %s,0x%2.2X(%s)\n", regnameslong[S8], STACKFRAME_SIZE - 0x08, regnameslong[SP]);
 	fprintf(fp, "\t\t sw    %s,0x%2.2X(%s)\n", regnameslong[RA], STACKFRAME_SIZE - 0x04, regnameslong[SP]);
+
+	fprintf(fp, "\t\t .cpload $gp\n");
 
 	//fprintf(fp, "\t\t or    %s,$0,%s\n", regnameslong[MEMBASE], regnameslong[A0]);
 	fprintf(fp, "\t\t la    %s,%sM68000_regs\n", regnameslong[MEMBASE], PREF);
@@ -7045,9 +7131,19 @@ void CodeSegmentBegin(void)
 	/* See if was only called to check for Interrupt */
 
 	fprintf(fp, "\t\t bltz  %s,MainExit\n", regnameslong[ICNT]);
+	fprintf(fp, "\t\t nop  \t\t # Delay slot\n\n", regnameslong[ICNT]);
+
+#ifdef FBA_DEBUG
+	fprintf(fp, "\n# call debug\n\n", PREF);
+	//fprintf(fp, "\t\t #test    byte [%smame_debug],byte 0xff\n", PREF);
+	//fprintf(fp, "\t\t #jns  4f\n");
+	fprintf(fp, "\t\t m_jal FBADebugActive\n");
+	fprintf(fp, "\t\t nop                    \t # Delay slot\n");
+	//fprintf(fp, "\t4:\n");
+#endif
 
 	/* 16 Bit Fetch */
-	fprintf(fp, "\t\t lhu   %s,0x00(%s)\t\t # Delay slot\n\n", regnameslong[OPCODE], regnameslong[PC]);
+	fprintf(fp, "\t\t lhu   %s,0x00(%s)\n", regnameslong[OPCODE], regnameslong[PC]);
 
 	fprintf(fp, "\t\t sll   %s,%s,2\n", regnameslong[TMPREG0], regnameslong[OPCODE]);
 	fprintf(fp, "\t\t addu  %s,%s,%s\n\n", regnameslong[TMPREG0], regnameslong[TMPREG0], regnameslong[OPCODETBL]);
@@ -7085,9 +7181,7 @@ void CodeSegmentBegin(void)
 	fprintf(fp, "MC68Kexit:\n");
 	fprintf(fp, "\t\t sw    %s,%s\n", regnameslong[ICNT], ICOUNT);
 
-#if (MEMBASE == GP)
 	fprintf(fp, "\t\t lw    %s,0x%2.2X(%s)\n", regnameslong[GP], STACKFRAME_SIZE - 0x2C, regnameslong[SP]);
-#endif
 	fprintf(fp, "\t\t lw    %s,0x%2.2X(%s)\n", regnameslong[S0], STACKFRAME_SIZE - 0x28, regnameslong[SP]);
 	fprintf(fp, "\t\t lw    %s,0x%2.2X(%s)\n", regnameslong[S1], STACKFRAME_SIZE - 0x24, regnameslong[SP]);
 	fprintf(fp, "\t\t lw    %s,0x%2.2X(%s)\n", regnameslong[S2], STACKFRAME_SIZE - 0x20, regnameslong[SP]);
@@ -7353,6 +7447,83 @@ void CodeSegmentBegin(void)
 	fprintf(fp, "\t .end   Exception\n");
 	fprintf(fp, "\n\n\n\n");
 
+#ifdef FBA_DEBUG
+
+/* space 1 saved register and 7 work registers : Stack must be kept on 16 bytes boundaries */
+#define DBG_STACKFRAME_SIZE		(6 * (4 * 4))
+#define DBG_LOCALVARBASE		(DBG_STACKFRAME_SIZE - 0x04)
+
+	fprintf(fp,"\n # Call FBA debugging callback\n\n");
+	fprintf(fp, "\t .ent   FBADebugActive\n");
+	fprintf(fp, "FBADebugActive:\n");
+
+	fprintf(fp, "\t\t addiu %s, %s, %d\n", regnameslong[SP], regnameslong[SP], -DBG_STACKFRAME_SIZE);
+	fprintf(fp, "\t\t .frame %s, %d, %s\n\n", regnameslong[SP], DBG_STACKFRAME_SIZE, regnameslong[RA]);
+
+	// save regs here
+	fprintf(fp, "\t\t sw    %s, 0x%2.2X(%s)\n", regnameslong[FP], DBG_STACKFRAME_SIZE - 0x38, regnameslong[SP]);
+	fprintf(fp, "\t\t sw    %s, 0x%2.2X(%s)\n", regnameslong[GP], DBG_STACKFRAME_SIZE - 0x34, regnameslong[SP]);
+	fprintf(fp, "\t\t sw    %s, 0x%2.2X(%s)\n", regnameslong[T9], DBG_STACKFRAME_SIZE - 0x30, regnameslong[SP]);
+	fprintf(fp, "\t\t sw    %s, 0x%2.2X(%s)\n", regnameslong[S7], DBG_STACKFRAME_SIZE - 0x2C, regnameslong[SP]);
+	fprintf(fp, "\t\t .set noat\n");
+	fprintf(fp, "\t\t subu  %s, %s, %s\n", regnameslong[AT], regnameslong[S7], regnameslong[S6]);
+	fprintf(fp, "\t\t sw    %s, %s\n", regnameslong[AT], REG_PC);
+	fprintf(fp, "\t\t .set  at\n");
+	fprintf(fp, "\t\t sw    %s, 0x%2.2X(%s)\n", regnameslong[T0], DBG_STACKFRAME_SIZE - 0x28, regnameslong[SP]);
+	fprintf(fp, "\t\t sw    %s, 0x%2.2X(%s)\n", regnameslong[T1], DBG_STACKFRAME_SIZE - 0x24, regnameslong[SP]);
+	fprintf(fp, "\t\t sw    %s, 0x%2.2X(%s)\n", regnameslong[T2], DBG_STACKFRAME_SIZE - 0x20, regnameslong[SP]);
+	fprintf(fp, "\t\t sw    %s, 0x%2.2X(%s)\n", regnameslong[T3], DBG_STACKFRAME_SIZE - 0x1C, regnameslong[SP]);
+	fprintf(fp, "\t\t sw    %s, 0x%2.2X(%s)\n", regnameslong[T4], DBG_STACKFRAME_SIZE - 0x18, regnameslong[SP]);
+	fprintf(fp, "\t\t sw    %s, 0x%2.2X(%s)\n", regnameslong[T5], DBG_STACKFRAME_SIZE - 0x14, regnameslong[SP]);
+	fprintf(fp, "\t\t sw    %s, 0x%2.2X(%s)\n", regnameslong[T6], DBG_STACKFRAME_SIZE - 0x10, regnameslong[SP]);
+	fprintf(fp, "\t\t sw    %s, 0x%2.2X(%s)\n", regnameslong[T7], DBG_STACKFRAME_SIZE - 0x0C, regnameslong[SP]);
+	fprintf(fp, "\t\t sw    %s, 0x%2.2X(%s)\n", regnameslong[T8], DBG_STACKFRAME_SIZE - 0x08, regnameslong[SP]);
+	fprintf(fp, "\t\t sw    %s, 0x%2.2X(%s)\n\n", regnameslong[RA], DBG_STACKFRAME_SIZE - 0x04, regnameslong[SP]);
+
+	fprintf(fp, "\t\t .set noat\n");
+
+	// update flags
+#ifdef MAME_DEBUG
+	ReadCCR('W', AT);
+#else
+	ReadCCR('B', AT);
+#endif
+
+	fprintf(fp, "\t\t sw    %s,%s\n", regnameslong[AT], REG_CCR);
+
+	fprintf(fp, "\t\t lw    $at, %s\n", MEMINTF_DBGCALLBACK);
+	fprintf(fp, "\t\t beq   $at, $zero, 9f\n");
+	fprintf(fp, "\t\t nop         	 # Delay slot\n", PREF);
+	fprintf(fp, "\t\t jalr  $at\n");
+	fprintf(fp, "\t\t nop         	 # Delay slot\n", PREF);
+	fprintf(fp, "\t\t .set  at\n\n");
+	fprintf(fp, "9:\n");
+
+	// restore regs here
+	fprintf(fp, "\t\t lw    %s, 0x%2.2X(%s)\n", regnameslong[FP], DBG_STACKFRAME_SIZE - 0x38, regnameslong[SP]);
+	fprintf(fp, "\t\t lw    %s, 0x%2.2X(%s)\n", regnameslong[GP], DBG_STACKFRAME_SIZE - 0x34, regnameslong[SP]);
+	fprintf(fp, "\t\t lw    %s, 0x%2.2X(%s)\n", regnameslong[T9], DBG_STACKFRAME_SIZE - 0x30, regnameslong[SP]);
+	fprintf(fp, "\t\t lw    %s, 0x%2.2X(%s)\n", regnameslong[S7], DBG_STACKFRAME_SIZE - 0x2C, regnameslong[SP]);
+	fprintf(fp, "\t\t sw    %s, %s\n", regnameslong[S7], REG_PC);
+	fprintf(fp, "\t\t lw    %s, 0x%2.2X(%s)\n", regnameslong[T0], DBG_STACKFRAME_SIZE - 0x28, regnameslong[SP]);
+	fprintf(fp, "\t\t lw    %s, 0x%2.2X(%s)\n", regnameslong[T1], DBG_STACKFRAME_SIZE - 0x24, regnameslong[SP]);
+	fprintf(fp, "\t\t lw    %s, 0x%2.2X(%s)\n", regnameslong[T2], DBG_STACKFRAME_SIZE - 0x20, regnameslong[SP]);
+	fprintf(fp, "\t\t lw    %s, 0x%2.2X(%s)\n", regnameslong[T3], DBG_STACKFRAME_SIZE - 0x1C, regnameslong[SP]);
+	fprintf(fp, "\t\t lw    %s, 0x%2.2X(%s)\n", regnameslong[T4], DBG_STACKFRAME_SIZE - 0x18, regnameslong[SP]);
+	fprintf(fp, "\t\t lw    %s, 0x%2.2X(%s)\n", regnameslong[T5], DBG_STACKFRAME_SIZE - 0x14, regnameslong[SP]);
+	fprintf(fp, "\t\t lw    %s, 0x%2.2X(%s)\n", regnameslong[T6], DBG_STACKFRAME_SIZE - 0x10, regnameslong[SP]);
+	fprintf(fp, "\t\t lw    %s, 0x%2.2X(%s)\n", regnameslong[T7], DBG_STACKFRAME_SIZE - 0x0C, regnameslong[SP]);
+	fprintf(fp, "\t\t lw    %s, 0x%2.2X(%s)\n", regnameslong[T8], DBG_STACKFRAME_SIZE - 0x08, regnameslong[SP]);
+
+	fprintf(fp,"\n # Now continue as usual\n\n");
+	fprintf(fp, "\t\t lw    %s, 0x%2.2X(%s)\n", regnameslong[RA], DBG_STACKFRAME_SIZE - 0x04, regnameslong[SP]);
+	fprintf(fp, "\t\t jr    %s\n", regnameslong[RA]);
+	fprintf(fp, "\t\t addiu %s, %s,%d\t\t # Delay slot\n\n", regnameslong[SP], regnameslong[SP], DBG_STACKFRAME_SIZE);
+	fprintf(fp, "\t .end   FBADebugActive\n");
+	fprintf(fp, "\n\n\n\n");
+
+#endif
+
 }
 
 void CodeSegmentEnd(void)
@@ -7362,7 +7533,7 @@ void CodeSegmentEnd(void)
 	/* Memory structure for 68000 registers  */
 	/* Aligned on a cache line				 */
 
-	fprintf(fp, "\n\t\t .align 6\n");
+	fprintf(fp, "\n\t\t .align 4\n");
 
 	/* Memory structure for 68000 registers  */
 	/* Same layout as structure in CPUDEFS.H */
@@ -7390,22 +7561,24 @@ void CodeSegmentEnd(void)
 
 	fprintf(fp, "R_ISP:\t .word 0\t\t\t # Supervisor Stack\n");
 	fprintf(fp, "R_SR_H:\t .word 0\t\t\t # Status Register High TuSuuIII\n");
-	fprintf(fp, "R_SR:\t .word 0\t\t\t # Motorola Format SR\n\n");
-
+	fprintf(fp, "R_CCR:\t .word 0\n");
+	fprintf(fp, "R_XC:\t .word 0\n");
 	fprintf(fp, "R_PC:\t .word 0\t\t\t # Program Counter\n");
 	fprintf(fp, "R_IRQ:\t .word 0\t\t\t # IRQ Request Level\n\n");
+
+	fprintf(fp, "R_SR:\t .word 0\t\t\t # Motorola Format SR\n\n");
 
 	fprintf(fp, "R_IRQ_CALLBACK:\t .word 0\t\t\t # irq callback (get vector)\n\n");
 
 	fprintf(fp, "R_PPC:\t .word 0\t\t\t # Previous Program Counter\n");
-
 	fprintf(fp, "R_RESET_CALLBACK:\t .word 0\t\t\t # Reset Callback\n");
-
+	fprintf(fp, "R_RTE_CALLBACK:\t .word 0\n");
+	fprintf(fp, "R_CMP_CALLBACK:\t .word 0\n");
 	fprintf(fp, "R_SFC:\t .word 0\t\t\t # Source Function Call\n");
 	fprintf(fp, "R_DFC:\t .word 0\t\t\t # Destination Function Call\n");
 	fprintf(fp, "R_USP:\t .word 0\t\t\t # User Stack\n");
 	fprintf(fp, "R_VBR:\t .word 0\t\t\t # Vector Base\n");
-
+	fprintf(fp, "asmbank:\t .word 0\n\n");
 	fprintf(fp, "CPUversion:\t .word 0\n\n");
 	fprintf(fp, "FullPC:\t .word 0\n\n");
 	fprintf(fp, "%sa68k_memory_intf:\n", PREF);
@@ -7422,7 +7595,7 @@ void CodeSegmentEnd(void)
 	fprintf(fp, "\t\t .byte 0, 0, 0, 0, 0, 0, 0, 0, 46, 46, 46, 46, 46, 46, 46, 46\n");
 	fprintf(fp, "\t\t .byte 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38\n\n");
 
-	fprintf(fp, "\t\t .align 2\n");
+	fprintf(fp, "\t\t .align 4\n");
 
 #ifdef RLETABLE
 	fprintf(fp, " # RLE Compressed Jump Table\n\n");
@@ -7439,7 +7612,7 @@ void CodeSegmentEnd(void)
 	fprintf(fp, "\n\n\n\n");
 
 
-	fprintf(fp, "\t\t SECTION .bss\n");
+	fprintf(fp, "\t\t .data\n");
 
 	fprintf(fp, "\n\t\t .align 4\n\n");
 
@@ -7522,6 +7695,7 @@ int main(int argc, char **argv)
 	printf("  based on Make68K - Copyright 1998, Mike Coates (mame@btinternet.com)\n");
 	printf("                               1999, & Darren Olafson (deo@mail.island.net)\n");
 	printf("                               2000\n");
+	printf("  OpenDingux adaptation - Copyright 2012-2013 Dmitry Smagin\n\n");
 
 	if (argc != 3) {
 		printf("Usage: %s outfile jumptable-outfile\n", argv[0]);

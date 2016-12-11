@@ -946,7 +946,7 @@ void __fastcall setaSoundRegWriteWord(unsigned int sekAddress, unsigned short wo
 
 void __fastcall grdiansPaletteWriteByte(unsigned int sekAddress, unsigned char byteValue)
 {
-//	bprintf(PRINT_NORMAL, _T("Pal to write byte value %x to location %x\n"), byteValue, sekAddress);
+	bprintf(PRINT_NORMAL, _T("Pal to write byte value %x to location %x\n"), byteValue, sekAddress);
 }
 
 void __fastcall grdiansPaletteWriteWord(unsigned int sekAddress, unsigned short wordValue)
@@ -1026,6 +1026,7 @@ static void loadDecodeGfx(unsigned char *p, int cnt, int offset2x, unsigned char
 static int grdiansInit()
 {
 	int nRet;
+	myangel2 = 0;
 	cacheFileSize=0x2000000;
 		
 	extern char szAppCachePath[];

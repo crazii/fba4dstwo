@@ -215,6 +215,7 @@ void resetGame()
 
 void swapBuffer()
 {
+#if 1
 	unsigned short* src = videoBuffer;
 	unsigned short* dst = (unsigned short*)up_screen_addr + xOff + (yOff * SCREEN_WIDTH);
 	int accumulatorY = 0;
@@ -255,6 +256,16 @@ void swapBuffer()
 		
 		src += VIDEO_BUFFER_WIDTH;
 	}
+#else
+	
+	for(int h = 0; h < drvHeight; ++h)
+	{
+		if(h >= SCREEN_HEIGHT)
+			break;
+		int w = drvWidth < SCREEN_WIDTH ? drvWidth : SCREEN_WIDTH;
+		memcpy((short*)up_screen_addr + h*SCREEN_WIDTH, videoBuffer + h*VIDEO_BUFFER_WIDTH, w*2);
+	}
+#endif
   
 	ds2_flipScreen(UP_SCREEN, 0);
 }

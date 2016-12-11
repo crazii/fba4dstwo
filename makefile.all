@@ -39,7 +39,7 @@ objdir	= obj/nds/
 srcdir	= src/
 
 alldir	= burn burn/cave burn/pgm burn/toaplan burn/taito generated nds zlib \
-burn/misc burn/misc/post90s burn/misc/pre90s burn/cps3 cpu cpu/c68k cpu/cz80 cpu/m6502 cpu/sh2 cpu/nec cpu/z80 cpu/i8039 burn/capcom burn/neogeo \
+burn/misc burn/misc/post90s burn/misc/pre90s burn/cps3 cpu cpu/c68k cpu/a68k.mips cpu/a68k.mips/mips32r1 cpu/cz80 cpu/m6502 cpu/sh2 cpu/nec cpu/z80 cpu/i8039 burn/capcom burn/neogeo \
 cpu/m6809 cpu/hd6309 cpu/m6800 burn/misc burn/misc/dec0 burn/konami burn/sega cpu/arm7
 
 incdir	= -I. -I$(NDSSDK)/include $(foreach dir,$(alldir),-I$(srcdir)$(dir)) -I$(objdir)generated
@@ -146,6 +146,8 @@ autdep	= $(depobj:.o=.d)
 
 a68k.o	= $(objdir)cpu/a68k.mips/a68k.o
 
+#autobj += a68k.o
+
 driverlist.h = $(srcdir)generated/driverlist.h
 ctv.h	= $(srcdir)generated/ctv.h
 toa_gp9001_func.h = $(srcdir)generated/toa_gp9001_func.h
@@ -216,9 +218,9 @@ OBJDUMP = mipsel-linux-objdump
 FIXUP	= makeplug
 
 CFLAGS	 = $(incdir) $(DEF) \
-		-mips32 -O3 -mno-abicalls -fno-pic -fno-builtin \
+		-mtune=mips32 -mips32 -O3 -mno-abicalls -fno-pic -fno-builtin \
 	   -fno-exceptions -ffunction-sections -mlong-calls \
-	   -fomit-frame-pointer -msoft-float -G 4 \
+	   -fomit-frame-pointer -msoft-float -G0 \
 	   -ffast-math -fsingle-precision-constant -funsafe-math-optimizations \
 	   -fno-common -Wa,-mno-shared -Wstrict-aliasing \
 	   -funroll-loops -funswitch-loops
@@ -231,7 +233,7 @@ NATIVE_CXXFLAGS = -O3
 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 
-ASFLAGS	= -O3 -G0
+ASFLAGS	= -O3 -G0 -march=mips32 -mtune=mips32 -mno-shared
 
 #	   -fomit-frame-pointer -fsigned-char \
 #	   -fstrict-aliasing -falign-functions=32 -falign-loops -falign-labels -falign-jumps \
@@ -401,11 +403,11 @@ $(objdir)burn/burn_sound_mips.o: $(srcdir)burn/burn_sound_mips.s
 
 # A68K
 
-$(a68k.o):	fba_make68k.c
+$(a68k.o):	mips32r1/fba_make68k.c
 	@echo Compiling A68K MC68000 core...
 	@gcc -s $< -o $(subst $(srcdir),$(objdir),$(<D))/$(<F:.c=.exe)
 	@$(subst $(srcdir),$(objdir),$(<D))/$(<F:.c=.exe) $(@:.o=.s) $(@D)/a68ktbl.inc
-	@$(AS) $(ASFLAGS) $(@:.o=.s) -o $@
+	@$(CC) $(CFLAGS) -c -o $@ $(@:.o=.s)
 
 
 # Musashi
