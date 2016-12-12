@@ -276,13 +276,27 @@ void clear_gui_texture(int color, int w, int h)
 	color |= 1<<15;
 	//2 pixels
 	color = (color&0xFFFF)|(color<<16);
-	w /= 2;
 	
 	int* src = (int*)videoBuffer;
 	for(int i = 0; i < h; ++i)
 	{
-		for(int j = 0; j < w; ++j)
+		int iw = w /2;
+		
+		while(iw&0x7)
+			*(src++) = color;
+		iw = iw >> 3;
+		
+		for(int j = 0; j < iw; ++j)
+		{
+			src[j++] = color;
+			src[j++] = color;
+			src[j++] = color;
+			src[j++] = color;
+			src[j++] = color;
+			src[j++] = color;
+			src[j++] = color;
 			src[j] = color;
+		}
 		src += VIDEO_BUFFER_WIDTH/2;
 	}
 }

@@ -651,7 +651,7 @@ void SetFlags(char Size, int Operand, int Rreg, int Sreg1, int Sreg2)
 			fprintf(fp, "\t\t srl   %s,%s,%d%s\n", regnameslong[FLAG_V], regnameslong[FLAG_V], Decal, Size == 'L' ? "        \t # Set Overflow" : "");
 			if (Size != 'L') {
 				fprintf(fp, "\t\t andi  %s,%s,0x01     \t # Set Overflow\n", regnameslong[FLAG_V], regnameslong[FLAG_V]);
-				fprintf(fp, "\t\t se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
+				fprintf(fp, "\t\t m_se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
 				fprintf(fp, "\t\t slt   %s,%s,$0        \t # Set Sign\n", regnameslong[FLAG_N], regnameslong[T9]);
 				fprintf(fp, "\t\t sltiu %s,%s,1         \t # Set Zero\n", regnameslong[FLAG_Z], regnameslong[T9]);
 			} else {
@@ -674,7 +674,7 @@ void SetFlags(char Size, int Operand, int Rreg, int Sreg1, int Sreg2)
 			fprintf(fp, "\t\t srl   %s,%s,%d%s\n", regnameslong[FLAG_V], regnameslong[FLAG_V], Decal, Size == 'L' ? "        \t # Set Overflow" : "");
 			if (Size != 'L') {
 				fprintf(fp, "\t\t andi  %s,%s,0x01     \t # Set Overflow\n", regnameslong[FLAG_V], regnameslong[FLAG_V]);
-				fprintf(fp, "\t\t se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
+				fprintf(fp, "\t\t m_se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
 				fprintf(fp, "\t\t slt   %s,%s,$0        \t # Set Sign\n", regnameslong[FLAG_N], regnameslong[T9]);
 				fprintf(fp, "\t\t sltiu %s,%s,1\n", regnameslong[T9], regnameslong[T9]);
 			} else {
@@ -697,7 +697,7 @@ void SetFlags(char Size, int Operand, int Rreg, int Sreg1, int Sreg2)
 			fprintf(fp, "\t\t srl   %s,%s,%d%s\n", regnameslong[FLAG_V], regnameslong[FLAG_V], Decal, Size == 'L' ? "        \t # Set Overflow" : "");
 			if (Size != 'L') {
 				fprintf(fp, "\t\t andi  %s,%s,0x01     \t # Set Overflow\n", regnameslong[FLAG_V], regnameslong[FLAG_V]);
-				fprintf(fp, "\t\t se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
+				fprintf(fp, "\t\t m_se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
 				fprintf(fp, "\t\t slt   %s,%s,$0        \t # Set Sign\n", regnameslong[FLAG_N], regnameslong[T9]);
 				fprintf(fp, "\t\t sltiu %s,%s,1         \t # Set Zero\n", regnameslong[FLAG_Z], regnameslong[T9]);
 			} else {
@@ -720,7 +720,7 @@ void SetFlags(char Size, int Operand, int Rreg, int Sreg1, int Sreg2)
 			fprintf(fp, "\t\t srl   %s,%s,%d%s\n", regnameslong[FLAG_V], regnameslong[FLAG_V], Decal, Size == 'L' ? "        \t # Set Overflow" : "");
 			if (Size != 'L') {
 				fprintf(fp, "\t\t andi  %s,%s,0x01     \t # Set Overflow\n", regnameslong[FLAG_V], regnameslong[FLAG_V]);
-				fprintf(fp, "\t\t se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
+				fprintf(fp, "\t\t m_se%c  %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[T9], regnameslong[Rreg]);
 				fprintf(fp, "\t\t slt   %s,%s,$0        \t # Set Sign\n", regnameslong[FLAG_N], regnameslong[T9]);
 				fprintf(fp, "\t\t sltiu %s,%s,1\n", regnameslong[T9], regnameslong[T9]);
 			} else {
@@ -1490,7 +1490,7 @@ void EffectiveAddressRead(int mode, char Size, int Rreg, int Dreg, const char *f
 			Memory_Read(Size, EFFADDR, Flags, LocalStack);
 
 			if (Extend && (Size == 'B' || Size == 'W')) {
-				fprintf(fp, "\t\t se%c   %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[Dreg], regnameslong[V0]);
+				fprintf(fp, "\t\t m_se%c   %s,%s\n", Size == 'W' ? 'h' : 'b', regnameslong[Dreg], regnameslong[V0]);
 			} else if (Dreg != V0) {
 				fprintf(fp, "\t\t or    %s,$0,%s\n", regnameslong[Dreg], regnameslong[V0]);
 			}
@@ -6903,7 +6903,7 @@ void CodeSegmentBegin(void)
 
 /* Needed code to make it work! */
 
-	fprintf(fp, "\t\t .set arch=allegrex\n\n");
+	fprintf(fp, "\t\t .set arch=mips32\n\n");
 
 	fprintf(fp, "\t\t .set noreorder\n");
 	fprintf(fp, "\t\t .set nomacro\n");
