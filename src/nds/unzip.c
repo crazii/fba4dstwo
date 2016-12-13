@@ -24,7 +24,6 @@
 #ifdef NDS
 	#include <ds2_malloc.h>
 	#include <fs_api.h>
-
 #endif
 
 

@@ -27,18 +27,18 @@ int AppDebugPrintf(int nStatus, char* pszFormat, ...)
 	
 	unsigned short fc;
 	switch (nStatus) {
-	case PRINT_UI:			fc = R8G8B8_to_B5G6R5(0x404040); break;
-	case PRINT_IMPORTANT:	fc = R8G8B8_to_B5G6R5(0x600000); break;
-	case PRINT_ERROR:		fc = R8G8B8_to_B5G6R5(0x606000); break;
-	default:				fc = R8G8B8_to_B5G6R5(0x404040); break;
+	case PRINT_UI:			fc = R8G8B8_to_B5G5R5(0x404040); break;
+	case PRINT_IMPORTANT:	fc = R8G8B8_to_B5G5R5(0x600000); break;
+	case PRINT_ERROR:		fc = R8G8B8_to_B5G5R5(0x606000); break;
+	default:				fc = R8G8B8_to_B5G5R5(0x404040); break;
 	}
 	
 	drawRect((unsigned short*)down_screen_addr, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
 	drawRect((unsigned short*)down_screen_addr, 0, 0, SCREEN_WIDTH, 20, fc);
-	drawString(buf, (unsigned short*)down_screen_addr, 4, 4, R8G8B8_to_B5G6R5(0xffffff));
+	drawString(buf, (unsigned short*)down_screen_addr, 4, 4, R8G8B8_to_B5G5R5(0xffffff));
 
 	drawRect((unsigned short*)down_screen_addr, 0, 0, SCREEN_WIDTH, 20, fc);
-	drawString(buf, (unsigned short*)down_screen_addr, 4, 4, R8G8B8_to_B5G6R5(0xffffff));
+	drawString(buf, (unsigned short*)down_screen_addr, 4, 4, R8G8B8_to_B5G5R5(0xffffff));
 	
 	va_end(vaFormat);
 	

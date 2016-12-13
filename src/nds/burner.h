@@ -25,11 +25,14 @@
 #ifdef NDS
 	#include <fs_api.h>
 	#include <ds2_malloc.h>
-	#define memalign(n, size) malloc(size)
 #else
 	#include "malloc.h"
-	#define malloc(size) memalign(4, size)
 #endif
+
+#ifdef malloc
+#undef malloc
+#endif
+#define malloc(size) memalign(4, size)
 
 
 // ---------------------------------------------------------------------------

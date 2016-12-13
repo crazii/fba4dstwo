@@ -152,7 +152,7 @@ void draw_ui_browse(bool rebuiltlist)
 			switch( getRomsFileStat(i+find_rom_top) ) {
 			case -2: // unsupport
 			case -3: // not working
-				drawString(p, (unsigned short*)down_screen_addr, INDENT, y+i*menu_item_height, R8G8B8_to_B5G6R5(0x808080), (SCREEN_WIDTH-8)/2);
+				drawString(p, (unsigned short*)down_screen_addr, INDENT, y+i*menu_item_height, R8G8B8_to_B5G5R5(0x808080), (SCREEN_WIDTH-8)/2);
 				break;
 			case -1: // directry
 				break;
@@ -165,7 +165,7 @@ void draw_ui_browse(bool rebuiltlist)
 		}
 		//vscroll bar
 		if ( find_rom_count > find_rom_list_cnt ) {
-			drawRect((unsigned short*)down_screen_addr, SCREEN_WIDTH/2, y, 5, menu_item_height * find_rom_list_cnt, R8G8B8_to_B5G6R5(0x807060));
+			drawRect((unsigned short*)down_screen_addr, SCREEN_WIDTH/2, y, 5, menu_item_height * find_rom_list_cnt, R8G8B8_to_B5G5R5(0x807060));
 		
 			drawRect((unsigned short*)down_screen_addr, SCREEN_WIDTH/2, 
 					y + find_rom_top * menu_item_height * find_rom_list_cnt / find_rom_count , 5, 
@@ -533,12 +533,12 @@ int do_ui_key(unsigned int key)
 void ui_update_progress(float size, char * txt)
 {
 	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, SCREEN_WIDTH, 30, UI_BGCOLOR );
-	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, SCREEN_WIDTH, 12, R8G8B8_to_B5G6R5(0x807060) );
-	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, ui_process_pos, 12, R8G8B8_to_B5G6R5(0xffc090) );
+	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, SCREEN_WIDTH, 12, R8G8B8_to_B5G5R5(0x807060) );
+	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, ui_process_pos, 12, R8G8B8_to_B5G5R5(0xffc090) );
 
 	int sz = (int)((SCREEN_WIDTH) * size + 0.5);
 	if (sz + ui_process_pos > (SCREEN_WIDTH)) sz = (SCREEN_WIDTH) - ui_process_pos;
-	drawRect( (unsigned short*)down_screen_addr, 0 + ui_process_pos, SCREEN_HEIGHT-FONT_HEIGHT*2, sz, 12, R8G8B8_to_B5G6R5(0xc09878) );
+	drawRect( (unsigned short*)down_screen_addr, 0 + ui_process_pos, SCREEN_HEIGHT-FONT_HEIGHT*2, sz, 12, R8G8B8_to_B5G5R5(0xc09878) );
 	drawString(txt, (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR, (SCREEN_WIDTH));
 	
 	ui_process_pos += sz;
@@ -554,7 +554,7 @@ void ui_update_progress2(float size, const char * txt)
 	if ( txt ) ui_process_pos2 = sz;
 	else ui_process_pos2 += sz;
 	if ( ui_process_pos2 > (SCREEN_WIDTH-20) ) ui_process_pos2 = (SCREEN_WIDTH-20);
-	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT-10, ui_process_pos2, 3, R8G8B8_to_B5G6R5(0xf06050) );
+	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT-10, ui_process_pos2, 3, R8G8B8_to_B5G5R5(0xf06050) );
 	
 	if ( txt ) {
 		drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT, SCREEN_WIDTH, 13, UI_BGCOLOR );

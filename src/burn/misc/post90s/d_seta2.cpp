@@ -1014,7 +1014,7 @@ static void loadDecodeGfx(unsigned char *p, int cnt, int offset2x, unsigned char
 		for(int j=0;j<5;j++)
 		{
 			fseek( cacheFile, fileOffset, SEEK_SET );
-			if( 1 == fwrite(uniCacheHead, EACH_BLOCK_SIZE*8, 1, cacheFile) )
+			if( 1 == fwrite(cacheHead, EACH_BLOCK_SIZE*8, 1, cacheFile) )
 				break;
 		}
 		

@@ -174,8 +174,8 @@ int main(int argc, char** argv) {
 			{
 				BurnDrvFrame();
 #ifdef SHOW_FPS
-				drawString(fps, (unsigned short*)((unsigned int)up_screen_addr, 11, 11, R8G8B8_to_B5G6R5(0x404040));
-				drawString(fps, (unsigned short*)((unsigned int)up_screen_addr, 10, 10, R8G8B8_to_B5G6R5(0xffffff));
+				drawString(fps, (unsigned short*)((unsigned int)up_screen_addr, 11, 11, R8G8B8_to_B5G5R5(0x404040));
+				drawString(fps, (unsigned short*)((unsigned int)up_screen_addr, 10, 10, R8G8B8_to_B5G5R5(0xffffff));
 #endif	
 				swapBuffer();
 			}
@@ -276,17 +276,17 @@ void clear_gui_texture(int color, int w, int h)
 	color |= 1<<15;
 	//2 pixels
 	color = (color&0xFFFF)|(color<<16);
+	w /= 2;
+	int mod8 = w&0x7;
+	w &= ~0x7;
 	
 	int* src = (int*)videoBuffer;
 	for(int i = 0; i < h; ++i)
 	{
-		int iw = w /2;
+		for(int j = 0; j < mod8; ++j)
+			src[j] = color;
 		
-		while(iw&0x7)
-			*(src++) = color;
-		iw = iw >> 3;
-		
-		for(int j = 0; j < iw; ++j)
+		for(int j = 0; j < w; ++j)
 		{
 			src[j++] = color;
 			src[j++] = color;

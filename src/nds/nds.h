@@ -3,7 +3,6 @@
 #include <ds2io.h>
 #include <ds2_cpu.h>
 #include <ds2_malloc.h>
-#define memalign(n, size) malloc(size)
 
 #define SCREEN_WIDTH	256
 #define SCREEN_HEIGHT	192
@@ -24,8 +23,8 @@ extern unsigned int debugValue[2];
 void resetGame();
 
 /* ui.cpp */
-#define UI_COLOR	R8G8B8_to_B5G6R5(0xffffff)
-#define UI_BGCOLOR	R8G8B8_to_B5G6R5(0x102030)
+#define UI_COLOR	R8G8B8_to_B5G5R5(0xffffff)
+#define UI_BGCOLOR	R8G8B8_to_B5G5R5(0x102030)
 
 extern char ui_current_path[];
 extern void setGameStage(int stage);
