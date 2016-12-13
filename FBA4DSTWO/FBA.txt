@@ -16,6 +16,6 @@ FBA/
   +- state/
 
 
-home button - open menu
+LEFT+START button - open menu
 
 

@@ -11,8 +11,8 @@
 #define FONT_HEIGHT 12
 
 #define FRAME_RATE	100
-#define MAX_FRAME_SKIP 50
-#define DEF_FRAME_SKIP 35
+#define MAX_FRAME_SKIP 65
+#define DEF_FRAME_SKIP 40
 #define FRAME_SKIP_STEP 5
 
 /* main.cpp */

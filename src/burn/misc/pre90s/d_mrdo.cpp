@@ -459,7 +459,6 @@ static void draw_8x8_tiles(unsigned char *vram, unsigned char *gfx_base, int scr
 static int DrvDraw()
 {
 #ifdef NDS
-	extern void clear_gui_texture(int color, int w, int h);
 	clear_gui_texture(0, 240, 192);
 #else
 	memset (pBurnDraw, 0, 240 * 192 * nBurnBpp);

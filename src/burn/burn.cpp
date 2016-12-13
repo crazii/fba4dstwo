@@ -849,8 +849,6 @@ int BurnClearScreen()
 	struct BurnDriver* pbd = pDriver[nBurnDrvSelect];
 
 #ifdef NDS
-	extern void clear_gui_texture(int color, int w, int h);
-	
 	if (pbd->flags & BDF_ORIENTATION_VERTICAL) {
 		clear_gui_texture(0, pbd->nHeight, pbd->nWidth);
 	} else {

@@ -440,7 +440,6 @@ static int DrvDraw()
 		int px = BurnHighCol(Palette[0] >> 16, Palette[0] >> 8, Palette[0], 0);
 
 #ifdef NDS
-		extern void clear_gui_texture(int color, int w, int h);
 		clear_gui_texture(((px & 0x001F) << 3) | ((px & 0x03e0) << 2) | ((px & 0x7c00) << 7), 256, 224);
 #else
 		for (int i = 0; i < 0xE000; i++)

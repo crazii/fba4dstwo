@@ -2359,7 +2359,6 @@ static void DrvDraw()
 #ifndef NDS
 	memset(pBurnDraw, 0, sva_w * sva_h * 2);
 #else
-	extern void clear_gui_texture(int color, int w, int h);
 	clear_gui_texture(0, sva_w, sva_h);
 #endif	
 

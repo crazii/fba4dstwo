@@ -226,11 +226,8 @@ void NeoClearScreen()
 	unsigned int nColour = NeoPalette[0x0FFF];
 
 #ifdef NDS
-
-	extern void clear_gui_texture(int color, int w, int h);
 	//clear_gui_texture(nColour, 320, 224);
-	clear_gui_texture( ((nColour & 0x001f ) << 3) | ((nColour & 0x03e0 ) << 2) | ((nColour & 0x7c00 ) << 7) , 320, 224);
-	
+	clear_gui_texture( ((nColour & 0x001f ) << 3) | ((nColour & 0x03e0 ) << 2) | ((nColour & 0x7c00 ) << 7) , 320, 224);	
 #else
 
 	if (nColour) {

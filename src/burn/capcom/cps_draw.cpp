@@ -408,9 +408,6 @@ static void Cps2Layers()
 void CpsClearScreen()
 {
 #ifdef NDS
-
-	extern void clear_gui_texture(int color, int w, int h);
-	
 	unsigned int nColour = 0;
 	if (Cps == 1) {
 		nColour = CpsPal[0xbff ^ 15];

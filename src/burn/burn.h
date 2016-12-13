@@ -193,6 +193,10 @@ int BurnRecalcPal();
 int BurnSetProgressRange(double dProgressRange);
 int BurnUpdateProgress(double dProgressStep, const TCHAR* pszText, int bAbs);
 
+#ifdef NDS
+void clear_gui_texture(int color, short w, short h);
+#endif
+
 // ---------------------------------------------------------------------------
 // Retrieve driver information
 

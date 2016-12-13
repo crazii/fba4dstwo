@@ -1160,7 +1160,6 @@ static void DrawSprites()
 static void DrvDraw()
 {
 #ifdef NDS
-	extern void clear_gui_texture(int color, int w, int h);
 	clear_gui_texture(0, XSIZE, 224);
 #else
 	memset(pBurnDraw, 0, XSIZE*224*2);

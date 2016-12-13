@@ -20,7 +20,7 @@ static unsigned short* videoBuffer = NULL;
 static bool p2pFrameStatus=false;
 
 static void swapBuffer();
-void clear_gui_texture(int color, int w, int h);
+void clear_gui_texture(int color, short w, short h);
 
 void returnToMenu()
 {
@@ -276,7 +276,7 @@ void swapBuffer()
 	ds2_flipScreen(UP_SCREEN, 0);
 }
 
-void clear_gui_texture(int color, int w, int h)
+void clear_gui_texture(int color, short w, short h)
 {
 	//h = h < VIDEO_BUFFER_HEIGHT ? h : VIDEO_BUFFER_HEIGHT;
 	//w = w < VIDEO_BUFFER_WIDTH ? w : VIDEO_BUFFER_WIDTH;
@@ -285,16 +285,16 @@ void clear_gui_texture(int color, int w, int h)
 	//2 pixels
 	color = (color&0xFFFF)|(color<<16);
 	w /= 2;
-	int mod8 = w&0x7;
+	short mod8 = w&0x7;
 	w &= ~0x7;
 	
 	int* src = (int*)videoBuffer;
-	for(int i = 0; i < h; ++i)
+	for(short i = 0; i < h; ++i)
 	{
-		for(int j = 0; j < mod8; ++j)
+		for(short j = 0; j < mod8; ++j)
 			src[j] = color;
 		
-		for(int j = 0; j < w; ++j)
+		for(short j = 0; j < w; ++j)
 		{
 			src[j++] = color;
 			src[j++] = color;
