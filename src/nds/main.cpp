@@ -218,53 +218,59 @@ void swapBuffer()
 #if 1
 	unsigned short* src = videoBuffer;
 	unsigned short* dst = (unsigned short*)up_screen_addr + xOff + (yOff * SCREEN_WIDTH);
-	int accumulatorY = 0;
-	int mix = 0;
+	const register short scaleMod = iModulo;
+	const register short scaleMul = iAdd;
+	const register short height = drvHeight;
+	const register short width = drvWidth;
+	short accumulatorY = 0;
+	bool mix = 0;
 
-	for (int h = 0; h < drvHeight; h++)
+	for (short h = 0; h < height; h++)
 	{
-		int accumulatorX = 0;
+		short accumulatorX = 0;
 		unsigned short pixel = 0;
 		unsigned short* dstX = dst;
 		
-		for (int w = 0; w < drvWidth; ++w)
+		for (short w = 0; w < width; ++w)
 		{
-			if (accumulatorX >= iAdd)
-				pixel = _mix(pixel, src[w]);
+			if (accumulatorX >= scaleMul)
+			{
+				unsigned short c = src[w];
+				pixel = _mix(pixel, c);
+			}
 			else
 				pixel = src[w];
 
-			accumulatorX += iAdd;
-			if (accumulatorX >= iModulo || w == drvWidth-1)
+			accumulatorX += scaleMul;
+			if (accumulatorX >= scaleMod || w == width-1)
 			{
-				accumulatorX -= iModulo;
+				accumulatorX -= scaleMod;
 				if (mix)
-					pixel = _mix(*dstX, pixel);
+				{
+					unsigned short c = *dstX;
+					pixel = _mix(c, pixel);
+				}
 				*dstX++ = pixel;
 			}
 		}
 		
-		accumulatorY += iAdd;
-	    if (accumulatorY >= iModulo)
+		accumulatorY += scaleMul;
+	    if (accumulatorY >= scaleMod)
 		{
-			accumulatorY -= iModulo;
+			accumulatorY -= scaleMod;
 			dst += SCREEN_WIDTH;
-			mix = 0;
+			mix = false;
 		}
 		else
-			mix = 1;
+			mix = true;
 		
 		src += VIDEO_BUFFER_WIDTH;
 	}
 #else
-	
-	for(int h = 0; h < drvHeight; ++h)
-	{
-		if(h >= SCREEN_HEIGHT)
-			break;
-		int w = drvWidth < SCREEN_WIDTH ? drvWidth : SCREEN_WIDTH;
-		memcpy((short*)up_screen_addr + h*SCREEN_WIDTH, videoBuffer + h*VIDEO_BUFFER_WIDTH, w*2);
-	}
+	int w = drvWidth < SCREEN_WIDTH ? drvWidth : SCREEN_WIDTH;
+	int h = drvHeight < SCREEN_HEIGHT ? drvHeight : SCREEN_HEIGHT;
+	for(int i = 0; i < h; ++i)
+		memcpy((short*)up_screen_addr + i*SCREEN_WIDTH, videoBuffer + i*VIDEO_BUFFER_WIDTH, w*2);
 #endif
   
 	ds2_flipScreen(UP_SCREEN, 0);
@@ -272,6 +278,8 @@ void swapBuffer()
 
 void clear_gui_texture(int color, int w, int h)
 {
+	//h = h < VIDEO_BUFFER_HEIGHT ? h : VIDEO_BUFFER_HEIGHT;
+	//w = w < VIDEO_BUFFER_WIDTH ? w : VIDEO_BUFFER_WIDTH;
 	//used in game. clear video buffer
 	color |= 1<<15;
 	//2 pixels

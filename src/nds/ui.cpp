@@ -97,7 +97,7 @@ void draw_ui_main()
 	    		strcpy(buf,"Controller: ALL");
 			break;
 	    case SKIP_FRAMES:
-	    	sprintf( buf, ui_main_menu[i], (float)gameSpeedCtrl*100/(float)FRAME_RATE );
+	    	sprintf( buf, ui_main_menu[i], (float)gameSpeedCtrl*100.0f/(float)FRAME_RATE );
 			break;
 	    case CPU_SPEED:
 	    	sprintf( buf, ui_main_menu[i], cpu_speeds[cpu_speeds_select] );
@@ -376,6 +376,11 @@ static void process_key( int key, int down, int repeat )
 			
 		case KEY_B:
 			return_to_game();
+			//wait B clear to avoid affect game play
+			{
+				struct key_buf pad = {-1,-1,-1};
+				do {ds2_getrawInput(&pad);}while((pad.key&KEY_B) != 0);				
+			}
 			break;
 		}
 		break;
@@ -579,7 +584,7 @@ void ui_inc_frame_skip()
 void ui_dec_frame_skip()
 {
 	gameSpeedCtrl -= FRAME_SKIP_STEP;
-	if ( --gameSpeedCtrl<0 ) 
+	if ( gameSpeedCtrl<0 ) 
 		gameSpeedCtrl=MAX_FRAME_SKIP;
 	draw_ui_main();
 }
