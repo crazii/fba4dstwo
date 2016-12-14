@@ -495,19 +495,24 @@ int ZetMemCallback(int nStart, int nEnd, int nMode)
 	nEnd += CZ80_FETCH_BANK - 1;
 	nEnd >>= CZ80_FETCH_SFT;
 
+
 	// Leave the section out of the memory map, so the callback with be used
-	for (int i = nStart; i < nEnd; i++) {
-		switch (nMode) {
-			case 0:
-				lastZetCPUContext->Read[i] = NULL;
-				break;
-			case 1:
-				lastZetCPUContext->Write[i] = NULL;
-				break;
-			case 2:
-				lastZetCPUContext->Fetch[i] = NULL;
-				break;
+	switch (nMode) {
+	case 0:
+		for (int i = nStart; i < nEnd; i++) {
+			lastZetCPUContext->Read[i] = NULL;
 		}
+		break;
+	case 1:
+		for (int i = nStart; i < nEnd; i++) {
+			lastZetCPUContext->Write[i] = NULL;
+		}
+		break;
+	case 2:
+		for (int i = nStart; i < nEnd; i++) {
+			lastZetCPUContext->Fetch[i] = NULL;
+		}
+		break;
 	}
 #endif
 

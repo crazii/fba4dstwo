@@ -30,6 +30,9 @@ void x1010_sound_update()
 	register signed char *start, *end, data;
 	register unsigned char *env;
 	register unsigned int smp_offs, smp_step, env_offs, env_step, delta;
+	
+	const float rate0 = (float)x1_010_chip->rate / (float)nBurnSoundRate / 8.0;
+	const float rate1 = (float)(float)x1_010_chip->rate / (float)nBurnSoundRate / 128.0 / 4.0;
 
 	for( ch = 0; ch < SETA_NUM_CHANNELS; ch++ ) {
 		reg = (X1_010_CHANNEL *) & (x1_010_chip->reg[ch * sizeof(X1_010_CHANNEL)]);
@@ -48,7 +51,7 @@ void x1010_sound_update()
 
 				//smp_step = (unsigned int)((float)x1_010->base_clock / 8192.0
 				//			* freq * (1 << FREQ_BASE_BITS) / (float)x1_010->rate );
-				smp_step = (unsigned int)((float)x1_010_chip->rate / (float)nBurnSoundRate / 8.0 * freq * (1 << FREQ_BASE_BITS) );
+				smp_step = (unsigned int)(rate0 * (freq * (1 << FREQ_BASE_BITS)) );
 
 				//if( smp_offs == 0 ) {
 				//	logerror( "Play sample %06X - %06X, channel %X volume %d freq %X step %X offset %X\n",
@@ -63,8 +66,8 @@ void x1010_sound_update()
 						break;
 					}
 					data = *(start + delta);
-					*bufL += (data * volL / 256); bufL += 2;
-					*bufR += (data * volR / 256); bufR += 2;
+					*bufL += ((data * volL) >> 8); bufL += 2;
+					*bufR += ((data * volR) >> 8); bufR += 2;
 					smp_offs += smp_step;
 				}
 				x1_010_chip->smp_offset[ch] = smp_offs;
@@ -74,12 +77,12 @@ void x1010_sound_update()
 				smp_offs = x1_010_chip->smp_offset[ch];
 				freq     = (reg->pitch_hi << 8) + reg->frequency;
 				//smp_step = (unsigned int)((float)x1_010->base_clock / 128.0 / 1024.0 / 4.0 * freq * (1 << FREQ_BASE_BITS) / (float)x1_010->rate);
-				smp_step = (unsigned int)((float)x1_010_chip->rate / (float)nBurnSoundRate / 128.0 / 4.0 * freq * (1 << FREQ_BASE_BITS) );
+				smp_step = (unsigned int)(rate1 * (freq * (1 << FREQ_BASE_BITS)) );
 
 				env      = (unsigned char *) & (x1_010_chip->reg[reg->end * 128]);
 				env_offs = x1_010_chip->env_offset[ch];
 				//env_step = (unsigned int)((float)x1_010->base_clock / 128.0 / 1024.0 / 4.0 * reg->start * (1 << ENV_BASE_BITS) / (float)x1_010->rate);
-				env_step = (unsigned int)((float)x1_010_chip->rate / (float)nBurnSoundRate / 128.0 / 4.0 * reg->start * (1 << ENV_BASE_BITS) );
+				env_step = (unsigned int)(rate1 * ((int)reg->start * (int)(1 << ENV_BASE_BITS)) );
 
 				//if( smp_offs == 0 ) {
 				//	logerror( "Play waveform %X, channel %X volume %X freq %4X step %X offset %X\n",
@@ -99,8 +102,8 @@ void x1010_sound_update()
 					volL = ((vol >> 4) & 0xf) * VOL_BASE;
 					volR = ((vol >> 0) & 0xf) * VOL_BASE;
 					data  = *(start + ((smp_offs >> FREQ_BASE_BITS) & 0x7f));
-					*bufL += (data * volL / 256); bufL += 2;
-					*bufR += (data * volR / 256); bufR += 2;
+					*bufL += ((data * volL) >> 8); bufL += 2;
+					*bufR += ((data * volR) >> 8); bufR += 2;
 					smp_offs += smp_step;
 					env_offs += env_step;
 				}

@@ -217,7 +217,9 @@ void swapBuffer()
 {
 #if 1
 	unsigned short* src = videoBuffer;
+	__builtin_prefetch(src, 0);
 	unsigned short* dst = (unsigned short*)up_screen_addr + xOff + (yOff * SCREEN_WIDTH);
+	__builtin_prefetch(src, 1);
 	const register short scaleMod = iModulo;
 	const register short scaleMul = iAdd;
 	const register short height = drvHeight;
@@ -259,12 +261,14 @@ void swapBuffer()
 		{
 			accumulatorY -= scaleMod;
 			dst += SCREEN_WIDTH;
+			__builtin_prefetch(dst, 1);
 			mix = false;
 		}
 		else
 			mix = true;
 		
 		src += VIDEO_BUFFER_WIDTH;
+		__builtin_prefetch(src, 0);
 	}
 #else
 	int w = drvWidth < SCREEN_WIDTH ? drvWidth : SCREEN_WIDTH;
@@ -278,6 +282,7 @@ void swapBuffer()
 
 void clear_gui_texture(int color, short w, short h)
 {
+	__builtin_prefetch(videoBuffer, 1);
 	//h = h < VIDEO_BUFFER_HEIGHT ? h : VIDEO_BUFFER_HEIGHT;
 	//w = w < VIDEO_BUFFER_WIDTH ? w : VIDEO_BUFFER_WIDTH;
 	//used in game. clear video buffer
@@ -306,6 +311,7 @@ void clear_gui_texture(int color, short w, short h)
 			src[j] = color;
 		}
 		src += VIDEO_BUFFER_WIDTH/2;
+		__builtin_prefetch(src, 1);
 	}
 }
 

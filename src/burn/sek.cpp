@@ -632,8 +632,10 @@ void C68KWriteWord(unsigned int a, unsigned short d) { WriteWord(a, d); }
 unsigned int C68KRebasePC(unsigned int pc) {
 //	bprintf(PRINT_NORMAL, _T("C68KRebasePC 0x%08x\n"), pc);
 	pc &= 0xFFFFFF;
-	SekC68KCurrentContext->BasePC = (unsigned int)FIND_F(pc) - (pc & ~SEK_PAGEM);
-	return SekC68KCurrentContext->BasePC + pc;
+	SekC68KCurrentContext->BasePC = (unsigned int)FIND_F((pc)) - (pc & ~SEK_PAGEM);
+	pc += SekC68KCurrentContext->BasePC;
+	__builtin_prefetch((void*)pc, 0);
+	return pc;
 }
 
 int C68KInterruptCallBack(int irqline)

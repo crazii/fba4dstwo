@@ -2361,7 +2361,8 @@ OP(asr_16_s)
 	res = ((INT32)src) >> sft;
 	CPU->flag_N = res >> 8;
 	CPU->flag_Z = res;
-	*(UINT16 *)(&DY) = res;
+	//*(UINT16 *)(&DY) = res;
+	DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 	RET(6)
 }
 
@@ -2410,7 +2411,8 @@ OP(lsr_16_s)
 	CPU->flag_X = CPU->flag_C = src << ((C68K_SR_C_SFT + 1) - sft);
 	res = src >> sft;
 	CPU->flag_Z = res;
-	*(UINT16 *)(&DY) = res;
+	//*(UINT16 *)(&DY) = res;
+	DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 	RET(6)
 }
 
@@ -2462,7 +2464,8 @@ OP(roxr_16_s)
 	CPU->flag_V = 0;
 	CPU->flag_N = res >> 8;
 	CPU->flag_Z = res & 0xffff;
-	*(UINT16 *)(&DY) = res;
+	//*(UINT16 *)(&DY) = res;
+	DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 	RET(6)
 }
 
@@ -2515,7 +2518,8 @@ OP(ror_16_s)
 	res = (src >> sft) | (src << (16 - sft));
 	CPU->flag_N = res >> 8;
 	CPU->flag_Z = res & 0xffff;
-	*(UINT16 *)(&DY) = res;
+	//*(UINT16 *)(&DY) = res;
+	DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 	RET(6)
 }
 
@@ -2584,7 +2588,8 @@ OP(asl_16_s)
 	res = src << sft;
 	CPU->flag_N = res >> 8;
 	CPU->flag_Z = res & 0xffff;
-	*(UINT16 *)(&DY) = res;
+	//*(UINT16 *)(&DY) = res;
+	DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 	CPU->flag_V = 0;
 	{
 		UINT32 msk = (((INT32)0x80000000) >> (sft + 16)) & 0xffff;
@@ -2646,7 +2651,8 @@ OP(lsl_16_s)
 	res = src << sft;
 	CPU->flag_N = res >> 8;
 	CPU->flag_Z = res & 0xffff;
-	*(UINT16 *)(&DY) = res;
+	//*(UINT16 *)(&DY) = res;
+	DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 	RET(6)
 }
 
@@ -2699,7 +2705,8 @@ OP(roxl_16_s)
 	CPU->flag_V = 0;
 	CPU->flag_N = res >> 8;
 	CPU->flag_Z = res & 0xffff;
-	*(UINT16 *)(&DY) = res;
+	//*(UINT16 *)(&DY) = res;
+	DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 	RET(6)
 }
 
@@ -2752,7 +2759,8 @@ OP(rol_16_s)
 	res = (src << sft) | (src >> (16 - sft));
 	CPU->flag_N = res >> 8;
 	CPU->flag_Z = res & 0xffff;
-	*(UINT16 *)(&DY) = res;
+	//*(UINT16 *)(&DY) = res;
+	DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 	RET(6)
 }
 
@@ -2840,7 +2848,8 @@ OP(asr_16_r)
 			res = ((INT32)src) >> sft;
 			CPU->flag_N = res >> 8;
 			CPU->flag_Z = res;
-			*(UINT16 *)(&DY) = res;
+			//*(UINT16 *)(&DY) = res;
+			DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 			RET(6)
 		}
 
@@ -2852,7 +2861,8 @@ OP(asr_16_r)
 			CPU->flag_C = C68K_SR_C;
 			CPU->flag_X = C68K_SR_X;
 			res = 0xffff;
-			*(UINT16 *)(&DY) = res;
+			//*(UINT16 *)(&DY) = res;
+			DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 			RET(6)
 		}
 
@@ -2862,7 +2872,8 @@ OP(asr_16_r)
 		CPU->flag_C = 0;
 		CPU->flag_X = 0;
 		res = 0;
-		*(UINT16 *)(&DY) = res;
+		//*(UINT16 *)(&DY) = res;
+		DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 		RET(6)
 	}
 
@@ -2975,7 +2986,8 @@ OP(lsr_16_r)
 			CPU->flag_X = CPU->flag_C = (src >> (sft - 1)) << C68K_SR_C_SFT;
 			res = src >> sft;
 			CPU->flag_Z = res;
-			*(UINT16 *)(&DY) = res;
+			//*(UINT16 *)(&DY) = res;
+			DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 			RET(6)
 		}
 
@@ -2984,7 +2996,8 @@ OP(lsr_16_r)
 		CPU->flag_Z = 0;
 		CPU->flag_V = 0;
 		res = 0;
-		*(UINT16 *)(&DY) = res;
+		//*(UINT16 *)(&DY) = res;
+		DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 		RET(6)
 	}
 
@@ -3080,7 +3093,8 @@ OP(roxr_16_r)
 		CPU->flag_V = 0;
 		CPU->flag_N = res >> 8;
 		CPU->flag_Z = res & 0xffff;
-		*(UINT16 *)(&DY) = res;
+		//*(UINT16 *)(&DY) = res;
+		DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 		RET(6)
 	}
 
@@ -3170,7 +3184,8 @@ OP(ror_16_r)
 		CPU->flag_V = 0;
 		CPU->flag_N = res >> 8;
 		CPU->flag_Z = res & 0xffff;
-		*(UINT16 *)(&DY) = res;
+		//*(UINT16 *)(&DY) = res;
+		DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 		RET(6)
 	}
 
@@ -3268,7 +3283,8 @@ OP(asl_16_r)
 			res = (src << sft) & 0xffff;
 			CPU->flag_N = res >> 8;
 			CPU->flag_Z = res;
-			*(UINT16 *)(&DY) = res;
+			//*(UINT16 *)(&DY) = res;
+			DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 			CPU->flag_V = 0;
 			{
 				UINT32 msk = (((INT32)0x80000000) >> (sft + 16)) & 0xffff;
@@ -3282,7 +3298,8 @@ OP(asl_16_r)
 		else CPU->flag_C = 0;
 		CPU->flag_X = CPU->flag_C;
 		CPU->flag_V = (src) ? C68K_SR_V : 0;
-		*(UINT16 *)(&DY) = 0;
+		//*(UINT16 *)(&DY) = 0;
+		DY = (DY & 0xFFFF0000);
 		CPU->flag_N = 0;
 		CPU->flag_Z = 0;
 		RET(6)
@@ -3391,7 +3408,8 @@ OP(lsl_16_r)
 			CPU->flag_V = 0;
 			CPU->flag_N = res >> 8;
 			CPU->flag_Z = res;
-			*(UINT16 *)(&DY) = res;
+			//*(UINT16 *)(&DY) = res;
+			DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 			RET(6)
 		}
 
@@ -3399,7 +3417,8 @@ OP(lsl_16_r)
 		CPU->flag_N = 0;
 		CPU->flag_Z = 0;
 		CPU->flag_V = 0;
-		*(UINT16 *)(&DY) = 0;
+		//*(UINT16 *)(&DY) = 0;
+		DY = (DY & 0xFFFF0000);
 		RET(6)
 	}
 
@@ -3495,7 +3514,8 @@ OP(roxl_16_r)
 		CPU->flag_V = 0;
 		CPU->flag_N = res >> 8;
 		CPU->flag_Z = res & 0xffff;
-		*(UINT16 *)(&DY) = res;
+		//*(UINT16 *)(&DY) = res;
+		DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 		RET(6)
 	}
 
@@ -3592,7 +3612,8 @@ OP(rol_16_r)
 			CPU->flag_V = 0;
 			CPU->flag_N = res >> 8;
 			CPU->flag_Z = res;
-			*(UINT16 *)(&DY) = res;
+			//*(UINT16 *)(&DY) = res;
+			DY = (DY & 0xFFFF0000) | (res & 0xFFFF);
 			RET(6)
 		}
 

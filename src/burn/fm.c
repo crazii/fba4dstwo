@@ -3687,7 +3687,7 @@ static void YM2608_deltat_status_reset(UINT8 which, UINT8 changebits)
 }
 /* YM2608(OPNA) */
 int YM2608Init(int num, int clock, int rate,
-               void **pcmrom,int *pcmsize,
+               UINT8 **pcmrom,int *pcmsize,
                FM_TIMERHANDLER TimerHandler,FM_IRQHANDLER IRQHandler)
 {
 	int i;
@@ -4400,7 +4400,7 @@ static void YM2610_deltat_status_reset(UINT8 which, UINT8 changebits)
 }
 
 int YM2610Init(int num, int clock, int rate,
-               void **pcmroma,int *pcmsizea,void **pcmromb,int *pcmsizeb,
+               UINT8 **pcmroma,int *pcmsizea, UINT8 **pcmromb,int *pcmsizeb,
                FM_TIMERHANDLER TimerHandler,FM_IRQHANDLER IRQHandler)
 
 {

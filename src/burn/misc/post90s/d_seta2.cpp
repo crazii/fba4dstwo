@@ -2283,76 +2283,140 @@ static int grdiansExit()
 		pd += (sy + 7) * 512 + sx;									\
 		if ( flipx ) 												\
 			for (int i=0;i<8;i++,pd-=512)							\
-				for (int j=7;j>=0;j--,ps++) {						\
-					unsigned char c = op;							\
-					if ( c ) *(pd + j) = pc[ c ];					\
-				}													\
+			{														\
+				char c;												\
+				__builtin_prefetch(pd);								\
+				c = op;++ps;										\
+				if ( c ) *(pd + 7) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 6) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 5) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 4) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 3) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 2) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 1) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 0) = pc[ c ];						\
+			}														\
 		else														\
 			for (int i=0;i<8;i++,pd-=512)							\
-				for (int j=0;j<8;j++,ps++) {						\
-					unsigned char c = op;							\
-					if ( c ) *(pd + j) = pc[ c ];					\
-				}													\
+			{														\
+				unsigned char c;									\
+				__builtin_prefetch(pd);								\
+				c = op;++ps;										\
+				if ( c ) *(pd + 0) = pc[ c ];						\
+				 c = op;++ps;										\
+				if ( c ) *(pd + 1) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 2) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 3) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 4) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 5) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 6) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 7) = pc[ c ];						\
+			}														\
 	} else {														\
 		pd += sy * 512 + sx;										\
 		if ( flipx ) 												\
 			for (int i=0;i<8;i++,pd+=512)							\
-				for (int j=7;j>=0;j--,ps++) {						\
-					unsigned char c = op;							\
-					if ( c ) *(pd + j) = pc[ c ];					\
-				}													\
+			{														\
+				char c;												\
+				__builtin_prefetch(pd);								\
+				c = op;++ps;										\
+				if ( c ) *(pd + 7) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 6) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 5) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 4) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 3) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 2) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 1) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 0) = pc[ c ];						\
+			}														\
 		else														\
 			for (int i=0;i<8;i++,pd+=512)							\
-				for (int j=0;j<8;j++,ps++) {						\
-					unsigned char c = op;							\
-					if ( c ) *(pd + j) = pc[ c ];					\
-				}													\
+			{														\
+				unsigned char c;									\
+				__builtin_prefetch(pd);								\
+				c = op;++ps;										\
+				if ( c ) *(pd + 0) = pc[ c ];						\
+				 c = op;++ps;										\
+				if ( c ) *(pd + 1) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 2) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 3) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 4) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 5) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 6) = pc[ c ];						\
+				c = op;++ps;										\
+				if ( c ) *(pd + 7) = pc[ c ];						\
+			}														\
 	}																\
 
 #endif
 
-static void drawgfx0(unsigned int code,unsigned int color,int flipx,int flipy,int sx,int sy)
+static void drawgfx0(unsigned int code,unsigned short color,short flipx,short flipy,short sx,short sy)
 {
 	//	4bpp tiles (----3210)
 	DRAWGFX( *ps & 0x0f );
 }
 
-static void drawgfx1(unsigned int code,unsigned int color,int flipx,int flipy,int sx,int sy)
+static void drawgfx1(unsigned int code,unsigned short color,short flipx,short flipy,short sx,short sy)
 {
 	//	4bpp tiles (3210----)
 	DRAWGFX( *ps >> 4 );
 }
 
-static void drawgfx2(unsigned int code,unsigned int color,int flipx,int flipy,int sx,int sy)
+static void drawgfx2(unsigned int code,unsigned short color,short flipx,short flipy,short sx,short sy)
 {
 	// 6bpp tiles (--543210)
 	DRAWGFX( *ps & 0x3f );
 }
 
-static void drawgfx3(unsigned int code,unsigned int color,int flipx,int flipy,int sx,int sy)
+static void drawgfx3(unsigned int code,unsigned short color,short flipx,short flipy,short sx,short sy)
 {
 	// 8bpp tiles (76543210)
 	DRAWGFX( *ps );
 }
 
-static void drawgfx4(unsigned int code,unsigned int color,int flipx,int flipy,int sx,int sy)
+static void drawgfx4(unsigned int code,unsigned short color,short flipx,short flipy,short sx,short sy)
 {
 	// 3bpp tiles?  (-----210)
 	DRAWGFX( *ps & 0x07 );
 }
 
-static void drawgfx5(unsigned int code,unsigned int color,int flipx,int flipy,int sx,int sy)
+static void drawgfx5(unsigned int code,unsigned short color,short flipx,short flipy,short sx,short sy)
 {
 	// 2bpp tiles??? (--10----)
 	DRAWGFX( (*ps >> 4) & 0x03 );
 }
 
-static void drawgfxN(unsigned int,unsigned int,int,int,int,int)
+static void drawgfxN(unsigned int,unsigned short,short,short,short,short)
 {
 	// unknown 
 }
 
-typedef void (*pDrawgfx)(unsigned int,unsigned int,int,int,int,int);
+typedef void (*pDrawgfx)(unsigned int,unsigned short,short,short,short,short);
 
 static void DrvDraw()
 {
@@ -2371,20 +2435,20 @@ static void DrvDraw()
 	unsigned short *end = RamSprBak + 0x040000 / 2;
 
 	for ( ; s1 < end; s1+=4 ) {
-		int num		= s1[0];
-		int xoffs	= s1[1];
-		int yoffs	= s1[2];
-		int sprite	= s1[3];
+		short num		= s1[0];
+		short xoffs	= s1[1];
+		short yoffs	= s1[2];
+		short sprite	= s1[3];
 		pDrawgfx drawgfx = drawgfxN;
 
 		// Single-sprite address
 		unsigned short *s2 = RamSprBak + (sprite & 0x7fff) * 4;
 
 		// Single-sprite tile size
-		int global_sizex = xoffs & 0x0c00;
-		int global_sizey = yoffs & 0x0c00;
+		short global_sizex = xoffs & 0x0c00;
+		short global_sizey = yoffs & 0x0c00;
 
-		int use_global_size = num & 0x1000;
+		short use_global_size = num & 0x1000;
 
 		xoffs &= 0x3ff;
 		yoffs &= 0x3ff;
@@ -2419,21 +2483,21 @@ static void DrvDraw()
 
 			if (sprite & 0x8000) {
 				// "tilemap" sprite
-				int clip_min_y;
-				int clip_max_y;
-				int clip_min_x;
-				int clip_max_x;
+				short clip_min_y;
+				short clip_max_y;
+				short clip_min_x;
+				short clip_max_x;
 
-				int dx,x,y;
-				int flipx;
-				int flipy;
-				int sx       = s2[0];
-				int sy       = s2[1];
-				int scrollx  = s2[2];
-				int scrolly  = s2[3];
-				int tilesize = (scrollx & 0x8000) >> 15;
-				int page     = (scrollx & 0x7c00) >> 10;
-				int height   = ((sy & 0xfc00) >> 10) + 1;
+				short dx,x,y;
+				short flipx;
+				short flipy;
+				short sx       = s2[0];
+				short sy       = s2[1];
+				short scrollx  = s2[2];
+				short scrolly  = s2[3];
+				short tilesize = (scrollx & 0x8000) >> 15;
+				short page     = (scrollx & 0x7c00) >> 10;
+				short height   = ((sy & 0xfc00) >> 10) + 1;
 
 				sx &= 0x3ff;
 				sy &= 0x1ff;
@@ -2459,16 +2523,17 @@ static void DrvDraw()
                    fine in all the games we have for now. */
 				for (y = 0; y < (0x40 >> tilesize); y++)
 				{
-					int py = ((scrolly - (y+1) * (8 << tilesize) + 0x10) & 0x1ff) - 0x10 - yoffset;
+					short py = ((scrolly - (y+1) * (8 << tilesize) + 0x10) & 0x1ff) - 0x10 - yoffset;
 
 					if (py < clip_min_y - 0x10) continue;
 					if (py > clip_max_y) continue;
 
 					for (x = 0; x < 0x40;x++)
 					{
-						int px = ((dx + x * (8 << tilesize) + 0x10) & 0x3ff) - 0x10;
-						int tx, ty;
-						int attr, code, color;
+						short px = ((dx + x * (8 << tilesize) + 0x10) & 0x3ff) - 0x10;
+						short tx, ty;
+						short attr, color;
+						int code;
 						unsigned short *s3;
 
 						if (px < clip_min_x - 0x10) continue;
@@ -2493,17 +2558,17 @@ static void DrvDraw()
 
 			} else {
 				// "normal" sprite	
-				int sx    = s2[0];
-				int sy    = s2[1];
-				int attr  = s2[2];
+				short sx    = s2[0];
+				short sy    = s2[1];
+				short attr  = s2[2];
 				int code  = s2[3] + ((attr & 0x0007) << 16);
-				int flipx = (attr & 0x0010);
-				int flipy = (attr & 0x0008);
-				int color = (attr & 0xffe0) >> 5;
+				short flipx = (attr & 0x0010);
+				short flipy = (attr & 0x0008);
+				short color = (attr & 0xffe0) >> 5;
 
-				int sizex = use_global_size ? global_sizex : sx;
-				int sizey = use_global_size ? global_sizey : sy;
-				int x,y;
+				short sizex = use_global_size ? global_sizex : sx;
+				short sizey = use_global_size ? global_sizey : sy;
+				short x,y;
 				sizex = (1 << ((sizex & 0x0c00)>> 10))-1;
 				sizey = (1 << ((sizey & 0x0c00)>> 10))-1;
 

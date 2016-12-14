@@ -1147,7 +1147,7 @@ void YM2151WriteReg(int n, int r, int v)
 
 		case 0x18:	/* LFO frequency */
 			{
-				chip->lfo_overflow    = ( 1 << ((15-(v>>4))+3) ) * (1<<LFO_SH);
+				chip->lfo_overflow    = ( 1 << ((15-(v>>4))+3) ) << LFO_SH;
 				chip->lfo_counter_add = 0x10 + (v & 0x0f);
 			}
 			break;
@@ -1172,7 +1172,7 @@ void YM2151WriteReg(int n, int r, int v)
 		break;
 
 	case 0x20:
-		op = &chip->oper[ (r&7) * 4 ];
+		op = &chip->oper[ (r&7) << 2 ];
 		switch(r & 0x18){
 		case 0x00:	/* RL enable, Feedback, Connection */
 			op->fb_shift = ((v>>3)&7) ? ((v>>3)&7)+6:0;
@@ -1767,7 +1767,7 @@ INLINE void chan7_calc(void)
 
 		noiseout = 0;
 		if (env < 0x3ff)
-			noiseout = (env ^ 0x3ff) * 2;	/* range of the YM2151 noise output is -2044 to 2040 */
+			noiseout = (env ^ 0x3ff) << 1;	/* range of the YM2151 noise output is -2044 to 2040 */
 		chanout[7] += ((PSG->noise_rng&0x10000) ? noiseout: -noiseout); /* bit 16 -> output */
 	}
 	else
@@ -2125,18 +2125,18 @@ INLINE void advance(void)
 		/* AM: 255 down to 1 step -2; 0 up to 254 step +2 */
 		/* PM: 0 to 126 step +2, 127 to 1 step -2, 0 to -126 step -2, -127 to -1 step +2*/
 		if (i<128)
-			a = 255 - (i*2);
+			a = 255 - (i<<1);
 		else
 			a = (i*2) - 256;
 
 		if (i<64)						/* i = 0..63 */
-			p = i*2;					/* 0 to 126 step +2 */
+			p = i<<1;					/* 0 to 126 step +2 */
 		else if (i<128)					/* i = 64..127 */
-				p = 255 - i*2;			/* 127 to 1 step -2 */
+				p = 255 - (i<<1);			/* 127 to 1 step -2 */
 			else if (i<192)				/* i = 128..191 */
-					p = 256 - i*2;		/* 0 to -126 step -2*/
+					p = 256 - (i<<1);		/* 0 to -126 step -2*/
 				else					/* i = 192..255 */
-					p = i*2 - 511;		/*-127 to -1 step +2*/
+					p = (i<<1) - 511;		/*-127 to -1 step +2*/
 		break;
 	case 3:
 	default:	/*keep the compiler happy*/
@@ -2151,8 +2151,8 @@ INLINE void advance(void)
 		p = a-128;
 		break;
 	}
-	PSG->lfa = a * PSG->amd / 128;
-	PSG->lfp = p * PSG->pmd / 128;
+	PSG->lfa = (a * PSG->amd) >> 7;
+	PSG->lfp = (p * PSG->pmd) >> 7;
 
 
 	/*	The Noise Generator of the YM2151 is 17-bit shift register.

@@ -206,7 +206,7 @@ inline unsigned char* getExtendedBlock(unsigned int offset, unsigned int size)
 	return uniCacheHead+(uniCacheIndex[headBlockIndexOffsetHigh].cacheSpaceHeadOffsetHigh<<CACHE_INDEX_SHIFT)+(offset-(headBlockIndexOffsetHigh<<CACHE_INDEX_SHIFT));
 }*/
 
-inline unsigned char* getBlock(unsigned int offset, unsigned int size)
+static inline __attribute__((always_inline)) unsigned char* getBlock(unsigned int offset, unsigned int size)
 {//do not support Reentry
 	if(offset>=cacheFileSize)
 		return 0;

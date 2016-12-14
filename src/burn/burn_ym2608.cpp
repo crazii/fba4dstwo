@@ -311,7 +311,7 @@ int BurnYM2608Init(int nClockFrequency, unsigned char* YM2608ADPCMROM, int* nYM2
 		BurnYM2608Update = YM2608UpdateDummy;
 
 		AY8910InitYM(0, nClockFrequency, 11025, NULL, NULL, NULL, NULL, BurnAY8910UpdateRequest);
-		YM2608Init(1, nClockFrequency, 11025, (void**)(&YM2608ADPCMROM), nYM2608ADPCMSize, &BurnOPNTimerCallback, IRQCallback);
+		YM2608Init(1, nClockFrequency, 11025, (&YM2608ADPCMROM), nYM2608ADPCMSize, &BurnOPNTimerCallback, IRQCallback);
 		return 0;
 	}
 
@@ -336,7 +336,7 @@ int BurnYM2608Init(int nClockFrequency, unsigned char* YM2608ADPCMROM, int* nYM2
 	}
 
 	AY8910InitYM(0, nClockFrequency, nBurnYM2608SoundRate, NULL, NULL, NULL, NULL, BurnAY8910UpdateRequest);
-	YM2608Init(1, nClockFrequency, nBurnYM2608SoundRate, (void**)(&YM2608ADPCMROM), nYM2608ADPCMSize, &BurnOPNTimerCallback, IRQCallback);
+	YM2608Init(1, nClockFrequency, nBurnYM2608SoundRate, (&YM2608ADPCMROM), nYM2608ADPCMSize, &BurnOPNTimerCallback, IRQCallback);
 
 	pBuffer = (short*)malloc(4096 * 6 * sizeof(short));
 	memset(pBuffer, 0, 4096 * 6 * sizeof(short));

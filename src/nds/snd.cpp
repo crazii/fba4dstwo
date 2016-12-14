@@ -19,14 +19,62 @@ static void ds2_play_sound()
 		if(soundMode == 1)
 		{
 			for(int i = 0; i < SND_FRAME_SIZE; ++i)
-				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i*2];
+			{
+				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1]; ++i;
+				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1]; ++i;
+				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1]; ++i;
+				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1]; ++i;
+				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1]; ++i;
+				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1]; ++i;
+				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1]; ++i;
+				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1];
+			}
 		}
 		else
 		{
+			unsigned int* mixbuf2 = (unsigned int*)mixbuf;
 			for(int i = 0; i < SND_FRAME_SIZE; ++i)
 			{
-				ds2_aubuff[i] = mixbuf[i*2];
-				ds2_aubuff2[i] = mixbuf[i*2+1];
+				register unsigned int s;
+
+				s = mixbuf2[i];
+				ds2_aubuff[i] = s;
+				ds2_aubuff2[i] = s >> 16;
+				++i;
+				
+				s = mixbuf2[i];
+				ds2_aubuff[i] = s;
+				ds2_aubuff2[i] = s >> 16;
+				++i;
+				
+				s = mixbuf2[i];
+				ds2_aubuff[i] = s;
+				ds2_aubuff2[i] = s >> 16;
+				++i;
+				
+				s = mixbuf2[i];
+				ds2_aubuff[i] = s;
+				ds2_aubuff2[i] = s >> 16;
+				++i;
+				
+				s = mixbuf2[i];
+				ds2_aubuff[i] = s;
+				ds2_aubuff2[i] = s >> 16;
+				++i;
+				
+				s = mixbuf2[i];
+				ds2_aubuff[i] = s;
+				ds2_aubuff2[i] = s >> 16;
+				++i;
+				
+				s = mixbuf2[i];
+				ds2_aubuff[i] = s;
+				ds2_aubuff2[i] = s >> 16;
+				++i;
+				
+				s = mixbuf2[i];
+				ds2_aubuff[i] = s;
+				ds2_aubuff2[i] = s >> 16;
 			}
 		}
 		//Update audio  

@@ -15,8 +15,8 @@ struct MSM6295ChannelInfo {
 	int nPosition;
 	int nSampleCount;
 	int nSample;
-	int nStep;
-	int nDelta;
+	short nStep;
+	short nDelta;
 
 	int nBufPos;
 };
@@ -88,10 +88,9 @@ int MSM6295Scan(int nChip, int /*nAction*/)
 static inline __attribute__((always_inline)) void MSM6295Render_Linear(int nChip, int* pBuf, int nSegmentLength)
 {
 	static int nPreviousSample[MAX_MSM6295], nCurrentSample[MAX_MSM6295];
-	int nVolume = MSM6295[nChip].nVolume;
+	const register int nVolume = MSM6295[nChip].nVolume;
 	int nFractionalPosition = MSM6295[nChip].nFractionalPosition;
 
-	int nChannel, nDelta, nSample;
 	MSM6295ChannelInfo* pChannelInfo;
 
 	while (nSegmentLength--) {
@@ -102,7 +101,7 @@ static inline __attribute__((always_inline)) void MSM6295Render_Linear(int nChip
 			do {
 				nCurrentSample[nChip] = 0;
 
-				for (nChannel = 0; nChannel < 4; nChannel++) {
+				for (short nChannel = 0; nChannel < 4; nChannel++) {
 					if (nMSM6295Status[nChip] & (1 << nChannel)) {
 						pChannelInfo = &MSM6295[nChip].ChannelInfo[nChannel];
 
@@ -111,7 +110,7 @@ static inline __attribute__((always_inline)) void MSM6295Render_Linear(int nChip
 							nMSM6295Status[nChip] &= ~(1 << nChannel);
 							continue;
 						}
-
+						short nDelta;
 						// Get new delta from ROM
 						if (pChannelInfo->nPosition & 1) {
 							nDelta = pChannelInfo->nDelta & 0x0F;
@@ -121,16 +120,15 @@ static inline __attribute__((always_inline)) void MSM6295Render_Linear(int nChip
 						}
 
 						// Compute new sample
-						nSample = pChannelInfo->nSample + MSM6295DeltaTable[(pChannelInfo->nStep << 4) + nDelta];
-						if (nSample > 2047) {
-							nSample = 2047;
+						pChannelInfo->nSample += MSM6295DeltaTable[(pChannelInfo->nStep << 4) + nDelta];
+						if (pChannelInfo->nSample  > 2047) {
+							pChannelInfo->nSample  = 2047;
 						} else {
-							if (nSample < -2048) {
-								nSample = -2048;
+							if (pChannelInfo->nSample  < -2048) {
+								pChannelInfo->nSample  = -2048;
 							}
 						}
-						pChannelInfo->nSample = nSample;
-						pChannelInfo->nOutput = (nSample * pChannelInfo->nVolume);
+						pChannelInfo->nOutput = (pChannelInfo->nSample * pChannelInfo->nVolume);
 
 						// Update step value
 						pChannelInfo->nStep = pChannelInfo->nStep + MSM6295StepShift[nDelta & 7];
@@ -155,7 +153,7 @@ static inline __attribute__((always_inline)) void MSM6295Render_Linear(int nChip
 		}
 
 		// Compute linearly interpolated sample
-		nSample = nPreviousSample[nChip] + (((nCurrentSample[nChip] - nPreviousSample[nChip]) * nFractionalPosition) >> 12);
+		register int nSample = nPreviousSample[nChip] + (((nCurrentSample[nChip] - nPreviousSample[nChip]) * nFractionalPosition) >> 12);
 
 		// Scale all 4 channels
 		nSample *= nVolume;

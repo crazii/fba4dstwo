@@ -29,7 +29,9 @@
 #define UINT32	unsigned int
 #define INT32	int
 #define u16 	unsigned short
-#define u32 	unsigned int
+#ifndef u32
+#	define u32 	unsigned int
+#endif
 
 #define ALIGN_DATA				__attribute__((aligned(4)))
 
@@ -121,7 +123,7 @@ C68k_Exec_Next:
 			}
 		}
 
-		CPU->PC = PC;
+		CPU->PC = CPU->Rebase_PC(PC);
 
 		return cycles - CPU->ICount;
 	}
@@ -333,7 +335,7 @@ inline static void C68k_Reset(c68k_struc *CPU)
 {
 	UINT32 PC;
 
-	memset(CPU, 0, (UINT32)&CPU->BasePC - (UINT32)CPU);
+	memset(CPU, 0, (UINT32)&CPU->BasePC + sizeof(CPU->BasePC) - (UINT32)CPU);
 
 	CPU->flag_I = 7;
 	CPU->flag_S = C68K_SR_S;

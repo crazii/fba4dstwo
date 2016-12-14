@@ -312,7 +312,7 @@ int BurnYM2610Init(int nClockFrequency, unsigned char* YM2610ADPCMAROM, int* nYM
 		BurnYM2610Update = YM2610UpdateDummy;
 
 		AY8910InitYM(0, nClockFrequency, 11025, NULL, NULL, NULL, NULL, BurnAY8910UpdateRequest);
-		YM2610Init(1, nClockFrequency, 11025, (void**)(&YM2610ADPCMAROM), nYM2610ADPCMASize, (void**)(&YM2610ADPCMBROM), nYM2610ADPCMBSize, &BurnOPNTimerCallback, IRQCallback);
+		YM2610Init(1, nClockFrequency, 11025, (&YM2610ADPCMAROM), nYM2610ADPCMASize, (&YM2610ADPCMBROM), nYM2610ADPCMBSize, &BurnOPNTimerCallback, IRQCallback);
 		return 0;
 	}
 
@@ -336,7 +336,7 @@ int BurnYM2610Init(int nClockFrequency, unsigned char* YM2610ADPCMAROM, int* nYM
 	}
 
 	AY8910InitYM(0, nClockFrequency, nBurnYM2610SoundRate, NULL, NULL, NULL, NULL, BurnAY8910UpdateRequest);
-	YM2610Init(1, nClockFrequency, nBurnYM2610SoundRate, (void**)(&YM2610ADPCMAROM), nYM2610ADPCMASize, (void**)(&YM2610ADPCMBROM), nYM2610ADPCMBSize, &BurnOPNTimerCallback, IRQCallback);
+	YM2610Init(1, nClockFrequency, nBurnYM2610SoundRate, (&YM2610ADPCMAROM), nYM2610ADPCMASize, (&YM2610ADPCMBROM), nYM2610ADPCMBSize, &BurnOPNTimerCallback, IRQCallback);
 
 	pBuffer = (short*)malloc(4096 * 6 * sizeof(short));
 	memset(pBuffer, 0, 4096 * 6 * sizeof(short));

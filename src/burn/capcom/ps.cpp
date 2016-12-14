@@ -74,8 +74,9 @@ void PsndNewFrame()
 
 int PsndSyncZ80(int nCycles)
 {
+	int nEnd = nBurnSoundLen / nCpsZ80Cycles;
 	while (nSyncNext < nCycles) {
-		PsmUpdate(nSyncNext * nBurnSoundLen / nCpsZ80Cycles);
+		PsmUpdate(nSyncNext * nEnd);
 		ZetRun(nSyncNext - ZetTotalCycles());
 		nSyncNext += nSyncPeriod;
 	}
