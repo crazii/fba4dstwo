@@ -41,6 +41,7 @@
 
 #include "c68kmacro.h"
 
+#define inline __attribute__((always_inline))
 
 /******************************************************************************
 	O[o\
@@ -65,7 +66,7 @@ static void  **JumpTable=NULL;
 	荞݃R[obN
 --------------------------------------------------------*/
 
-static INT32 C68k_InterruptCallback(INT32 line)
+static inline INT32 C68k_InterruptCallback(INT32 line)
 {
 	return C68K_INTERRUPT_AUTOVECTOR_EX + line;
 }
@@ -75,7 +76,7 @@ static INT32 C68k_InterruptCallback(INT32 line)
 	ZbgR[obN
 --------------------------------------------------------*/
 
-static void C68k_ResetCallback(void)
+static inline void C68k_ResetCallback(void)
 {
 }
 
@@ -93,7 +94,7 @@ static int bC68KInit = 0;
 	CPUs
 --------------------------------------------------------*/
 
-inline static INT32 C68k_Exec(c68k_struc *CPU, INT32 cycles)
+static INT32 C68k_Exec(c68k_struc *CPU, INT32 cycles)
 {
 	if (CPU)
 	{
@@ -123,7 +124,7 @@ C68k_Exec_Next:
 			}
 		}
 
-		CPU->PC = CPU->Rebase_PC(PC);
+		CPU->PC = PC;
 
 		return cycles - CPU->ICount;
 	}
@@ -335,7 +336,7 @@ inline static void C68k_Reset(c68k_struc *CPU)
 {
 	UINT32 PC;
 
-	memset(CPU, 0, (UINT32)&CPU->BasePC + sizeof(CPU->BasePC) - (UINT32)CPU);
+	memset(CPU, 0, (UINT32)&CPU->BasePC - (UINT32)CPU);
 
 	CPU->flag_I = 7;
 	CPU->flag_S = C68K_SR_S;
@@ -345,3 +346,5 @@ inline static void C68k_Reset(c68k_struc *CPU)
 
 	C68k_Set_Reg(CPU, C68K_PC, PC);
 }
+
+#undef inline

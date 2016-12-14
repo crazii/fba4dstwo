@@ -219,7 +219,7 @@ void swapBuffer()
 	unsigned short* src = videoBuffer;
 	__builtin_prefetch(src, 0);
 	unsigned short* dst = (unsigned short*)up_screen_addr + xOff + (yOff * SCREEN_WIDTH);
-	__builtin_prefetch(src, 1);
+	__builtin_prefetch(dst, 1);
 	const register short scaleMod = iModulo;
 	const register short scaleMul = iAdd;
 	const register short height = drvHeight;

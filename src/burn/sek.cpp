@@ -278,7 +278,11 @@ inline static unsigned short ReadWord(unsigned int a)
 	pr = FIND_R(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=(pr + (a & SEK_PAGEM));
+#ifdef NDS
+		return *(UINT16*)pr;
+#else
 		return (*(pr+1))<<8|(*pr);
+#endif
 	}
 	return pSekExt->ReadWord[(unsigned int)pr](a);
 }
@@ -294,7 +298,11 @@ inline static unsigned short FetchWord(unsigned int a)
 	pr = FIND_F(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=(pr + (a & SEK_PAGEM));
+#ifdef NDS
+		return *(UINT16*)pr;
+#else
 		return (*(pr+1))<<8|(*pr);
+#endif
 	}
 	return pSekExt->ReadWord[(unsigned int)pr](a);
 }
@@ -310,8 +318,12 @@ inline static void WriteWord(unsigned int a, unsigned short d)
 	pr = FIND_W(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=pr + (a & SEK_PAGEM);
+#ifdef NDS
+		*(UINT16*)pr = d;
+#else
 		pr[0]=d;
 		pr[1]=d>>8;
+#endif
 		return;
 	}
 	pSekExt->WriteWord[(unsigned int)pr](a, d);
@@ -326,8 +338,12 @@ inline static void WriteWordROM(unsigned int a, unsigned short d)
 	pr = FIND_R(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=pr + (a & SEK_PAGEM);
+#ifdef NDS
+		*(UINT16*)pr = d;
+#else
 		pr[0]=d;
 		pr[1]=d>>8;
+#endif
 		return;
 	}
 	pSekExt->WriteWord[(unsigned int)pr](a, d);
@@ -344,7 +360,11 @@ inline static unsigned int ReadLong(unsigned int a)
 	pr = FIND_R(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=pr + (a & SEK_PAGEM);
+#ifdef NDS
+		return *(UINT32*)pr;
+#else
 		return pr[1]<<24|pr[0]<<16|pr[3]<<8|pr[2];
+#endif
 	}
 	return pSekExt->ReadLong[(unsigned int)pr](a);
 }
@@ -360,7 +380,11 @@ inline static unsigned int FetchLong(unsigned int a)
 	pr = FIND_F(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=pr + (a & SEK_PAGEM);
+#ifdef NDS
+		return *(UINT32*)pr;
+#else
 		return  pr[1]<<24|pr[0]<<16|pr[3]<<8|pr[2];
+#endif
 	}
 	return pSekExt->ReadLong[(unsigned int)pr](a);
 }
@@ -376,10 +400,14 @@ inline static void WriteLong(unsigned int a, unsigned int d)
 	pr = FIND_W(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=pr + (a & SEK_PAGEM);
+#ifdef NDS
+		*(UINT32*)pr = d;
+#else
 		pr[2] = (unsigned char)d;
 		pr[3] = (unsigned char)(d>>8);
 		pr[0] = (unsigned char)(d>>16);
 		pr[1] = (unsigned char)(d>>24);
+#endif
 		return;
 	}
 	pSekExt->WriteLong[(unsigned int)pr](a, d);
@@ -394,10 +422,14 @@ inline static void WriteLongROM(unsigned int a, unsigned int d)
 	pr = FIND_R(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=pr + (a & SEK_PAGEM);
+#ifdef NDS
+		*(UINT32*)pr = d;
+#else
 		pr[2] = (unsigned char)d;
 		pr[3] = (unsigned char)(d>>8);
 		pr[0] = (unsigned char)(d>>16);
 		pr[1] = (unsigned char)(d>>24);
+#endif
 		return;
 	}
 	pSekExt->WriteLong[(unsigned int)pr](a, d);
