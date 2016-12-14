@@ -1,4 +1,4 @@
-// Graphics format: 8 × 8 pixel tiles, 4 bits/pixel.
+// Graphics format: 8 ?8 pixel tiles, 4 bits/pixel.
 
 // Create a unique name for each of the functions
 #define FN(a,b,c,d,e) RenderTile ## a ## _ROT ## b  ## c ## d ## e
@@ -33,9 +33,17 @@
 #elif ROT == 270
 
  #if XFLIP == 0
-  #define ADVANCECOLUMN pPixel -= ((BPP >> 3) * 240)
+  #ifndef NDS
+   #define ADVANCECOLUMN pPixel -= ((BPP >> 3) * 240)
+  #else
+    #define ADVANCECOLUMN pPixel -= ((BPP >> 3) * 512)
+  #endif
  #elif XFLIP == 1
-  #define ADVANCECOLUMN pPixel += ((BPP >> 3) * 240)
+  #ifndef NDS
+   #define ADVANCECOLUMN pPixel += ((BPP >> 3) * 240)
+  #else
+   #define ADVANCECOLUMN pPixel += ((BPP >> 3) * 512)
+  #endif
  #else
   #error illegal XFLIP value
  #endif

@@ -12,7 +12,9 @@ int nToaCyclesDisplayStart;
 int nToaCyclesVBlankStart;
 
 // Variables for the graphics drawing
-bool bRotatedScreen;
+#ifdef DRIVER_ROTATION
+bool bToaRotateScreen = true;
+#endif
 unsigned char* pBurnBitmap;
 int nBurnColumn;
 int nBurnRow;
@@ -92,7 +94,14 @@ void ToaClearScreen()
 
 	unsigned int nColour = *ToaPalette;
 	nColour = ((nColour & 0x001f ) << 3) | ((nColour & 0x03e0 ) << 2) | ((nColour & 0x7c00 ) << 7);
-	clear_gui_texture(nColour, 320, 240);
+#ifdef DRIVER_ROTATION
+	if(bToaRotateScreen)
+		clear_gui_texture(nColour, 240, 320);
+	else
+#endif
+	{
+		clear_gui_texture(nColour, 320, 240);
+	}
 	
 #else
 

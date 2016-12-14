@@ -157,7 +157,7 @@ int ToaExtraTextLayer()
 #ifdef DRIVER_ROTATION
 		switch (nBurnBpp) {
 			case 2:
-				if (bRotatedScreen) {
+				if (bToaRotateScreen) {
 					RenderTile[0] = *RenderTile16_ROT270_NOCLIP_NORMAL;
 					RenderTile[1] = *RenderTile16_ROT270_CLIP_NORMAL;
 					RenderTile[2] = *RenderTile16_ROT270_NOCLIP_ROWSEL;
@@ -170,7 +170,7 @@ int ToaExtraTextLayer()
 				}
 				break;
 			case 3:
-				if (bRotatedScreen) {
+				if (bToaRotateScreen) {
 					RenderTile[0] = *RenderTile24_ROT270_NOCLIP_NORMAL;
 					RenderTile[1] = *RenderTile24_ROT270_CLIP_NORMAL;
 					RenderTile[2] = *RenderTile24_ROT270_NOCLIP_ROWSEL;
@@ -183,7 +183,7 @@ int ToaExtraTextLayer()
 				}
 				break;
 			case 4:
-				if (bRotatedScreen) {
+				if (bToaRotateScreen) {
 					RenderTile[0] = *RenderTile32_ROT270_NOCLIP_NORMAL;
 					RenderTile[1] = *RenderTile32_ROT270_CLIP_NORMAL;
 					RenderTile[2] = *RenderTile32_ROT270_NOCLIP_ROWSEL;

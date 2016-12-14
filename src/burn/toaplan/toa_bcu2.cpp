@@ -230,7 +230,7 @@ int ToaRenderBCU2()
 		nLastBPP = nBurnBpp;
 
 #ifdef DRIVER_ROTATION
-		if (bRotatedScreen) {
+		if (bToaRotateScreen) {
 			RenderTile = RenderTile_ROT270[nBurnBpp - 2];
 		} else {
 			RenderTile = RenderTile_ROT0[nBurnBpp - 2];

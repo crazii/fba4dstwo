@@ -5,7 +5,7 @@
 
 // Uncomment to have the driver perform the screen rotation (faster unless 3D hardware is used for blitting).
 // #undef DRIVER_ROTATION
-// #define DRIVER_ROTATION
+ #define DRIVER_ROTATION
 
 const int TOA_68K_SPEED = 16000000;
 const int TOA_Z80_SPEED = 4000000;
