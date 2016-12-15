@@ -8,6 +8,7 @@
 
  #if XFLIP == 0
   #define ADVANCECOLUMN pPixel += (BPP >> 3)
+  #define ADVANCECOLUMN_MULTI(n) pPixel += (BPP >> 3) * (n)
  #else
   #error illegal XFLIP value
  #endif
@@ -24,23 +25,29 @@
   #error illegal YFLIP value
  #endif
 
-#else
+#elif ROT == 270
 
 #if XFLIP == 0
 #ifndef NDS
-#define ADVANCECOLUMN pPixel += ((BPP >> 3) * XSIZE)
+#define ADVANCECOLUMN pPixel -= ((BPP >> 3) * XSIZE)
+#define ADVANCECOLUMN_MULTI(n) pPixel -= ((BPP >> 3) * (n) * XSIZE)
 #else
-#define ADVANCECOLUMN pPixel += ((BPP >> 3) * 512)
+#define ADVANCECOLUMN pPixel -= ((BPP >> 3) * 512)
+#define ADVANCECOLUMN_MULTI(n) pPixel -= ((BPP >> 3) * (n) * 512)
 #endif
 #else
 #error illegal XFLIP value
 #endif
 
 #if YFLIP == 0
-#define ADVANCEROW pTileRow += ((BPP >> 3)
+#define ADVANCEROW pTileRow += (BPP >> 3)
 #else
 #error illegal YFLIP value
 #endif
+
+#else
+
+#error unsupported rotation angle specified
 
 #endif
 
@@ -113,7 +120,7 @@
 static void FUNCTIONNAME(BPP,XSIZE,ROT,FLIP,SCROLL,SELECT,CLIP,DEPTH)()
 {
 // Create an empty function if unsupported features are requested
-#if ROT == 0 && XFLIP == 0 && YFLIP == 0 && !(ROWSCROLL == 1 && ROWSELECT == 1) && EIGHTBIT == 1
+#if XFLIP == 0 && YFLIP == 0 && !(ROWSCROLL == 1 && ROWSELECT == 1) && EIGHTBIT == 1
 
 	unsigned char *pTileRow, *pPixel;
 	int nColour;
@@ -161,7 +168,7 @@ static void FUNCTIONNAME(BPP,XSIZE,ROT,FLIP,SCROLL,SELECT,CLIP,DEPTH)()
   #endif
 			continue;
 		}
-		pPixel += (BPP >> 3) * nRowOffset;
+		ADVANCECOLUMN_MULTI(nRowOffset);
  #endif
 
  #if ROWSCROLL == 1
@@ -177,7 +184,7 @@ static void FUNCTIONNAME(BPP,XSIZE,ROT,FLIP,SCROLL,SELECT,CLIP,DEPTH)()
 		if (XPOS <= (XSIZE - 8)) {
 			if (XPOS < 0) {
 				nColour >>= -XPOS * 4;
-				pPixel += -XPOS * (BPP >> 3);
+				ADVANCECOLUMN_MULTI(-XPOS);
 			}
 
 			switch (XPOS < 0 ? -XPOS : 0) {
@@ -275,7 +282,7 @@ static void FUNCTIONNAME(BPP,XSIZE,ROT,FLIP,SCROLL,SELECT,CLIP,DEPTH)()
 					nColour = pTileData[1];
 				}
 				nColour >>= (-XPOS & 3) * 8;
-				pPixel += -XPOS * (BPP >> 3);
+				ADVANCECOLUMN_MULTI(-XPOS);
 			}
 
 			switch (XPOS < 0 ? -XPOS : 0) {
@@ -384,6 +391,7 @@ static void FUNCTIONNAME(BPP,XSIZE,ROT,FLIP,SCROLL,SELECT,CLIP,DEPTH)()
 #undef TESTCOLOUR
 #undef ADVANCEROW
 #undef ADVANCECOLUMN
+#undef ADVANCECOLUMN_MULTI
 #undef SCROLL
 #undef SELECT
 #undef DEPTH

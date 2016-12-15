@@ -1,9 +1,9 @@
+#include "burnint.h"
 #include <stdio.h>
 #include <string.h>
 
 #include "nds.h"
 #include "font.h"
-#include "burnint.h"
 #include "UniCache.h"
 #include "burner.h"
 
@@ -29,6 +29,7 @@ static unsigned int nPrevGame = ~0U;
 static int ui_mainmenu_select = 0;
 
 static int ui_process_pos = 0;
+static bool rom_browse_init = 0;
 int InpMake(unsigned int);
 int DoInputBlank(int bDipSwitch);
 
@@ -324,7 +325,8 @@ static void process_key( int key, int down, int repeat )
 				setGameStage(2);
 				strcpy(ui_current_path, szAppRomPath);
 				//ui_current_path[strlen(ui_current_path)-1] = 0;
-				draw_ui_browse(true);
+				draw_ui_browse(!rom_browse_init);
+				rom_browse_init = true;
 				break;
 			case LOAD_GAME:
 				if(nPrevGame != ~0U)
@@ -378,7 +380,7 @@ static void process_key( int key, int down, int repeat )
 			return_to_game();
 			//wait B clear to avoid affect game play
 			{
-				struct key_buf pad = {-1,-1,-1};
+				struct key_buf pad = {(unsigned short)-1,(unsigned short)-1,(unsigned short)-1};
 				do {ds2_getrawInput(&pad);}while((pad.key&KEY_B) != 0);				
 			}
 			break;

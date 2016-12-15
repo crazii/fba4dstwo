@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
 	sound_start();
 	
 	nBurnBpp = sizeof(unsigned short);
-	nBurnPitch  = VIDEO_BUFFER_WIDTH * nBurnBpp;
+	nBurnPitch = VIDEO_BUFFER_WIDTH * nBurnBpp;
 	BurnHighCol = HighCol16;
 	
 	ds2_clearScreen(UP_SCREEN, 0);

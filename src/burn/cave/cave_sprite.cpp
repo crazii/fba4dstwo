@@ -161,7 +161,10 @@ int CaveSpriteRender(int nLowPriority, int nHighPriority)
 				nXSize -= (nXPos + nXSize - nCaveXSize) & 0xFFF0;
 			}
 
-			pRow = pBurnDraw + (nYPos * nBurnPitch) + (nXPos * nBurnBpp);
+			if ((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL) && bCaveRotateScreen)
+				pRow = pBurnDraw + ((nCaveXSize-nXPos) * nBurnPitch) + (nYPos * nBurnBpp);
+			else
+				pRow = pBurnDraw + (nYPos * nBurnPitch) + (nXPos * nBurnBpp);
 
 			nFunction = (pBuffer->flip & 2) << 1;									// X Flip
 
@@ -282,7 +285,10 @@ int CaveSpriteRender(int nLowPriority, int nHighPriority)
 				nYSize = nCaveYSize - nYPos;
 			}
 
-			pRow = pBurnDraw + (nYPos * nBurnPitch) + (nXPos * nBurnBpp);
+			if ((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL) && bCaveRotateScreen)
+				pRow = pBurnDraw + ((nCaveXSize-nXPos) * nBurnPitch) + (nYPos * nBurnBpp);
+			else
+				pRow = pBurnDraw + (nYPos * nBurnPitch) + (nXPos * nBurnBpp);
 
 			nFunction = 8;
 
@@ -735,7 +741,7 @@ int CaveSpriteInit(int nType, int nROMSize)
 
 	nCaveSpriteBank = 0;
 	nCaveSpriteBankDelay = 0;
-	if (BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL && bCaveRotateScreen)
+	if ((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL) && bCaveRotateScreen)
 		RenderSprite = RenderSprite_ROT270[(nCaveXSize == 320) ? 0 : 1];
 	else
 		RenderSprite = RenderSprite_ROT0[(nCaveXSize == 320) ? 0 : 1];

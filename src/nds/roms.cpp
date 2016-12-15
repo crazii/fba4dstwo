@@ -1,8 +1,8 @@
+#include "burnint.h"
 #include <stdio.h>
 #include <string.h>
 
 #include "nds.h"
-#include "burnint.h"
 
 #define MAX_ROM_COUNT	512
 

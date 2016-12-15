@@ -29,7 +29,11 @@ int CaveScanGraphics()
 void CaveClearScreen(unsigned int nColour)
 {
 #ifdef NDS
-	clear_gui_texture(((nColour & 0x001f ) << 3) | ((nColour & 0x03e0 ) << 2) | ((nColour & 0x7c00 ) << 7), nCaveXSize, nCaveYSize);
+	int c = ((nColour & 0x001f ) << 3) | ((nColour & 0x03e0 ) << 1) | ((nColour & 0x7c00 ) << 6);
+	if((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL) && bCaveRotateScreen)
+		clear_gui_texture(c, nCaveYSize, nCaveXSize);
+	else
+		clear_gui_texture(c, nCaveXSize, nCaveYSize);
 #else
 
 	if (nColour) {

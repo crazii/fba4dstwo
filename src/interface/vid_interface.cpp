@@ -1,8 +1,8 @@
 // Video Output - (calls all the Vid Out plugins)
 #include "burner.h"
 
-#define DEFAULT_IMAGE_WIDTH (304)
-#define DEFAULT_IMAGE_HEIGHT (224)
+#define DEFAULT_IMAGE_WIDTH (512)
+#define DEFAULT_IMAGE_HEIGHT (512)
 
 #define ENABLE_PREVIEW
 
@@ -398,9 +398,9 @@ InterfaceInfo* VidGetInfo()
 		GetClientScreenRect(hVidWnd, &rect);
 		if (nVidFullscreen == 0) {
 			rect.top += nMenuHeight;
-			_sntprintf(szString, MAX_PATH, _T("Running in windowed mode, %i×%i, %ibpp"), rect.right - rect.left, rect.bottom - rect.top, nVidScrnDepth);
+			_sntprintf(szString, MAX_PATH, _T("Running in windowed mode, %i?i, %ibpp"), rect.right - rect.left, rect.bottom - rect.top, nVidScrnDepth);
 		} else {
-			_sntprintf(szString, MAX_PATH, _T("Running fullscreen, %i×%i, %ibpp"), nVidScrnWidth, nVidScrnHeight, nVidScrnDepth);
+			_sntprintf(szString, MAX_PATH, _T("Running fullscreen, %i?i, %ibpp"), nVidScrnWidth, nVidScrnHeight, nVidScrnDepth);
 		}
 #elif defined (BUILD_SDL)
 		_sntprintf(szString, MAX_PATH, _T("Filler for fullscreen/windowed mode & image size"));
@@ -408,7 +408,7 @@ InterfaceInfo* VidGetInfo()
 
 		IntInfoAddStringInterface(&VidInfo, szString);
 
-		_sntprintf(szString, MAX_PATH, _T("Source image %i×%i, %ibpp"), nVidImageWidth, nVidImageHeight, nVidImageDepth);
+		_sntprintf(szString, MAX_PATH, _T("Source image %i?i, %ibpp"), nVidImageWidth, nVidImageHeight, nVidImageDepth);
 		IntInfoAddStringInterface(&VidInfo, szString);
 
 		if (pVidTransImage) {
