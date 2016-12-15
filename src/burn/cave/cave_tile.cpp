@@ -901,7 +901,10 @@ int CaveTileInit()
 	nClipY8  = nCaveYSize -  8;
 	nClipY16 = nCaveYSize - 16;
 
-	RenderTile = RenderTile_ROT0[(nCaveXSize == 320) ? 0 : 1];
+	if(BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL && bCaveRotateScreen)
+		RenderTile = RenderTile_ROT270[(nCaveXSize == 320) ? 0 : 1];
+	else
+		RenderTile = RenderTile_ROT0[(nCaveXSize == 320) ? 0 : 1];
 
 	return 0;
 }

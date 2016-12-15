@@ -4,6 +4,7 @@ int nCaveXSize = 0, nCaveYSize = 0;
 int nCaveXOffset = 0, nCaveYOffset = 0;
 int nCaveExtraXOffset = 0, nCaveExtraYOffset = 0;
 int nCaveRowModeOffset = 0;
+const bool bCaveRotateScreen = true;
 
 int CaveScanGraphics()
 {

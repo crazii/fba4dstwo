@@ -85,6 +85,58 @@ for ( my $Size = 320; $Size <= 384; $Size += 64 ) {
 	print OUTFILEFUN "#undef XSIZE\n\n";
 }
 
+print OUTFILEFUN "#undef ROT\n\n";
+print OUTFILEFUN "#define ROT 270\n\n";
+
+for ( my $Size = 320; $Size <= 384; $Size += 64 ) {
+	my $RowScroll;
+	my $RowSelect;
+
+	print OUTFILEFUN "#define XSIZE $Size\n";
+	print OUTFILEFUN "#define EIGHTBIT 1\n";
+
+	my $FunctionName = "&RenderTile16_" . $Size . "_ROT270_NOFLIP";
+
+	for ( my $Function = 0; $Function < 3; $Function++ ) {
+		if ( ($Function & 1) == 0 ) {
+			$RowScroll = "_NOROWSCROLL";
+
+			if ( ($Function & 2) == 0 ) {
+				$RowSelect = "_NOROWSELECT";
+			} else {
+				$RowSelect = "_ROWSELECT";
+			}
+		} else {
+			$RowScroll = "_ROWSCROLL";
+		}
+
+		print OUTFILEFUN "#define ROWSCROLL " . ($Function & 1) . "\n";
+		print OUTFILEFUN "#define ROWSELECT " . (($Function & 2) / 2) . "\n";
+
+		print OUTFILETAB "\t";
+
+		print OUTFILEFUN "#define DOCLIP 0\n";
+		print OUTFILEFUN "#include \"cave_tile_render.h\"\n";
+		print OUTFILEFUN "#undef DOCLIP\n";
+
+		print OUTFILETAB $FunctionName . $RowScroll . $RowSelect . "_NOCLIP_256, ";
+
+		print OUTFILEFUN "#define DOCLIP 1\n";
+		print OUTFILEFUN "#include \"cave_tile_render.h\"\n";
+		print OUTFILEFUN "#undef DOCLIP\n";
+
+		print OUTFILETAB $FunctionName . $RowScroll . $RowSelect . "_CLIP_256, ";
+
+		print OUTFILEFUN "#undef ROWSELECT\n";
+		print OUTFILEFUN "#undef ROWSCROLL\n";
+
+		print OUTFILETAB "\n";
+	}
+	print OUTFILEFUN "#undef EIGHTBIT\n\n";
+	print OUTFILEFUN "#undef XSIZE\n\n";
+}
+
+
 print OUTFILEFUN "#undef BPP\n\n";
 print OUTFILEFUN "#undef ROT\n\n";
 
@@ -97,6 +149,7 @@ $OutfileTab =~ /(?:.*[\\\/])(.*)/;
 print OUTFILEFUN "#include \"$1\"\n";
 
 print OUTFILETAB "static RenderTileFunction* RenderTile_ROT0[2] = {\n\t&RenderTileFunctionTable[0],\n\t&RenderTileFunctionTable[6]\n};\n";
+print OUTFILETAB "static RenderTileFunction* RenderTile_ROT270[2] = {\n\t&RenderTileFunctionTable[12],\n\t&RenderTileFunctionTable[18]\n};\n";
 
 close( OUTFILETAB );
 close( OUTFILEFUN );

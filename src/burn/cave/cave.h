@@ -19,6 +19,7 @@ extern int nCaveXSize, nCaveYSize;
 extern int nCaveXOffset, nCaveYOffset;
 extern int nCaveExtraXOffset, nCaveExtraYOffset;
 extern int nCaveRowModeOffset;
+extern const bool bCaveRotateScreen;
 
 int CaveScanGraphics();
 void CaveClearScreen(unsigned int nColour);

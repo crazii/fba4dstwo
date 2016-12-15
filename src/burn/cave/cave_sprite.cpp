@@ -735,8 +735,10 @@ int CaveSpriteInit(int nType, int nROMSize)
 
 	nCaveSpriteBank = 0;
 	nCaveSpriteBankDelay = 0;
-
-	RenderSprite = RenderSprite_ROT0[(nCaveXSize == 320) ? 0 : 1];
+	if (BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL && bCaveRotateScreen)
+		RenderSprite = RenderSprite_ROT270[(nCaveXSize == 320) ? 0 : 1];
+	else
+		RenderSprite = RenderSprite_ROT0[(nCaveXSize == 320) ? 0 : 1];
 
 	return 0;
 }

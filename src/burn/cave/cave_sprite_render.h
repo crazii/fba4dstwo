@@ -10,7 +10,12 @@
   #define ADVANCEROW pRow += ((BPP >> 3) * 512)
  #endif 
 #else
- #error unsupported rotation angle specified
+#ifndef NDS
+#define ADVANCEWORD pPixel += ((BPP >> 3) * XSIZE)
+#else
+#define ADVANCEWORD pPixel += ((BPP >> 3) * 512)
+#endif 
+#define ADVANCEROW pRow += ((BPP >> 3) * 16)
 #endif
 
 #if EIGHTBIT == 0
