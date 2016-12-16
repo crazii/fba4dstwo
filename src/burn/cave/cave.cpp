@@ -4,7 +4,6 @@ int nCaveXSize = 0, nCaveYSize = 0;
 int nCaveXOffset = 0, nCaveYOffset = 0;
 int nCaveExtraXOffset = 0, nCaveExtraYOffset = 0;
 int nCaveRowModeOffset = 0;
-const bool bCaveRotateScreen = true;
 
 int CaveScanGraphics()
 {
@@ -29,11 +28,15 @@ int CaveScanGraphics()
 void CaveClearScreen(unsigned int nColour)
 {
 #ifdef NDS
-	int c = ((nColour & 0x001f ) << 3) | ((nColour & 0x03e0 ) << 1) | ((nColour & 0x7c00 ) << 6);
-	if((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL) && bCaveRotateScreen)
+	int c = ((nColour & 0x001f) << 3) | ((nColour & 0x03e0) << 1) | ((nColour & 0x7c00) << 6);
+#if CAVE_ROTATE_SCREEN
+	if ((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL))
 		clear_gui_texture(c, nCaveYSize, nCaveXSize);
 	else
+#endif
+	{
 		clear_gui_texture(c, nCaveXSize, nCaveYSize);
+	}
 #else
 
 	if (nColour) {

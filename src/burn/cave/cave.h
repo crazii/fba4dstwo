@@ -3,6 +3,7 @@
 #include "eeprom_93cxx.h"
 
 #define CAVE_REFRESHRATE (15625.0 / 271.5)
+#define CAVE_ROTATE_SCREEN 1
 
 inline static void CaveClearOpposites(unsigned short* nJoystickInputs)
 {
@@ -19,7 +20,6 @@ extern int nCaveXSize, nCaveYSize;
 extern int nCaveXOffset, nCaveYOffset;
 extern int nCaveExtraXOffset, nCaveExtraYOffset;
 extern int nCaveRowModeOffset;
-extern const bool bCaveRotateScreen;
 
 int CaveScanGraphics();
 void CaveClearScreen(unsigned int nColour);

@@ -4,18 +4,23 @@
 
 #if ROT == 0
  #define ADVANCECOLUMN pPixel += (BPP >> 3)
+#define PIXELOFFSET(o) ((o)*(BPP >> 3))
  #ifndef NDS
   #define ADVANCEROW pRow += ((BPP >> 3) * XSIZE)
  #else
   #define ADVANCEROW pRow += ((BPP >> 3) * 512)
  #endif
-#else
+#elif ROT == 270
 #ifndef NDS
-#define ADVANCECOLUMN pPixel += ((BPP >> 3) * XSIZE)
+#define ADVANCECOLUMN pPixel -= ((BPP >> 3) * XSIZE)
+#define PIXELOFFSET(o) (-(o)*(BPP >> 3)*XSIZE)
 #else
-#define ADVANCECOLUMN pPixel += ((BPP >> 3) * 512)
+#define ADVANCECOLUMN pPixel -= ((BPP >> 3) * 512)
+#define PIXELOFFSET(o) (-(o)*(BPP >> 3)*512)
 #endif
 #define ADVANCEROW pRow += (BPP >> 3)
+#else
+#error unsupported rotation angle specified
 #endif
 
 #if EIGHTBIT == 0
@@ -59,20 +64,20 @@
 #if BPP == 16
  #define PLOTPIXEL(a,b) if (TESTCOLOUR(b) && TESTZBUF(a)) {						\
    	WRITEZBUF(a);																\
-	*((unsigned short*)(pPixel + a * 2)) = (unsigned short)pSpritePalette[b];	\
+	*((unsigned short*)(pPixel + PIXELOFFSET(a))) = (unsigned short)pSpritePalette[b];	\
  }
 #elif BPP == 24
  #define PLOTPIXEL(a,b) if (TESTCOLOUR(b) && TESTZBUF(a)) {						\
 	WRITEZBUF(a);																\
 	unsigned int nRGB = pSpritePalette[b];										\
-	pPixel[a * 3 + 0] = (unsigned char)nRGB;									\
-	pPixel[a * 3 + 1] = (unsigned char)(nRGB >> 8);								\
-	pPixel[a * 3 + 2] = (unsigned char)(nRGB >> 16);							\
+	pPixel[PIXELOFFSET(a) + 0] = (unsigned char)nRGB;									\
+	pPixel[PIXELOFFSET(a) + 1] = (unsigned char)(nRGB >> 8);								\
+	pPixel[PIXELOFFSET(a) + 2] = (unsigned char)(nRGB >> 16);							\
  }
 #elif BPP == 32
  #define PLOTPIXEL(a,b) if (TESTCOLOUR(b) && TESTZBUF(a)) {						\
 	WRITEZBUF(a);																\
-	*((unsigned int*)(pPixel + a * 4)) = (unsigned int)pSpritePalette[b];		\
+	*((unsigned int*)(pPixel + PIXELOFFSET(a))) = (unsigned int)pSpritePalette[b];		\
  }
 #else
  #error unsupported bitdepth specified.
@@ -99,7 +104,7 @@
 static void FUNCTIONNAME(BPP,XSIZE,ROT,FLIP,ZOOMMODE,ZBUF,DEPTH)()
 {
 // Create an empty function if unsupported features are requested
-#if ROT == 0 && XFLIP == 0 && EIGHTBIT == 1
+#if XFLIP == 0 && EIGHTBIT == 1
 
 	int nSpriteColumn;
 
@@ -181,6 +186,7 @@ static void FUNCTIONNAME(BPP,XSIZE,ROT,FLIP,ZOOMMODE,ZBUF,DEPTH)()
 #undef ADVANCEZCOLUMN
 #undef ADVANCEROW
 #undef ADVANCECOLUMN
+#undef PIXELOFFSET
 #undef TESTZBUF
 #undef WRITEZBUF
 #undef ZBUF
