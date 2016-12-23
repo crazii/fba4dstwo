@@ -1,0 +1,21 @@
+- FinalBurn Alpha LB -
+
+matched all sets to MAME 0.141
+
+can only be used un-merged romset.
+
+
+if there are no directories, it created.
+
+FBA/
+  |
+  |
+  +- roms/
+  +- cache/
+  +- nvram/
+  +- state/
+
+
+LEFT+START button - open menu
+
+
