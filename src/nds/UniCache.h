@@ -30,8 +30,7 @@
 #define CACHE_SPACE_STATUS_SIZE (CACHE_INDEX_SIZE+31)/32
 
 bool doDataCache();
-
-void initCacheStructure(float ratio);
+void initCacheStructure(float ratio, bool needTemp = false);
 void destroyCacheStructure();
 void initUniCache(unsigned int cacheSize,float ratio);
 void destroyUniCache();
@@ -42,7 +41,6 @@ struct UniCacheIndex{
 	unsigned short preIndex;
 	unsigned short cacheSpaceHeadOffsetHigh;
 	unsigned short cacheSpaceEndOffsetHigh;
-	void(*onDestroyFuncPtr)(unsigned char* addr);
 };
 extern unsigned short indexRecycleListHead, indexRecycleListEnd;
 extern UniCacheIndex uniCacheIndex[CACHE_INDEX_SIZE]; 
@@ -58,7 +56,8 @@ extern unsigned int uniCacheSpaceStatus[CACHE_SPACE_STATUS_SIZE];
 extern bool fillExtendData;
 //extern void *mallocHook(int NumBytes);
 //extern void freeHook(void *FirstByte);
-extern void *mallocTemp(int NumBytes,void(*onDestroyFuncPtr)(unsigned char* addr));
+extern void *mallocTemp(unsigned int NumBytes,void(*onDestroyFuncPtr)(unsigned char* addr));
+bool visitMemTemp(unsigned int offset);
 extern char* panicMsg;
 
 //test
@@ -128,12 +127,7 @@ inline void freeMem(unsigned int blockIndex)
 {
 	int i;
 	unsigned int endBlockIndex;
-	
-	if(uniCacheIndex[blockIndex].onDestroyFuncPtr!=0)
-	{
-		(*uniCacheIndex[blockIndex].onDestroyFuncPtr)(uniCacheHead+(uniCacheIndex[blockIndex].cacheSpaceHeadOffsetHigh<<CACHE_INDEX_SHIFT));
-		uniCacheIndex[blockIndex].onDestroyFuncPtr=0;
-	}
+
 	removeCurrentIndex(blockIndex);
 	magicFreeSpaceOffsetHigh = uniCacheIndex[blockIndex].cacheSpaceHeadOffsetHigh;
 	for(i=magicFreeSpaceOffsetHigh;i<=uniCacheIndex[blockIndex].cacheSpaceEndOffsetHigh;i++)
@@ -161,52 +155,8 @@ inline void freeMem(unsigned int blockIndex)
 		uniCacheIndex[i].cacheSpaceHeadOffsetHigh=SHORT_INVALID_VALUE;
 	}
 }
-//The mem will be recycled automaticlly anytime by UniCache
 
-/*
-inline unsigned char* getExtendedBlock(unsigned int offset, unsigned int size)
-{//do not support Reentry
-	requestAddrOffsetHigh = (unsigned short)(offset>>CACHE_INDEX_SHIFT);	
-	requestAddrEndOffsetHigh =(unsigned short)( (offset+size-1)>>CACHE_INDEX_SHIFT);
-	
-	headBlockIndexOffsetHigh=requestAddrOffsetHigh;
-	if ( uniCacheIndex[requestAddrOffsetHigh].cacheSpaceHeadOffsetHigh == SHORT_INVALID_VALUE )
-	{//No cached data in memory		
-		if(offset>=cacheFileSize&&fillExtendData==false)
-			return 0;
-		if(!doDataCache())
-			return 0;
-	}else if(uniCacheIndex[requestAddrOffsetHigh].cacheSpaceEndOffsetHigh == SHORT_INVALID_VALUE)
-	{//Request addr's head is in part of an exist cache block
-		headBlockIndexOffsetHigh = uniCacheIndex[requestAddrOffsetHigh].cacheSpaceHeadOffsetHigh; //reuse cacheSpaceHeadOffsetHigh for headBlockIndexOffsetHigh in Index
-		if	(headBlockIndexOffsetHigh+
-				(uniCacheIndex[headBlockIndexOffsetHigh].cacheSpaceEndOffsetHigh-uniCacheIndex[headBlockIndexOffsetHigh].cacheSpaceHeadOffsetHigh)
-		 	< requestAddrEndOffsetHigh)
-		 //|| uniCacheIndex[headBlockIndexOffsetHigh].cacheSpaceEndOffsetHigh >= totalMemBlocks)
-		{//Request block size is larger than cache block or data is invalid
-			if(offset>=cacheFileSize&&fillExtendData==false)
-				return 0;
-			headBlockIndexOffsetHigh = requestAddrOffsetHigh;
-			if(!doDataCache())
-				return 0;
-		}			 
-	}else //Request addr's head is the head of an exist cache block
-	if	(headBlockIndexOffsetHigh+
-			(uniCacheIndex[headBlockIndexOffsetHigh].cacheSpaceEndOffsetHigh-uniCacheIndex[headBlockIndexOffsetHigh].cacheSpaceHeadOffsetHigh)
-		 < requestAddrEndOffsetHigh)
-		//|| uniCacheIndex[headBlockIndexOffsetHigh].cacheSpaceEndOffsetHigh >= totalMemBlocks)
-	{//Request block size is larger than cache block or data is invalid
-		if(offset>=cacheFileSize&&fillExtendData==false)
-			return 0;		
-		freeMem(headBlockIndexOffsetHigh);
-		if(!doDataCache())
-			return 0;
-	}
-	moveCurrentIndexToEnd(headBlockIndexOffsetHigh);
-	return uniCacheHead+(uniCacheIndex[headBlockIndexOffsetHigh].cacheSpaceHeadOffsetHigh<<CACHE_INDEX_SHIFT)+(offset-(headBlockIndexOffsetHigh<<CACHE_INDEX_SHIFT));
-}*/
-
-static inline __attribute__((always_inline)) unsigned char* getBlock(unsigned int offset, unsigned int size)
+inline unsigned char* getBlock(unsigned int offset, unsigned int size)
 {//do not support Reentry
 	if(offset>=cacheFileSize)
 		return 0;
@@ -250,26 +200,7 @@ inline unsigned char* getBlockSmallData(unsigned int offset)
 	{
 		return lastVisitedCacheBlock+(unsigned short)offset;
 	}else
-		return getBlock(offset,2);
+		return getBlock(offset,4);
 }
 
-inline bool isCached(unsigned int offset)
-{//do not support Reentry
-	requestAddrOffsetHigh = (offset>>CACHE_INDEX_SHIFT);	
-	
-	if ( uniCacheIndex[requestAddrOffsetHigh].cacheSpaceHeadOffsetHigh == SHORT_INVALID_VALUE 
-	||(uniCacheIndex[requestAddrOffsetHigh].preIndex==SHORT_INVALID_VALUE
-	&&uniCacheIndex[requestAddrOffsetHigh].nextIndex==SHORT_INVALID_VALUE))
-	{//No cached data in memory		
-			return false;
-	}
-	return true;
-}
-inline bool visitMem(unsigned int offset)
-{
-	if(!isCached(offset))
-		return false;
-	moveCurrentIndexToEnd(offset>>CACHE_INDEX_SHIFT);
-	return true;
-}
 #endif

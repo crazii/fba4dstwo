@@ -118,11 +118,11 @@ static void pgm_drawsprite_new_zoomed(int wide, int high, int xpos, int ypos, in
 			{
 				//test use
 				//panicMsg="step 2.1";
-				if(visitMem((unsigned long)head+cacheFileSize))
+				if(visitMemTemp((unsigned long)head))
 					needReCache=false;
-				else
-					//test use
-					panicMsg="visitMem return false!";
+				//else
+				//	//test use
+				//	panicMsg="visitMem return false!";
 				break;
 			}else
 			{
