@@ -2,8 +2,7 @@
 #include "burner.h"
 #include "nds.h"
 
-//char szAppRomPath[MAX_PATH] = "roms/";
-char szAppRomPath[MAX_PATH] = "E:/mamep/roms/";
+char szAppRomPath[32] = {"/FBA4DSTWO/roms"};
 
 
 int nBzipError = 0;												// non-zero if there is a problem with the opened romset
@@ -187,6 +186,7 @@ static int GetBZipError(int nState)
 // Check the roms to see if they code, graphics etc are complete
 static int CheckRoms()
 {
+	char defUknown[] = "Unknown";
 	for (int i = 0; i < nRomCount; i++) {
 		struct BurnRomInfo ri;
 
@@ -197,7 +197,7 @@ static int CheckRoms()
 			int nError = GetBZipError(nState);
 
 			if (nState == 0 && ri.nType) {					// (A type of 0 means empty slot - no rom)
-				char* szName = "Unknown";
+				char* szName = defUknown;
 				RomDescribe(&ri);
 				BurnDrvGetRomName(&szName, i, 0);
 				//FBAPopupAddText(PUF_TEXT_DEFAULT, MAKEINTRESOURCE(IDS_ERR_LOAD_NOTFOUND), szName);
@@ -234,7 +234,7 @@ static int CheckRoms()
 
 static int __cdecl BzipBurnLoadRom(unsigned char* Dest, int* pnWrote, int i)
 {
-
+	char defUknown[] = "Unknown";
 	struct BurnRomInfo ri;
 	int nWantZip = 0;
 	TCHAR szText[128];
@@ -251,7 +251,7 @@ static int __cdecl BzipBurnLoadRom(unsigned char* Dest, int* pnWrote, int i)
 	// show what we're doing
 	BurnDrvGetRomName(&pszRomName, i, 0);
 	if (pszRomName == NULL) {
-		pszRomName = "unknown";
+		pszRomName = defUknown;
 	}
 	
 	sprintf(szText, "Loading %-12s ... %4dKb", pszRomName, ri.nLen/1024 );

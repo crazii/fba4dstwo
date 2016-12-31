@@ -51,9 +51,11 @@ enum uiMainIndex
 	SKIP_FRAMES,
 	CPU_SPEED,
 	MONO_SOUND,
+	GRAPHICS_SETTING,
 	EXIT_FBA,
 	MENU_COUNT
 };
+
 static const char *ui_main_menu[] = {
 	"Select ROM ",
 	"%1u Load Game ",
@@ -62,6 +64,7 @@ static const char *ui_main_menu[] = {
 	"Controller: %1uP ",
 	"Skip Frames: %3.1f%%",
 	"CPU Speed: %3dMHz ",
+	"Graphics: %s",
 	"Sound Mode: %s ",
 	"Exit FinaBurn Alpha"	
 };
@@ -111,6 +114,9 @@ void draw_ui_main()
 				sprintf( buf, ui_main_menu[i], "Mono" );
 			else
 				sprintf( buf, ui_main_menu[i], "Stereo" );
+			break;
+		case GRAPHICS_SETTING:
+			sprintf( buf, ui_main_menu[i], graphicsSetting == 1 ? "Quality" : "Performance");
 			break;
 	    default:
 	    	sprintf( buf, ui_main_menu[i]);
@@ -274,6 +280,9 @@ static void process_key( int key, int down, int repeat )
 					soundMode = 2;
 				draw_ui_main();
 				break;
+			case GRAPHICS_SETTING:
+				graphicsSetting = !graphicsSetting;
+				break;
 			default:
 				if(ui_mainmenu_select>=menu_item_list_cnt && ui_mainmenu_select-menu_item_list_cnt >= 0)
 					ui_mainmenu_select=ui_mainmenu_select-menu_item_list_cnt;
@@ -311,6 +320,9 @@ static void process_key( int key, int down, int repeat )
 				if(++soundMode > 2)
 					soundMode = 0;
 				draw_ui_main();
+				break;
+			case GRAPHICS_SETTING:
+				graphicsSetting = !graphicsSetting;
 				break;
 			default:
 				if(ui_mainmenu_select<menu_item_list_cnt && ui_mainmenu_select+menu_item_list_cnt < MENU_COUNT)

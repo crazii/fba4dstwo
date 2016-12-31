@@ -2,19 +2,18 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-
 #include "burnint.h"
-#include "font.h"
 #include "nds.h"
-#include "UniCache.h"
 
 #define VIDEO_BUFFER_WIDTH 512
 #define VIDEO_BUFFER_HEIGHT 512
 
 int nGameStage = 0;
 int bGameRunning = 0;
+int graphicsSetting = 0;
+char szAppCachePath[32] = {"/FBA4DSTWO/CACHE"};
+
 unsigned int debugValue[2]={0,};
-char szAppCachePath[256];
 
 static unsigned short* videoBuffer = NULL;
 static bool p2pFrameStatus=false;
@@ -44,7 +43,7 @@ static unsigned int HighCol16(int r, int g, int b, int  /* i */)
 	return t;
 }
 
-void chech_and_mk_dir(const char * dir)
+static void chech_and_mk_dir(const char * dir)
 {
 	DIR* d = opendir(dir);
 	if (d)
@@ -54,16 +53,13 @@ void chech_and_mk_dir(const char * dir)
 }
 
 int main(int argc, char** argv) {
-	
-	unsigned int autoFireButtons=0;
 
+	unsigned int autoFireButtons=0;
 	loadDefaultInput();
 	
-	strcpy(szAppRomPath, "/FBA4DSTWO/roms");
 	chech_and_mk_dir( szAppRomPath );
 	strcat(szAppRomPath, "/");
 	
-	strcpy(szAppCachePath, "/FBA4DSTWO/CACHE");
 	chech_and_mk_dir( szAppCachePath );
 	strcat(szAppCachePath, "/");
 
@@ -76,7 +72,8 @@ int main(int argc, char** argv) {
 	
 	sound_start();
 	
-	nBurnBpp = sizeof(unsigned short);
+	//BurnSetRefreshRate(25);
+	nBurnBpp = 2;
 	nBurnPitch = VIDEO_BUFFER_WIDTH * nBurnBpp;
 	BurnHighCol = HighCol16;
 	
@@ -216,59 +213,109 @@ void resetGame()
 void swapBuffer()
 {
 #if 1
-	unsigned short* src = videoBuffer;
-	__builtin_prefetch(src, 0);
-	unsigned short* dst = (unsigned short*)up_screen_addr + xOff + (yOff * SCREEN_WIDTH);
-	__builtin_prefetch(dst, 1);
-	const register short scaleMod = iModulo;
-	const register short scaleMul = iAdd;
-	const register short height = drvHeight;
-	const register short width = drvWidth;
-	short accumulatorY = 0;
-	bool mix = 0;
-
-	for (short h = 0; h < height; h++)
+	if(graphicsSetting == 1)
 	{
-		short accumulatorX = 0;
-		unsigned short pixel = 0;
-		unsigned short* dstX = dst;
-		
-		for (short w = 0; w < width; ++w)
+		unsigned short* src = videoBuffer;
+		__builtin_prefetch(src, 0);
+		unsigned short* dst = (unsigned short*)up_screen_addr + xOff + (yOff * SCREEN_WIDTH);
+		__builtin_prefetch(dst, 1);
+		const register short scaleMod = iModulo;
+		const register short scaleMul = iAdd;
+		const register short height = drvHeight;
+		const register short width = drvWidth;
+		short accumulatorY = 0;
+		bool mix = 0;
+
+		for (short h = 0; h < height; h++)
 		{
-			if (accumulatorX >= scaleMul)
+			short accumulatorX = 0;
+			unsigned short pixel = 0;
+			unsigned short* dstX = dst;
+
+			for (short w = 0; w < width; ++w)
 			{
-				unsigned short c = src[w];
-				pixel = _mix(pixel, c);
+				if (accumulatorX >= scaleMul)
+				{
+					unsigned short c = src[w];
+					pixel = _mix(pixel, c);
+				}
+				else
+					pixel = src[w];
+
+				accumulatorX += scaleMul;
+				if (accumulatorX >= scaleMod || w == width-1)
+				{
+					accumulatorX -= scaleMod;
+					if (mix)
+					{
+						unsigned short c = *dstX;
+						pixel = _mix(c, pixel);
+					}
+					*dstX++ = pixel;
+				}
+			}
+
+			accumulatorY += scaleMul;
+			if (accumulatorY >= scaleMod)
+			{
+				accumulatorY -= scaleMod;
+				dst += SCREEN_WIDTH;
+				__builtin_prefetch(dst, 1);
+				mix = false;
 			}
 			else
-				pixel = src[w];
+				mix = true;
 
-			accumulatorX += scaleMul;
-			if (accumulatorX >= scaleMod || w == width-1)
-			{
-				accumulatorX -= scaleMod;
-				if (mix)
-				{
-					unsigned short c = *dstX;
-					pixel = _mix(c, pixel);
-				}
-				*dstX++ = pixel;
-			}
+			src += VIDEO_BUFFER_WIDTH;
+			__builtin_prefetch(src, 0);
 		}
-		
-		accumulatorY += scaleMul;
-	    if (accumulatorY >= scaleMod)
-		{
-			accumulatorY -= scaleMod;
-			dst += SCREEN_WIDTH;
-			__builtin_prefetch(dst, 1);
-			mix = false;
-		}
-		else
-			mix = true;
-		
-		src += VIDEO_BUFFER_WIDTH;
+	}
+	else
+	{
+		unsigned short* src = videoBuffer;
 		__builtin_prefetch(src, 0);
+		unsigned short* dst = (unsigned short*)up_screen_addr + xOff + (yOff * SCREEN_WIDTH);
+		__builtin_prefetch(dst, 1);
+		const register short scaleMod = iModulo;
+		const register short scaleMul = iAdd;
+		const register short height = drvHeight;
+		const register short width = drvWidth;
+		short accumulatorY = 0;
+
+		for (short h = 0; h < height; h++)
+		{
+			accumulatorY += scaleMul;
+			if (accumulatorY >= scaleMod || h == height - 1)
+			{
+				accumulatorY -= scaleMod;
+
+				unsigned int pixel;
+				register unsigned short *dstX=dst;
+				register int accumulatorX = 0;
+				for (short w = 0; w < width; ++w)
+				{
+					if (accumulatorX >= scaleMul)
+					{
+						unsigned short c = src[w];
+						pixel = _mix(pixel, c);
+					}
+					else
+						pixel = src[w];
+
+					accumulatorX += scaleMul;
+					if (accumulatorX >= scaleMod || w == width-1)
+					{
+						accumulatorX -= scaleMod;
+						*dstX++ = pixel;
+					}
+				}
+				dst += SCREEN_WIDTH;
+				__builtin_prefetch(dst, 1);
+			}
+
+			src += VIDEO_BUFFER_WIDTH;
+			__builtin_prefetch(src, 0);
+		}
 	}
 #else
 	int w = drvWidth < SCREEN_WIDTH ? drvWidth : SCREEN_WIDTH;

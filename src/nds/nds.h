@@ -19,6 +19,7 @@
 /* main.cpp */
 extern int nGameStage;
 extern int bGameRunning;
+extern int graphicsSetting;
 extern char szAppCachePath[];
 extern unsigned int debugValue[2];
 void resetGame();
