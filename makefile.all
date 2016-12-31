@@ -45,7 +45,7 @@ cpu/m6809 cpu/hd6309 cpu/m6800 burn/misc burn/misc/dec0 burn/konami burn/sega cp
 incdir	= -I. -I$(NDSSDK)/include $(foreach dir,$(alldir),-I$(srcdir)$(dir)) -I$(objdir)generated
 
 lib		=  -lds2a -lds2b -lc -lm -lgcc
-
+#-Wl,-plugin-opt=-pass-through=-lc -Wl,-plugin-opt=-pass-through=-lm -Wl,-plugin-opt=-pass-through=-lgcc
 		
 drvobj	= d_dodonpachi.o d_donpachi.o d_esprade.o d_feversos.o d_gaia.o d_guwange.o \
 		d_hotdogst.o d_mazinger.o d_metmqstr.o d_pwrinst2.o d_sailormn.o d_uopoko.o \
@@ -180,7 +180,11 @@ alldep	= $(foreach file,$(autobj:.o=.c), \
 #-march=$(CPUTYPE) 
 #-pedantic 
 
-LDFLAGS	= -flto -nostdlib -static -L. -L$(NDSSDK)/lib
+LTO_PLUGIN = $(shell $(CC) --print-prog-name cyglto_plugin-0.dll)
+
+LDFLAGS	= -flto=8  -nostdlib -static -L. -L$(NDSSDK)/lib
+	#--verbose -Wl,--verbose -Wl,-plugin-opt=--verbose
+	#-fuse-linker-plugin -Wl,-plugin=$(LTO_PLUGIN)
 
 DEF	:= -DSUB_VERSION=\"ALL\" -DNDS_FW_VERSION=$(NDS_FW_VERSION) -DFILENAME=$(NAME) \
 	-DNDS -DUSE_SPEEDHACKS -DNEOGEO_HACKS \
@@ -208,23 +212,21 @@ DEF	:= -DSUB_VERSION=\"ALL\" -DNDS_FW_VERSION=$(NDS_FW_VERSION) -DFILENAME=$(NAM
 #
 #
 
-CC		= mipsel-linux-gcc
-CXX		= mipsel-linux-g++
-LD		= mipsel-linux-gcc
-AS		= mipsel-linux-as
-OBJCOPY = mipsel-linux-objcopy
-NM		= mipsel-linux-nm
-OBJDUMP = mipsel-linux-objdump
+CC		= mipsel-dstwo-linux-gnu-gcc
+CXX		= mipsel-dstwo-linux-gnu-g++
+LD		= mipsel-dstwo-linux-gnu-gcc
+AS		= mipsel-dstwo-linux-gnu-as
+OBJCOPY = mipsel-dstwo-linux-gnu-objcopy
+NM		= mipsel-dstwo-linux-gnu-nm
+OBJDUMP = mipsel-dstwo-linux-gnu-objdump
 FIXUP	= makeplug
 
 CFLAGS	 = $(incdir) $(DEF) \
-		-mtune=mips32 -mips32 -O3 -mno-abicalls -fno-pic -fno-builtin \
-	   -fno-exceptions -ffunction-sections -mlong-calls \
-	   -fomit-frame-pointer -msoft-float -G0 \
+		-mtune=mips32 -mips32 -O3 -flto -ffat-lto-objects -mno-abicalls -fno-pic -fno-builtin -mno-shared \
+	   -mlong-calls -fomit-frame-pointer -msoft-float -G 0 -fno-common\
 	   -ffast-math -fsingle-precision-constant -funsafe-math-optimizations \
-	   -fno-common -Wa,-mno-shared -Wstrict-aliasing \
-	   -funroll-loops -funswitch-loops
-	   #-ftree-vectorize
+	   -funroll-loops -funswitch-loops -fprefetch-loop-arrays -Ofast\
+	   -Wstrict-aliasing -Wno-write-strings
 
 
 NATIVE_CC = gcc
@@ -233,7 +235,7 @@ NATIVE_CXXFLAGS = -O3
 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 
-ASFLAGS	= -O3 -G0 -march=mips32 -mtune=mips32 -mno-shared
+ASFLAGS	= -O3 -G0 -march=mips32 -mtune=mips32 -mno-shared -msoft-float
 
 #	   -fomit-frame-pointer -fsigned-char \
 #	   -fstrict-aliasing -falign-functions=32 -falign-loops -falign-labels -falign-jumps \
@@ -285,26 +287,23 @@ LINKS := $(NDSSDK)/specs/link.xn
 STARTS := $(NDSSDK)/specs/start.S
 STARTO := start.o
 
-$(STARTS): $(LINKS)
-	
-
-$(STARTO):
+$(STARTO): $(STARTS) $(LINKS)
 	$(CC) $(CFLAGS) $(INC) -o $@ -c $(STARTS)
 
 $(ELF):	$(STARTO) $(allobj)
 	@echo Linking executable... $(ELF)
-	$(CC) $(LDFLAGS) -T $(LINKS) -o $(ELF) $^ $(lib)	
+	$(CC) $(LDFLAGS) -T $(LINKS) -o $(ELF) $^ $(lib) 
 	
 $(BIN) : $(ELF)
 	$(OBJCOPY) -O binary $< $@
 	
 $(NAME) : $(BIN) $(ELF)
 	@echo Creating nds FBA4DSTWO.plug...
-	$(OBJDUMP) -d $(ELF) > $(BIN:.bin=.dump)
+	$(OBJDUMP) -s $(ELF) > $(BIN:.bin=.dump)
 	$(NM) $(ELF) | sort > $(BIN:.bin=.sym)
 	$(OBJDUMP) -h $(ELF) > $(BIN:.bin=.map)
 	@$(FIXUP) $(BIN) $@
-	#-@cp ${BINDIR}/gamelist.txt FBA4DSTWO
+	@cp ${BINDIR}/gamelist.txt FBA4DSTWO
 
 ifdef	DEBUG
 

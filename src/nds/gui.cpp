@@ -56,7 +56,7 @@ void init_gui()
 	ds2_clearScreen(DOWN_SCREEN, 0);
 	ds2_flipScreen(DOWN_SCREEN, 2);
 
-	bprintf = AppDebugPrintf;
+	//bprintf = AppDebugPrintf;
 	
 	BurnExtProgressRangeCallback = myProgressRangeCallback;
 	BurnExtProgressUpdateCallback = myProgressUpdateCallback;

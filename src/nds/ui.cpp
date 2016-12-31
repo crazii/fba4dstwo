@@ -18,7 +18,7 @@ short gameSpeedCtrl = DEF_FRAME_SKIP;
 unsigned int hotButtons = (KEY_A|KEY_B|KEY_Y);
 short screenMode=0;
 short saveIndex=0;
-char LBVer[]="FB Alpha for DS2 "SUB_VERSION" (v1.0) by Crazii";
+char LBVer[]="FB Alpha for DS2 " SUB_VERSION " (v1.0) by Crazii";
 static int find_rom_count = 0;
 static int find_rom_select = 0;
 static int find_rom_top = 0;
@@ -54,7 +54,7 @@ enum uiMainIndex
 	EXIT_FBA,
 	MENU_COUNT
 };
-static char *ui_main_menu[] = {
+static const char *ui_main_menu[] = {
 	"Select ROM ",
 	"%1u Load Game ",
 	"%1u Save Game ",
@@ -82,6 +82,7 @@ void draw_ui_main()
 	y += 5;
     
     for(int i=0; i<MENU_COUNT; i++)  {
+		//bprintf(3, "draw_ui_main %d", i);
 	    	    
 	    switch ( i ) {
 	    
@@ -98,7 +99,7 @@ void draw_ui_main()
 	    		strcpy(buf,"Controller: ALL");
 			break;
 	    case SKIP_FRAMES:
-	    	sprintf( buf, ui_main_menu[i], (float)gameSpeedCtrl*100.0f/(float)FRAME_RATE );
+	    	sprintf( buf, ui_main_menu[i], (double)gameSpeedCtrl*100/FRAME_RATE );
 			break;
 	    case CPU_SPEED:
 	    	sprintf( buf, ui_main_menu[i], cpu_speeds[cpu_speeds_select] );
@@ -537,7 +538,7 @@ int do_ui_key(unsigned int key)
 }
 
 
-void ui_update_progress(float size, char * txt)
+void ui_update_progress(float size, const char * txt)
 {
 	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, SCREEN_WIDTH, 30, UI_BGCOLOR );
 	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, SCREEN_WIDTH, 12, R8G8B8_to_B5G5R5(0x807060) );

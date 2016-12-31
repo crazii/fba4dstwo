@@ -88,10 +88,10 @@ void loadDefaultInput()
 	//gameSpeedCtrl=1;
 	FILE * fp = fopen("/FBA4DSTWO/FBA.ini", "r");
 	
-	char IniLine[256];
-	char FindName[32]={'\0',};
 	if(fp)
 	{
+		char IniLine[256];
+		char FindName[32]={'\0',};
 		fseek(fp, 0, SEEK_SET);
 		while ( fgets( IniLine, 255, fp ) )
 		{

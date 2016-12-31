@@ -3,6 +3,7 @@
 #include <ds2io.h>
 #include <ds2_cpu.h>
 #include <ds2_malloc.h>
+#include <fs_api.h>
 
 #define SCREEN_WIDTH	256
 #define SCREEN_HEIGHT	192
@@ -33,7 +34,7 @@ int do_ui_key(unsigned int key);
 void draw_ui_main();
 void draw_ui_browse(bool rebuiltlist);
 
-void ui_update_progress(float size, char * txt);
+void ui_update_progress(float size, const char * txt);
 void ui_update_progress2(float size, const char * txt);
 void ui_inc_frame_skip();
 void ui_dec_frame_skip();

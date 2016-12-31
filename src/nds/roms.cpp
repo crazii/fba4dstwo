@@ -14,29 +14,13 @@ typedef struct rom_ent {
 static ROM_FILE_ENT * pRom_ent = NULL;
 static int rom_count = 0;
 
-static inline int stricmp(const char* lhs, const char* rhs)
-{
-	#define towlowerASCII(c) ((('A' <= (c))&&((c) <= 'Z')) ? ((c) - 'A' + 'a') : (c))
-	assert(lhs != NULL && rhs != NULL);
-	wchar_t cmp;
-	while ((cmp = towlowerASCII(*lhs) - towlowerASCII(*rhs)) == 0)
-	{
-		if (0 == *lhs)
-			return 0;
-		++lhs;
-		++rhs;
-	}
-	return (int)cmp;
-}
-
-
 static int FindDrvInfoByName(char * fn)
 {
 	char sfn[256];
 	strcpy( sfn, fn );
 	sfn[strlen(fn)-4] = 0;
 	for (nBurnDrvSelect=0; nBurnDrvSelect<nBurnDrvCount; nBurnDrvSelect++) 
-		if ( stricmp(sfn, BurnDrvGetTextA(DRV_NAME)) == 0 )
+		if ( strcasecmp(sfn, BurnDrvGetTextA(DRV_NAME)) == 0 )
 			return nBurnDrvSelect;
 	return -1;
 }
@@ -61,7 +45,7 @@ static int isValidFile(dirent * pfd, ROM_FILE_ENT * pre)
 		return 2;
 	}
 	char * ext = strrchr(pfd->d_name, '.');
-	if ( stricmp(ext, ".zip") ) return 0;
+	if ( strcasecmp(ext, ".zip") ) return 0;
 	
 	if ( pre ) {
 		strcpy( pre->name, pfd->d_name );

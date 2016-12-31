@@ -41,7 +41,7 @@ PERL = 1
 
 NDSSDK = ../ds2sdk
 
-PATH := $(NDSSDK)/tools:/opt/mipsel-4.1.2-nopic/bin:$(PATH)
+PATH := $(NDSSDK)/tools:/opt/dstwo-toolchain/bin:$(PATH)
 
 
 #
