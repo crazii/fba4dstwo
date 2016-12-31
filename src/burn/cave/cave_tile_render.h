@@ -8,8 +8,8 @@
 
  #if XFLIP == 0
   #define ADVANCECOLUMN pPixel += (BPP >> 3)
+  #define COLUMNOFF(o) ((o)*(BPP >> 3))
   #define ADVANCECOLUMN_MULTI(n) pPixel += (BPP >> 3) * (n)
-  #define TILE_XPOS	nTileXPos
  #else
   #error illegal XFLIP value
  #endif
@@ -31,15 +31,16 @@
 #if XFLIP == 0
 #ifndef NDS
 #define ADVANCECOLUMN pPixel -= ((BPP >> 3) * XSIZE)
+#define COLUMNOFF(o) (-(o)*(BPP >> 3)*XSIZE)
 #define ADVANCECOLUMN_MULTI(n) pPixel -= ((BPP >> 3) * (n) * XSIZE)
 #else
-#define ADVANCECOLUMN pPixel -= ((BPP >> 3) * 512)
-#define ADVANCECOLUMN_MULTI(n) pPixel -= ((BPP >> 3) * (n) * 512)
+#define ADVANCECOLUMN pPixel -= ((BPP >> 3) * 512); __builtin_prefetch(pPixel, 1)
+#define COLUMNOFF(o) (-(o)*(BPP >> 3)*512)
+#define ADVANCECOLUMN_MULTI(n) pPixel -= ((BPP >> 3) * (n) * 512); __builtin_prefetch(pPixel, 1)
 #endif
 #else
 #error illegal XFLIP value
 #endif
-#define TILE_XPOS	(nCaveXSize-nTileXPos)
 
 #if YFLIP == 0
 #define ADVANCEROW pTileRow += (BPP >> 3)
@@ -158,7 +159,7 @@ static void FUNCTIONNAME(BPP,XSIZE,ROT,FLIP,SCROLL,SELECT,CLIP,DEPTH)()
 		pPixel = pTileRow;
 
  #if ROWSCROLL == 1
-		nRowOffset = (TILE_XPOS - pTileRowInfo[y]) & 0x01FF;
+		nRowOffset = (nTileXPos - pTileRowInfo[y]) & 0x01FF;
 		if (nRowOffset >= 0x01F8) {
 			nRowOffset -= 0x0200;
 		}
@@ -176,7 +177,7 @@ static void FUNCTIONNAME(BPP,XSIZE,ROT,FLIP,SCROLL,SELECT,CLIP,DEPTH)()
  #if ROWSCROLL == 1
   #define XPOS nRowOffset
  #else
-   #define XPOS TILE_XPOS
+   #define XPOS nTileXPos
  #endif
 
  #if EIGHTBIT == 0
@@ -393,8 +394,8 @@ static void FUNCTIONNAME(BPP,XSIZE,ROT,FLIP,SCROLL,SELECT,CLIP,DEPTH)()
 #undef TESTCOLOUR
 #undef ADVANCEROW
 #undef ADVANCECOLUMN
+#undef COLUMNOFF
 #undef ADVANCECOLUMN_MULTI
-#undef TILE_XPOS
 #undef SCROLL
 #undef SELECT
 #undef DEPTH

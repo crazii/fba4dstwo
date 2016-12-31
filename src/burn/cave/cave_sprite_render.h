@@ -4,7 +4,7 @@
 
 #if ROT == 0
  #define ADVANCEWORD pPixel += ((BPP >> 3) * 16)
- #define PIXELOFFSET(o) ((o)*(BPP >> 3))
+ #define COLUMNOFF(o) ((o)*(BPP >> 3))
  #ifndef NDS
   #define ADVANCEROW pRow += ((BPP >> 3) * XSIZE)
  #else
@@ -13,10 +13,10 @@
 #elif ROT == 270
 #ifndef NDS
 #define ADVANCEWORD pPixel -= (((BPP >> 3) * XSIZE) * 16)
-#define PIXELOFFSET(o) (-(o)*(BPP >> 3)*XSIZE)
+#define COLUMNOFF(o) (-(o)*(BPP >> 3)*XSIZE)
 #else
-#define ADVANCEWORD pPixel -= (((BPP >> 3) * 512) * 16)
-#define PIXELOFFSET(o) (-(o)*(BPP >> 3)*512)
+#define ADVANCEWORD pPixel -= (((BPP >> 3) * 512) * 16),__builtin_prefetch(pPixel, 1)
+#define COLUMNOFF(o) (-(o)*(BPP >> 3)*512)
 #endif 
 #define ADVANCEROW pRow += ((BPP >> 3))
 #else
@@ -42,31 +42,19 @@
 #elif ZBUFFER == 1
  #define ZBUF _RZBUFFER
  #define ADVANCEZWORD pZPixel += 16
-// #ifndef NDS
   #define ADVANCEZROW pZRow += XSIZE
-// #else
-//  #define ADVANCEZROW pZRow += 512
-// #endif
  #define TESTZBUF(a) (pZPixel[a] <= nZPos)
  #define WRITEZBUF(a)
 #elif ZBUFFER == 2
  #define ZBUF _WZBUFFER
  #define ADVANCEZWORD pZPixel += 16
-// #ifndef NDS
   #define ADVANCEZROW pZRow += XSIZE
-// #else
-//  #define ADVANCEZROW pZRow += 512
-// #endif
  #define TESTZBUF(a) 1
  #define WRITEZBUF(a) pZPixel[a] = nZPos
 #elif ZBUFFER == 3
  #define ZBUF _RWZBUFFER
  #define ADVANCEZWORD pZPixel += 16
-// #ifndef NDS
   #define ADVANCEZROW pZRow += XSIZE
-// #else
-//  #define ADVANCEZROW pZRow += 512
-// #endif 
  #define TESTZBUF(a) (pZPixel[a] <= nZPos)
  #define WRITEZBUF(a) pZPixel[a] = nZPos
 #else
@@ -76,20 +64,20 @@
 #if BPP == 16
  #define PLOTPIXEL(a,b) if (TESTCOLOUR(b) && TESTZBUF(a)) {						\
    	WRITEZBUF(a);																\
-	*((unsigned short*)(pPixel + PIXELOFFSET(a))) = (unsigned short)pSpritePalette[b];	\
+	*((unsigned short*)(pPixel + COLUMNOFF(a))) = (unsigned short)pSpritePalette[b];	\
  }
 #elif BPP == 24
  #define PLOTPIXEL(a,b) if (TESTCOLOUR(b) && TESTZBUF(a)) {						\
 	WRITEZBUF(a);																\
 	unsigned int nRGB = pSpritePalette[b];										\
-	pPixel[PIXELOFFSET(a) + 0] = (unsigned char)nRGB;									\
-	pPixel[PIXELOFFSET(a) + 1] = (unsigned char)(nRGB >> 8);								\
-	pPixel[PIXELOFFSET(a) + 2] = (unsigned char)(nRGB >> 16);							\
+	pPixel[COLUMNOFF(a) + 0] = (unsigned char)nRGB;									\
+	pPixel[COLUMNOFF(a) + 1] = (unsigned char)(nRGB >> 8);								\
+	pPixel[COLUMNOFF(a) + 2] = (unsigned char)(nRGB >> 16);							\
  }
 #elif BPP == 32
  #define PLOTPIXEL(a,b) if (TESTCOLOUR(b) && TESTZBUF(a)) {						\
 	WRITEZBUF(a);																\
-	*((unsigned int*)(pPixel + PIXELOFFSET(a))) = (unsigned int)pSpritePalette[b];		\
+	*((unsigned int*)(pPixel + COLUMNOFF(a))) = (unsigned int)pSpritePalette[b];		\
  }
 #else
  #error unsupported bitdepth specified.
@@ -286,7 +274,7 @@ unsigned int * pSpriteData=(unsigned int*)getBlock(spriteDataOffset,(nXSize>>(1 
 #undef PLOT8_CLIP
 #undef PLOT8_NOCLIP
 #undef OFFSET
-#undef PIXELOFFSET
+#undef COLUMNOFF
 #undef FLIP
 #undef PLOTPIXEL
 #undef CLIP

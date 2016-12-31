@@ -4,7 +4,7 @@
 
 #if ROT == 0
  #define ADVANCECOLUMN pPixel += (BPP >> 3)
-#define PIXELOFFSET(o) ((o)*(BPP >> 3))
+#define COLUMNOFF(o) ((o)*(BPP >> 3))
  #ifndef NDS
   #define ADVANCEROW pRow += ((BPP >> 3) * XSIZE)
  #else
@@ -13,10 +13,10 @@
 #elif ROT == 270
 #ifndef NDS
 #define ADVANCECOLUMN pPixel -= ((BPP >> 3) * XSIZE)
-#define PIXELOFFSET(o) (-(o)*(BPP >> 3)*XSIZE)
+#define COLUMNOFF(o) (-(o)*(BPP >> 3)*XSIZE)
 #else
 #define ADVANCECOLUMN pPixel -= ((BPP >> 3) * 512)
-#define PIXELOFFSET(o) (-(o)*(BPP >> 3)*512)
+#define COLUMNOFF(o) (-(o)*(BPP >> 3)*512)
 #endif
 #define ADVANCEROW pRow += (BPP >> 3)
 #else
@@ -64,20 +64,20 @@
 #if BPP == 16
  #define PLOTPIXEL(a,b) if (TESTCOLOUR(b) && TESTZBUF(a)) {						\
    	WRITEZBUF(a);																\
-	*((unsigned short*)(pPixel + PIXELOFFSET(a))) = (unsigned short)pSpritePalette[b];	\
+	*((unsigned short*)(pPixel + COLUMNOFF(a))) = (unsigned short)pSpritePalette[b];	\
  }
 #elif BPP == 24
  #define PLOTPIXEL(a,b) if (TESTCOLOUR(b) && TESTZBUF(a)) {						\
 	WRITEZBUF(a);																\
 	unsigned int nRGB = pSpritePalette[b];										\
-	pPixel[PIXELOFFSET(a) + 0] = (unsigned char)nRGB;									\
-	pPixel[PIXELOFFSET(a) + 1] = (unsigned char)(nRGB >> 8);								\
-	pPixel[PIXELOFFSET(a) + 2] = (unsigned char)(nRGB >> 16);							\
+	pPixel[COLUMNOFF(a) + 0] = (unsigned char)nRGB;									\
+	pPixel[COLUMNOFF(a) + 1] = (unsigned char)(nRGB >> 8);								\
+	pPixel[COLUMNOFF(a) + 2] = (unsigned char)(nRGB >> 16);							\
  }
 #elif BPP == 32
  #define PLOTPIXEL(a,b) if (TESTCOLOUR(b) && TESTZBUF(a)) {						\
 	WRITEZBUF(a);																\
-	*((unsigned int*)(pPixel + PIXELOFFSET(a))) = (unsigned int)pSpritePalette[b];		\
+	*((unsigned int*)(pPixel + COLUMNOFF(a))) = (unsigned int)pSpritePalette[b];		\
  }
 #else
  #error unsupported bitdepth specified.
@@ -163,6 +163,7 @@ static void FUNCTIONNAME(BPP,XSIZE,ROT,FLIP,ZOOMMODE,ZBUF,DEPTH)()
  #endif
 
 			ADVANCECOLUMN;
+			__builtin_prefetch(pPixel, 1);
  #if ZBUFFER != 0
 			ADVANCEZCOLUMN;
  #endif
@@ -186,7 +187,7 @@ static void FUNCTIONNAME(BPP,XSIZE,ROT,FLIP,ZOOMMODE,ZBUF,DEPTH)()
 #undef ADVANCEZCOLUMN
 #undef ADVANCEROW
 #undef ADVANCECOLUMN
-#undef PIXELOFFSET
+#undef COLUMNOFF
 #undef TESTZBUF
 #undef WRITEZBUF
 #undef ZBUF

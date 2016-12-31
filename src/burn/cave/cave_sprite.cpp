@@ -163,7 +163,7 @@ int CaveSpriteRender(int nLowPriority, int nHighPriority)
 
 			#if CAVE_ROTATE_SCREEN
 			if ((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL))
-				pRow = pBurnDraw + ((nCaveXSize-nXPos) * nBurnPitch) + (nYPos * nBurnBpp);
+				pRow = pBurnDraw + ((nCaveXSize-nXPos-1) * nBurnPitch) + (nYPos * nBurnBpp);
 			else
 			#endif
 			{
@@ -291,7 +291,7 @@ int CaveSpriteRender(int nLowPriority, int nHighPriority)
 
 			#if CAVE_ROTATE_SCREEN
 			if ((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL))
-				pRow = pBurnDraw + ((nCaveXSize-nXPos) * nBurnPitch) + (nYPos * nBurnBpp);
+				pRow = pBurnDraw + ((nCaveXSize-nXPos-1) * nBurnPitch) + (nYPos * nBurnBpp);
 			else
 			#endif
 			{

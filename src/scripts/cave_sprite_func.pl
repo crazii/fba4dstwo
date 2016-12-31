@@ -201,7 +201,7 @@ $OutfileTab =~ /(?:.*[\\\/])(.*)/;
 print OUTFILEFUN "#include \"$1\"\n";
 
 print OUTFILETAB "static RenderSpriteFunction* RenderSprite_ROT0[2] = {\n\t&RenderSpriteFunctionTable[0],\n\t&RenderSpriteFunctionTable[16]\n};\n";
-print OUTFILETAB "static RenderSpriteFunction* RenderSprite_ROT270[2] = {\n\t&RenderSpriteFunctionTable[16],\n\t&RenderSpriteFunctionTable[32]\n};\n";
+print OUTFILETAB "static RenderSpriteFunction* RenderSprite_ROT270[2] = {\n\t&RenderSpriteFunctionTable[32],\n\t&RenderSpriteFunctionTable[48]\n};\n";
 
 close( OUTFILETAB );
 close( OUTFILEFUN );

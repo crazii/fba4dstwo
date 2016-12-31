@@ -129,7 +129,7 @@ static void Cave8x8Layer_Normal(int nLayer, unsigned int nPriority)
 		
 #if CAVE_ROTATE_SCREEN
 		if ((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL))
-			pTile = pBurnDraw + ((nCaveXSize-nTileXPos) * nBurnPitch) + (nTileYPos * nBurnBpp);
+			pTile = pBurnDraw + ((nCaveXSize-nTileXPos-1) * nBurnPitch) + (nTileYPos * nBurnBpp);
 		else
 #endif
 		{
@@ -222,7 +222,7 @@ static void Cave8x8Layer_RowScroll(int nLayer, unsigned int nPriority)
 
 #if CAVE_ROTATE_SCREEN
 			if ((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL))
-				pTile = pBurnDraw + ((nCaveXSize-nTileXPos) * nBurnPitch);
+				pTile = pBurnDraw + ((nCaveXSize-nTileXPos-1) * nBurnPitch);
 			else
 #endif
 			{
@@ -329,7 +329,7 @@ static void Cave16x16Layer_Normal(int nLayer, unsigned int nPriority)
 
 #if CAVE_ROTATE_SCREEN
 		if((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL))
-			pTile = pBurnDraw + ((nCaveXSize-nTileXPos) * nBurnPitch) + (nTileYPos * nBurnBpp);
+			pTile = pBurnDraw + ((nCaveXSize-nTileXPos-1) * nBurnPitch) + (nTileYPos * nBurnBpp);
 		else
 #endif
 		{
@@ -375,7 +375,7 @@ static void Cave16x16Layer_Normal(int nLayer, unsigned int nPriority)
 			nTileYPos += 8;
 #if CAVE_ROTATE_SCREEN
 			if((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL))
-				pTile = pBurnDraw + ((nCaveXSize-nTileXPos) * nBurnPitch) + (nTileYPos * nBurnBpp);
+				pTile = pBurnDraw + ((nCaveXSize-nTileXPos-1) * nBurnPitch) + (nTileYPos * nBurnBpp);
 			else
 #endif
 			{
@@ -434,7 +434,7 @@ static void Cave16x16Layer_Normal(int nLayer, unsigned int nPriority)
 			nTileYPos += 8;
 #if CAVE_ROTATE_SCREEN
 			if((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL))
-				pTile = pBurnDraw + ((nCaveXSize-nTileXPos) * nBurnPitch) + (nTileYPos * nBurnBpp);
+				pTile = pBurnDraw + ((nCaveXSize-nTileXPos-1) * nBurnPitch) + (nTileYPos * nBurnBpp);
 			else
 #endif
 			{
@@ -533,7 +533,7 @@ static void Cave16x16Layer_RowScroll(int nLayer, unsigned int nPriority)
 
 #if CAVE_ROTATE_SCREEN
 			if((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL))
-				pTile = pBurnDraw + ((nCaveXSize-nTileXPos) * nBurnPitch);
+				pTile = pBurnDraw + ((nCaveXSize-nTileXPos-1) * nBurnPitch);
 			else
 #endif
 			{
@@ -570,7 +570,7 @@ static void Cave16x16Layer_RowScroll(int nLayer, unsigned int nPriority)
 
 #if CAVE_ROTATE_SCREEN
 				if((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL))
-					pTile = pBurnDraw + ((nCaveXSize-nTileXPos) * nBurnPitch);
+					pTile = pBurnDraw + ((nCaveXSize-nTileXPos-1) * nBurnPitch);
 				else
 #endif
 				{
@@ -614,7 +614,7 @@ static void Cave16x16Layer_RowScroll(int nLayer, unsigned int nPriority)
 
 #if CAVE_ROTATE_SCREEN
 				if((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL))
-					pTile = pBurnDraw + ((nCaveXSize-nTileXPos) * nBurnPitch);
+					pTile = pBurnDraw + ((nCaveXSize-nTileXPos-1) * nBurnPitch);
 				else
 #endif
 				{
@@ -729,7 +729,7 @@ static void Cave16x16Layer_RowSelect(int nLayer, unsigned int nPriority)
 
 #if CAVE_ROTATE_SCREEN
 				if((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL))
-					pTile = pBurnDraw + ((nCaveXSize-nTileXPos) * nBurnPitch) + (nTileYPos * nBurnBpp);
+					pTile = pBurnDraw + ((nCaveXSize-nTileXPos-1) * nBurnPitch) + (nTileYPos * nBurnBpp);
 				else
 #endif
 				{
@@ -765,7 +765,7 @@ static void Cave16x16Layer_RowSelect(int nLayer, unsigned int nPriority)
 			nTileXPos = - (bx & 15);
 #if CAVE_ROTATE_SCREEN
 			if((BurnDrvGetFlags()&BDF_ORIENTATION_VERTICAL))
-				pTile = pBurnDraw + ((nCaveXSize+(bx & 15)) * nBurnPitch) + (nTileYPos* nBurnBpp);
+				pTile = pBurnDraw + ((nCaveXSize-nTileXPos-1) * nBurnPitch) + (nTileYPos* nBurnBpp);
 			else
 #endif
 			{
