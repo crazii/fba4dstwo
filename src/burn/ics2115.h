@@ -1,15 +1,8 @@
-extern unsigned char *ICSSNDROM;
-
-extern unsigned char ics2115read(unsigned char offset);
-extern void ics2115write(unsigned char offset, unsigned char data);
-
-extern int ics2115_init();
-extern void ics2115_exit();
-extern void ics2115_reset();
-
-extern unsigned short ics2115_soundlatch_r(int i);
-extern void ics2115_soundlatch_w(int i, unsigned short d);
-
-extern void ics2115_frame();
-extern void ics2115_update(int length);
-extern void ics2115_scan(int nAction,int *pnMin);
+void ics2115_init(INT32 cpu_clock, void (*cpu_irq_cb)(INT32), UINT8 *sample_rom, INT32 sample_rom_size);
+void ics2115_reset();
+UINT8 ics2115read(UINT8 offset);
+void ics2115write(UINT8 offset, UINT8 data);
+void ics2115_adjust_timer(INT32 ticks);
+void ics2115_update(INT16 *outputs, int samples);
+void ics2115_exit();
+void ics2115_scan(INT32 nAction,INT32 * /*pnMin*/);

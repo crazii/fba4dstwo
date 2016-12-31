@@ -28,9 +28,11 @@ unsigned char *USER0, *USER1, *USER2; // User regions
 unsigned char *PGM68KBIOS, *PGM68KROM, *PGMTileROM, *PGMTileROMExp, *PGMARMROM;
 unsigned char *PGMSPRColROM = NULL;
 unsigned char *PGMSPRMaskROM = NULL;
+unsigned char *ICSSNDROM = NULL;
 
 unsigned char nPgmPalRecalc = 0;
 unsigned char nPgmZ80Work = 0;
+int nPGMDisableIRQ4 = 0;
 
 static bool bGamePuzlstar = false;
 static bool bGameDrgw2 = false;
@@ -47,7 +49,7 @@ unsigned long nPGMSPRColROMOffset;
 unsigned long nPGMSPRMaskROMOffset;
 unsigned long nPGMSNDROMOffset;
 
-
+//#define DISABLE_SND_CACHE 
 
 static int pgmMemIndex()
 {
@@ -262,9 +264,9 @@ static int pgmGetRoms(bool bLoad)
 					//PGMSNDROMLoad += ri.nLen;
 				}else 
 				{
+#ifndef DISABLE_SND_CACHE
 					if(nPGMSNDROMOffset == 0xffffffff)
 					{
-						
 						nPGMSNDROMOffset = cacheFileSize;
 						if ( bPgmCreateCache ) {
 							loadAndWriteRomToCache(0x00082,biosRomRegionLength);							
@@ -276,6 +278,9 @@ static int pgmGetRoms(bool bLoad)
 						loadAndWriteRomToCache(i,ri.nLen);
 					}
 					cacheFileSize = cacheFileSize + ri.nLen;
+#else
+					BurnLoadRom(ICSSNDROM + biosRomRegionLength, i, 1);
+#endif
 				}
 			} else {
 				nPGMSNDROMLen += ri.nLen;
@@ -522,18 +527,26 @@ unsigned char __fastcall PgmReadByte(unsigned int sekAddress)
 		return 0;
 		
 	switch (sekAddress) {
-
-		//case 0xC00005:
-		//	return ics2115_soundlatch_r(1);
-
 		case 0xC00007:
 			return pgm_calendar_r();
-
-//		default:
-//			bprintf(PRINT_NORMAL, _T("Attempt to read byte value of location %x\n"), sekAddress);
-	
+		case 0xC08007: // dipswitches - (ddp2)
+			return ~(PgmInput[6]) | 0xe0;
 	}
 	return 0;
+}
+
+static unsigned short nSoundlatch[3] = {0, 0, 0};
+static unsigned char bSoundlatchRead[3] = {0, 0, 0};
+static unsigned short ics2115_soundlatch_r(int i)
+{
+	bSoundlatchRead[i] = 1;
+	return nSoundlatch[i];
+}
+
+static void ics2115_soundlatch_w(int i, unsigned short d)
+{
+	nSoundlatch[i] = d;
+	bSoundlatchRead[i] = 0;
 }
 
 unsigned short __fastcall PgmReadWord(unsigned int sekAddress)
@@ -717,7 +730,7 @@ unsigned char __fastcall PgmZ80PortRead(unsigned short p)
 {
 	switch (p >> 8) {
 		case 0x80:
-			return ics2115read(p & 0xff);
+			return ics2115read(p&0xff);
 		case 0x81:
 			return ics2115_soundlatch_r(2) & 0xff;
 		case 0x82:
@@ -797,6 +810,11 @@ static void expand_gfx_2()
 }
 #endif
 
+static void ics2115_sound_irq(INT32 nState)
+{
+	ZetSetIRQLine(0, (nState) ? ZET_IRQSTATUS_ACK : ZET_IRQSTATUS_NONE);
+}
+
 int pgmInit()
 {
 	spriteCacheArrayFreeP=0;
@@ -813,6 +831,13 @@ int pgmInit()
 	pgmMemIndex();
 
 	bPgmUseCache = true;
+
+
+#ifndef PGM_MUTE
+	#ifdef DISABLE_SND_CACHE
+	ICSSNDROM		= (unsigned char*)malloc(nPGMSNDROMLen);
+	#endif
+#endif
 	
 	if (bPgmUseCache) {
 
@@ -828,7 +853,11 @@ int pgmInit()
 		{
 			bPgmCreateCache = true;
 			cacheFile = fopen( filePathName, "wb+");
+		#if DISABLE_SND_CACHE
+		}else if(fseek(cacheFile,0,SEEK_END)!= 0 || ftell(cacheFile) != (nPGMTileROMLen+nPGMSPRColROMLen+nPGMSPRMaskROMLen))
+		#else
 		}else if(fseek(cacheFile,0,SEEK_END)!= 0 || ftell(cacheFile) != (nPGMTileROMLen+nPGMSPRColROMLen+nPGMSPRMaskROMLen+nPGMSNDROMLen))
+		#endif
 		{
 			bPgmCreateCache = true;
 			fclose(cacheFile);
@@ -852,9 +881,6 @@ int pgmInit()
 		memset(PGMSPRMaskROM, 0, nPGMSPRMaskROMLen);
 	}
 
-#ifndef PGM_MUTE
-	//ICSSNDROM		= (unsigned char*)malloc(nPGMSNDROMLen);
-#endif
 	pgmGetRoms(true);
 	
 	if (bPgmUseCache) {
@@ -870,7 +896,9 @@ int pgmInit()
 	BurnLoadRom(PGM68KBIOS,		0x00080, 1);	// 68k bios
 	//BurnLoadRom(PGMTileROM,		0x00081, 1);	// Bios Text and Tiles
 #ifndef PGM_MUTE
-	//BurnLoadRom(ICSSNDROM,		0x00082, 1);	// Bios Intro Sounds
+	#ifdef DISABLE_SND_CACHE
+	BurnLoadRom(ICSSNDROM,		0x00082, 1);	// Bios Intro Sounds
+	#endif
 #endif
 		
 	
@@ -887,7 +915,7 @@ int pgmInit()
 	}
 	if (bPgmUseCache) {
 		//Init cacheIndex
-		initCacheStructure(0.9);
+		initCacheStructure(0.9, true);
 
 	}
 	{
@@ -956,7 +984,7 @@ int pgmInit()
 		ZetClose();
 	}
 
-	ics2115_init();
+	ics2115_init(8468000, ics2115_sound_irq, ICSSNDROM, nPGMSNDROMLen);
 #endif
 
 	PgmDoReset();
@@ -979,6 +1007,13 @@ int pgmKov2Init()
 	kov2MemIndex();
 
 	bPgmUseCache = true;
+
+
+#ifndef PGM_MUTE
+	#ifdef DISABLE_SND_CACHE
+	ICSSNDROM		= (unsigned char*)malloc(nPGMSNDROMLen);
+	#endif
+#endif
 	
 	if (bPgmUseCache) {
 
@@ -994,7 +1029,11 @@ int pgmKov2Init()
 		{
 			bPgmCreateCache = true;
 			cacheFile = fopen( filePathName, "wb+");
+		#if DISABLE_SND_CACHE
+		}else if(fseek(cacheFile,0,SEEK_END)!= 0 || ftell(cacheFile) != (nPGMTileROMLen+nPGMSPRColROMLen+nPGMSPRMaskROMLen))
+		#else
 		}else if(fseek(cacheFile,0,SEEK_END)!= 0 || ftell(cacheFile) != (nPGMTileROMLen+nPGMSPRColROMLen+nPGMSPRMaskROMLen+nPGMSNDROMLen))
+		#endif
 		{
 			bPgmCreateCache = true;
 			fclose(cacheFile);
@@ -1018,9 +1057,6 @@ int pgmKov2Init()
 		memset(PGMSPRMaskROM, 0, nPGMSPRMaskROMLen);
 	}
 
-#ifndef PGM_MUTE
-	//ICSSNDROM		= (unsigned char*)malloc(nPGMSNDROMLen);
-#endif
 	pgmGetRoms(true);
 	
 	if (bPgmUseCache) {
@@ -1036,7 +1072,9 @@ int pgmKov2Init()
 	BurnLoadRom(PGM68KBIOS,		0x00080, 1);	// 68k bios
 	//BurnLoadRom(PGMTileROM,		0x00081, 1);	// Bios Text and Tiles
 #ifndef PGM_MUTE
-	//BurnLoadRom(ICSSNDROM,		0x00082, 1);	// Bios Intro Sounds
+	#ifdef DISABLE_SND_CACHE
+	BurnLoadRom(ICSSNDROM,		0x00082, 1);	// Bios Intro Sounds
+	#endif
 #endif
 		
 	
@@ -1053,7 +1091,7 @@ int pgmKov2Init()
 	}
 	if (bPgmUseCache) {
 		//Init cacheIndex
-		initCacheStructure(0.9);
+		initCacheStructure(0.9, true);
 
 	}
 	
@@ -1134,7 +1172,7 @@ int pgmKov2Init()
 		ZetClose();
 	}
 	
-	ics2115_init();
+	ics2115_init(8468000, ics2115_sound_irq, ICSSNDROM, nPGMSNDROMLen);
 #endif
 	{
 		arm7MapArea(0x00000000, 0x00003fff,0,PGMARMROM);
@@ -1254,10 +1292,22 @@ int pgmFrame()
 		
 		nCyclesDone[0] += SekRun( nCyclesNext[0] - nCyclesDone[0] );
 #ifndef PGM_MUTE
-		if ( nPgmZ80Work ) {
-			nCyclesDone[1] += ZetRun( nCyclesNext[1] - nCyclesDone[1] );
-		} else
-			nCyclesDone[1] += nCyclesNext[1] - nCyclesDone[1];
+		// run sound cpu
+		{
+			INT32 nSegment = nCyclesNext[1] - nCyclesDone[1];
+
+			if (nPgmZ80Work) {
+				nCyclesDone[1] += ZetRun( nSegment );
+			} else {
+				nCyclesDone[1] += nSegment;
+			}
+
+			ics2115_adjust_timer(nSegment);
+		}
+
+		if (i == ((PGM_INTER_LEAVE / 2)-1) && !nPGMDisableIRQ4) {
+			SekSetIRQLine(4, SEK_IRQSTATUS_AUTO);
+		}
 #endif
 	}
 
@@ -1271,13 +1321,13 @@ int pgmFrame()
 	}
 
 #ifndef PGM_MUTE
-	ics2115_frame();
+	//ics2115_frame();
 #endif
 
 	//SekClose();
 	//ZetClose();
 #ifndef PGM_MUTE
-	ics2115_update(nBurnSoundLen);
+	ics2115_update(pBurnSoundOut, nBurnSoundLen);
 #endif
 
 	if (pBurnDraw) pgmDraw();
@@ -1359,13 +1409,13 @@ int kov2Frame()
 
 
 #ifndef PGM_MUTE
-	ics2115_frame();
+	//ics2115_frame();
 #endif
 
 	//SekClose();
 	//ZetClose();
 #ifndef PGM_MUTE
-	ics2115_update(nBurnSoundLen);
+	ics2115_update(pBurnSoundOut,nBurnSoundLen);
 #endif
 
 	if (pBurnDraw) pgmDraw();

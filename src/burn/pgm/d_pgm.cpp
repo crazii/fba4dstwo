@@ -1451,6 +1451,7 @@ void puzzli2_decrypt()
 
 int puzzli2Init()
 {
+	nPGMDisableIRQ4 = 1;
 	pPgmInitCallback = puzzli2_decrypt;
 
 	return pgmInit();

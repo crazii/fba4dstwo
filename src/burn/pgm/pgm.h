@@ -35,6 +35,7 @@ extern unsigned char nPgmPalRecalc;
 extern int nPGMSPRColROMLen;
 extern int nPGMSPRMaskROMLen;
 
+extern int nPGMDisableIRQ4;
 extern bool bPgmUseCache;
 extern unsigned int * pgmSprIndex;
 extern unsigned char * pgmIdxCacheTemp;
