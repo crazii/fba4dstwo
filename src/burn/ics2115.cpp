@@ -465,14 +465,15 @@ void ics2115_update(INT16 *outputs, int samples)
 	//rescale
 	if(outputs)
 	{
+		int soundLen = nBurnSoundLen;
 #ifdef NDS
 		//HACK
 		samples = ((22050 * 100) / 6000);
-		memset(outputs + samples, 0, (nBurnSoundLen-samples)*2);
-		nBurnSoundLen = samples;
+		memset(outputs + samples*2, 0, (soundLen-samples)*2*2);
+		soundLen = samples;
 #endif
 		for (int i = 0; i < samples; i++) {
-			INT32 offset = ((i * sample_per_frame) / nBurnSoundLen) * 2;
+			INT32 offset = ((i * sample_per_frame) / soundLen) * 2;
 			outputs[0] = (INT32)(stream[offset+0] * 5); // volume for pgm is 5.0
 			outputs[1] = (INT32)(stream[offset+1] * 5);
 			outputs += 2;

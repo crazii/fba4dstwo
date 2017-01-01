@@ -64,9 +64,9 @@ static const char *ui_main_menu[] = {
 	"Controller: %1uP ",
 	"Skip Frames: %3.1f%%",
 	"CPU Speed: %3dMHz ",
-	"Graphics: %s",
 	"Sound Mode: %s ",
-	"Exit FinaBurn Alpha"	
+	"Video: %s",
+	"Exit FinaBurn Alpha"
 };
 
 void draw_ui_main()
@@ -282,6 +282,7 @@ static void process_key( int key, int down, int repeat )
 				break;
 			case GRAPHICS_SETTING:
 				graphicsSetting = !graphicsSetting;
+				draw_ui_main();
 				break;
 			default:
 				if(ui_mainmenu_select>=menu_item_list_cnt && ui_mainmenu_select-menu_item_list_cnt >= 0)
@@ -323,6 +324,7 @@ static void process_key( int key, int down, int repeat )
 				break;
 			case GRAPHICS_SETTING:
 				graphicsSetting = !graphicsSetting;
+				draw_ui_main();
 				break;
 			default:
 				if(ui_mainmenu_select<menu_item_list_cnt && ui_mainmenu_select+menu_item_list_cnt < MENU_COUNT)
@@ -390,11 +392,13 @@ static void process_key( int key, int down, int repeat )
 			break;
 			
 		case KEY_B:
-			return_to_game();
-			//wait B clear to avoid affect game play
-			{
-				struct key_buf pad = {(unsigned short)-1,(unsigned short)-1,(unsigned short)-1};
-				do {ds2_getrawInput(&pad);}while((pad.key&KEY_B) != 0);				
+			if (nPrevGame == nBurnDrvSelect && nPrevGame != ~0U) {
+				return_to_game();
+				//wait B clear to avoid affect game play
+				{
+					struct key_buf pad = {(unsigned short)-1,(unsigned short)-1,(unsigned short)-1};
+					do {ds2_getrawInput(&pad);}while((pad.key&KEY_B) != 0);				
+				}
 			}
 			break;
 		}
