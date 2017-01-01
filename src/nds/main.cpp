@@ -20,6 +20,9 @@ static bool p2pFrameStatus=false;
 
 static void swapBuffer();
 void clear_gui_texture(int color, short w, short h);
+extern "C" void swapBufferHQ(void* vbuff);
+extern "C" void swapBufferLQ(void* vbuff);
+
 
 void returnToMenu()
 {
@@ -145,6 +148,7 @@ int main(int argc, char** argv) {
 				update_gui();
 				continue;
 			}
+			//bprintf(3, "frame start");
 			
 			if((nCurrentFrame&0x3)<2)
 			{
@@ -163,20 +167,25 @@ int main(int argc, char** argv) {
 			int currentSkip = (nCurrentFrame*gameSpeedCtrl) % FRAME_RATE;
 			if( currentSkip < frameskip)
 			{
-				pBurnDraw = NULL;
+				//bprintf(3, "frame skip");
+				*((unsigned char* volatile*)&pBurnDraw) = NULL;
 				BurnDrvFrame();
-				pBurnDraw = (unsigned char *)videoBuffer;
+				*((unsigned char* volatile*)&pBurnDraw) = (unsigned char*)videoBuffer;
 			}
 			else
 			{
+				//bprintf(3, "frame");
 				BurnDrvFrame();
 #ifdef SHOW_FPS
 				drawString(fps, (unsigned short*)((unsigned int)up_screen_addr, 11, 11, R8G8B8_to_B5G5R5(0x404040));
 				drawString(fps, (unsigned short*)((unsigned int)up_screen_addr, 10, 10, R8G8B8_to_B5G5R5(0xffffff));
 #endif	
+				//bprintf(3, "pre swp");
 				swapBuffer();
+				//bprintf(3, "post swp");
 			}
 			frameskip = currentSkip;
+			//bprintf(3, "sound");
 			sound_next();
 		}
 	}
@@ -213,8 +222,11 @@ void resetGame()
 void swapBuffer()
 {
 #if 1
-	if(graphicsSetting == 1)
+	if(graphicsSetting)
 	{
+		#if 1
+		swapBufferHQ(videoBuffer);
+		#else
 		unsigned short* src = videoBuffer;
 		__builtin_prefetch(src, 0);
 		unsigned short* dst = (unsigned short*)up_screen_addr + xOff + (yOff * SCREEN_WIDTH);
@@ -269,9 +281,13 @@ void swapBuffer()
 			src += VIDEO_BUFFER_WIDTH;
 			__builtin_prefetch(src, 0);
 		}
+		#endif
 	}
 	else
 	{
+		#if 1 
+		swapBufferLQ(videoBuffer);
+		#else
 		unsigned short* src = videoBuffer;
 		__builtin_prefetch(src, 0);
 		unsigned short* dst = (unsigned short*)up_screen_addr + xOff + (yOff * SCREEN_WIDTH);
@@ -289,9 +305,9 @@ void swapBuffer()
 			{
 				accumulatorY -= scaleMod;
 
-				unsigned int pixel;
+				unsigned short pixel;
 				register unsigned short *dstX=dst;
-				register int accumulatorX = 0;
+				register short accumulatorX = 0;
 				for (short w = 0; w < width; ++w)
 				{
 					if (accumulatorX >= scaleMul)
@@ -316,6 +332,7 @@ void swapBuffer()
 			src += VIDEO_BUFFER_WIDTH;
 			__builtin_prefetch(src, 0);
 		}
+		#endif
 	}
 #else
 	int w = drvWidth < SCREEN_WIDTH ? drvWidth : SCREEN_WIDTH;
@@ -323,42 +340,41 @@ void swapBuffer()
 	for(int i = 0; i < h; ++i)
 		memcpy((short*)up_screen_addr + i*SCREEN_WIDTH, videoBuffer + i*VIDEO_BUFFER_WIDTH, w*2);
 #endif
-  
+
 	ds2_flipScreen(UP_SCREEN, 0);
 }
 
 void clear_gui_texture(int color, short w, short h)
 {
-	__builtin_prefetch(videoBuffer, 1);
-	//h = h < VIDEO_BUFFER_HEIGHT ? h : VIDEO_BUFFER_HEIGHT;
-	//w = w < VIDEO_BUFFER_WIDTH ? w : VIDEO_BUFFER_WIDTH;
 	//used in game. clear video buffer
+
 	color |= 1<<15;
 	//2 pixels
 	color = (color&0xFFFF)|(color<<16);
 	w /= 2;
 	short mod8 = w&0x7;
-	w &= ~0x7;
+	w = w >> 3;
 	
 	int* src = (int*)videoBuffer;
 	for(short i = 0; i < h; ++i)
 	{
+		for(short j = 0; j < w; ++j, src+=8)
+		{
+			__builtin_prefetch(src, 1, 0);
+			src[0] = color;
+			src[1] = color;
+			src[2] = color;
+			src[3] = color;
+			src[4] = color;
+			src[5] = color;
+			src[6] = color;
+			src[7] = color;
+		}
+
 		for(short j = 0; j < mod8; ++j)
 			src[j] = color;
-		
-		for(short j = 0; j < w; ++j)
-		{
-			src[j++] = color;
-			src[j++] = color;
-			src[j++] = color;
-			src[j++] = color;
-			src[j++] = color;
-			src[j++] = color;
-			src[j++] = color;
-			src[j] = color;
-		}
-		src += VIDEO_BUFFER_WIDTH/2;
-		__builtin_prefetch(src, 1);
+
+		src += VIDEO_BUFFER_WIDTH/2 - (w << 3);
 	}
 }
 

@@ -116,7 +116,7 @@ depobj	:= 	$(drvobj) \
 	   	\
 	   	adler32.o compress.o crc32.o deflate.o inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o \
 	   	\
-	   	ds2_main.o main.o drv.o input.o state.o statec.o unzip.o zipfn.o bzip.o font.o \
+	   	ds2_main.o main.o swapBuffer.o drv.o input.o state.o statec.o unzip.o zipfn.o bzip.o font.o \
 	   	roms.o ui.o gui.o snd.o UniCache.o m6502.o m6502_intf.o sh2.o \
 	   	\
 	   	tiles_generic.o \
@@ -167,6 +167,9 @@ allobj	= \
 	  $(foreach file,$(autobj:.o=.s), \
 		$(foreach dir,$(alldir),$(subst $(srcdir),$(objdir), \
 		$(firstword $(subst .s,.o,$(wildcard $(srcdir)$(dir)/$(file))))))) \
+	  $(foreach file,$(autobj:.o=.S), \
+		$(foreach dir,$(alldir),$(subst $(srcdir),$(objdir), \
+		$(firstword $(subst .S,.o,$(wildcard $(srcdir)$(dir)/$(file))))))) \
 
 #$(a68k.o) $(objdir)cpu/m68k/m68kcpu.o $(objdir)cpu/m68k/m68kopnz.o $(objdir)cpu/m68k/m68kopdm.o $(objdir)cpu/m68k/m68kopac.o $(objdir)cpu/m68k/m68kops.o
 
@@ -182,7 +185,7 @@ alldep	= $(foreach file,$(autobj:.o=.c), \
 
 LTO_PLUGIN = $(shell $(CC) --print-prog-name cyglto_plugin-0.dll)
 
-LDFLAGS	= -flto=8  -nostdlib -static -L. -L$(NDSSDK)/lib
+LDFLAGS	= -flto=8 -nostdlib -static -L. -L$(NDSSDK)/lib
 	#--verbose -Wl,--verbose -Wl,-plugin-opt=--verbose
 	#-fuse-linker-plugin -Wl,-plugin=$(LTO_PLUGIN)
 
@@ -212,13 +215,13 @@ DEF	:= -DSUB_VERSION=\"ALL\" -DNDS_FW_VERSION=$(NDS_FW_VERSION) -DFILENAME=$(NAM
 #
 #
 
-CC		= mipsel-dstwo-linux-gnu-gcc
-CXX		= mipsel-dstwo-linux-gnu-g++
-LD		= mipsel-dstwo-linux-gnu-gcc
-AS		= mipsel-dstwo-linux-gnu-as
-OBJCOPY = mipsel-dstwo-linux-gnu-objcopy
-NM		= mipsel-dstwo-linux-gnu-nm
-OBJDUMP = mipsel-dstwo-linux-gnu-objdump
+CC		= mipsel-linux-gcc
+CXX		= mipsel-linux-g++
+LD		= mipsel-linux-gcc
+AS		= mipsel-linux-as
+OBJCOPY = mipsel-linux-objcopy
+NM		= mipsel-linux-nm
+OBJDUMP = mipsel-linux-objdump
 FIXUP	= makeplug
 
 CFLAGS	 = $(incdir) $(DEF) \
@@ -235,14 +238,10 @@ NATIVE_CXXFLAGS = -O3
 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 
-ASFLAGS	= -O3 -G0 -march=mips32 -mtune=mips32 -mno-shared -msoft-float
+ASFLAGS	= -O3 -G0 -march=mips32 -mtune=mips32 -mno-shared -msoft-float -fno-lto -fomit-frame-pointer -mlong-calls -mno-abicalls
 
-#	   -fomit-frame-pointer -fsigned-char \
-#	   -fstrict-aliasing -falign-functions=32 -falign-loops -falign-labels -falign-jumps \
-#	   -fforce-addr -finline-limit=1200 -fthread-jumps \
-#	   -fexpensive-optimizations \
-
-#vpath %.s	$(foreach dir,$(alldir),$(srcdir)$(dir)/ )
+vpath %.s	$(foreach dir,$(alldir),$(srcdir)$(dir)/ )
+vpath %.S	$(foreach dir,$(alldir),$(srcdir)$(dir)/ )
 vpath %.cpp	$(foreach dir,$(alldir),$(srcdir)$(dir)/ )
 vpath %.c	$(foreach dir,$(alldir),$(srcdir)$(dir)/ )
 vpath %.h	$(foreach dir,$(alldir),$(srcdir)$(dir)/ )
@@ -256,7 +255,7 @@ vpath %.d 	$(foreach dir,$(alldir),$(objdir)$(dir)/ )
 #
 #
 
-.PHONY:	all init cleandep touch clean
+.PHONY:	all init cleandep touch clean swapBuffer.d
 
 ifeq ($(MAKELEVEL),1)
 ifdef DEPEND
@@ -288,7 +287,7 @@ STARTS := $(NDSSDK)/specs/start.S
 STARTO := start.o
 
 $(STARTO): $(STARTS) $(LINKS)
-	$(CC) $(CFLAGS) $(INC) -o $@ -c $(STARTS)
+	$(CC) $(CFLAGS) -o $@ -c $(STARTS)
 
 $(ELF):	$(STARTO) $(allobj)
 	@echo Linking executable... $(ELF)
@@ -521,7 +520,11 @@ ifeq ($(MAKELEVEL),1)
 %.o:	%.s
 	@echo Assembling $<...
 	@$(AS) $(ASFLAGS) $< -o $(subst $(srcdir),$(objdir),$(<D))/$(@F)
-
+	
+%.o:	%.S
+	@echo Assembling $<...
+	@$(CC) $(CFLAGS) -c $< -o $(subst $(srcdir),$(objdir),$(<D))/$(@F)
+	
 else
 
 %.o:	%.c
@@ -531,6 +534,10 @@ else
 %.o:	%.s
 	@echo Assembling $<...
 	@$(AS) $(ASFLAGS) $< -o $@
+	 
+%.o:	%.S
+	@echo Assembling $<...
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 %.o:
 	@echo Compiling $<...

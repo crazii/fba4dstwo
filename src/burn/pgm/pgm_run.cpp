@@ -49,7 +49,7 @@ unsigned long nPGMSPRColROMOffset;
 unsigned long nPGMSPRMaskROMOffset;
 unsigned long nPGMSNDROMOffset;
 
-//#define DISABLE_SND_CACHE 
+//#define DISABLE_SND_CACHE 1
 
 static int pgmMemIndex()
 {

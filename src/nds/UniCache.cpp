@@ -347,7 +347,7 @@ static void clearTemp()
 	tempHead = tempTail = tempAddrTail = -1;
 }
 
-static void removeFromList(short id)
+static inline void removeFromList(short id)
 {
 	if(tempIndex[id].prev != -1)
 		tempIndex[tempIndex[id].prev].next = tempIndex[id].next;
@@ -360,7 +360,7 @@ static void removeFromList(short id)
 		tempTail = tempIndex[id].prev;
 }
 
-static void moveToTail(short id)
+static inline void moveToTail(short id)
 {
 	if(tempTail == id)
 		return;
@@ -409,14 +409,14 @@ void *mallocTemp(unsigned int NumBytes, void(*onDestroyFuncPtr)(unsigned char* a
 	//reuse block with matched size
 	//try head first (LRU)
 	{
-		int count = 0;
-		short match = -1;
-		short match2nd = -1;
-		short matchbigger = -1;
-		int halfcount = tempAddrTail >> 1;
-		int quatercount = tempAddrTail >> 2;
-		unsigned short match2ndsize = NumBytes + (NumBytes+3) / 4;
-		unsigned short matchbiggersize = NumBytes + (NumBytes+1) / 2;
+		register int count = 0;
+		register short match = -1;
+		register short match2nd = -1;
+		register short matchbigger = -1;
+		register int halfcount = tempAddrTail >> 1;
+		register int quatercount = tempAddrTail >> 2;
+		register unsigned short match2ndsize = NumBytes + (NumBytes+3) / 4;
+		register unsigned short matchbiggersize = NumBytes + (NumBytes+1) / 2;
 
 		for (int i = tempHead; /*count < tempAddrTail && */i != -1; i=tempIndex[i].next,++count)
 		{
@@ -440,7 +440,7 @@ void *mallocTemp(unsigned int NumBytes, void(*onDestroyFuncPtr)(unsigned char* a
 			}
 		}
 
-		int bestmatch = match != -1 ? match : (match2nd != -1 ? match2nd : (matchbigger));
+		register int bestmatch = match != -1 ? match : (match2nd != -1 ? match2nd : (matchbigger));
 
 		if (bestmatch != -1)
 		{
@@ -454,8 +454,8 @@ void *mallocTemp(unsigned int NumBytes, void(*onDestroyFuncPtr)(unsigned char* a
 	}
 
 	//free blocks from tail & merge
-	int addrTail = tempAddrTail - 1;
-	int mergeSize = tempIndex[addrTail].size + tempLeft;
+	register int addrTail = tempAddrTail - 1;
+	register int mergeSize = tempIndex[addrTail].size + tempLeft;
 	while (mergeSize < NumBytes)
 	{
 		removeFromList(addrTail);

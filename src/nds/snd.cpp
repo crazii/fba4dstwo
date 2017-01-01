@@ -18,63 +18,106 @@ static void ds2_play_sound()
 	{
 		if(soundMode == 1)
 		{
-			for(int i = 0; i < SND_FRAME_SIZE; ++i)
+			short* src = mixbuf;
+			for(int i = 0; i < SND_FRAME_SIZE; i+=16, src+=32,ds2_aubuff+=16,ds2_aubuff2+=16)
 			{
-				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1]; ++i;
-				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1]; ++i;
-				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1]; ++i;
-				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1]; ++i;
-				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1]; ++i;
-				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1]; ++i;
-				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1]; ++i;
-				ds2_aubuff2[i] = ds2_aubuff[i] = mixbuf[i<<1];
+				__builtin_prefetch(ds2_aubuff, 1, 0);
+				__builtin_prefetch(ds2_aubuff2, 1, 0);
+				__builtin_prefetch(src, 0, 0);
+				ds2_aubuff2[0] = ds2_aubuff[0] = src[0];
+				ds2_aubuff2[1] = ds2_aubuff[1] = src[2];
+				ds2_aubuff2[2] = ds2_aubuff[2] = src[4];
+				ds2_aubuff2[3] = ds2_aubuff[3] = src[6];
+				ds2_aubuff2[4] = ds2_aubuff[4] = src[8];
+				ds2_aubuff2[5] = ds2_aubuff[5] = src[10];
+				ds2_aubuff2[6] = ds2_aubuff[6] = src[12];
+				ds2_aubuff2[7] = ds2_aubuff[7] = src[14];
+
+				__builtin_prefetch(src+16, 0, 0);
+				ds2_aubuff2[8] = ds2_aubuff[8] = src[16];
+				ds2_aubuff2[9] = ds2_aubuff[9] = src[18];
+				ds2_aubuff2[10] = ds2_aubuff[10] = src[20];
+				ds2_aubuff2[11] = ds2_aubuff[11] = src[22];
+				ds2_aubuff2[12] = ds2_aubuff[12] = src[24];
+				ds2_aubuff2[13] = ds2_aubuff[13] = src[26];
+				ds2_aubuff2[14] = ds2_aubuff[14] = src[28];
+				ds2_aubuff2[15] = ds2_aubuff[15] = src[30];
 			}
 		}
 		else
 		{
 			unsigned int* mixbuf2 = (unsigned int*)mixbuf;
-			for(int i = 0; i < SND_FRAME_SIZE; ++i)
+			for(int i = 0; i < SND_FRAME_SIZE; i+=16, mixbuf2+=16,ds2_aubuff+=16,ds2_aubuff2+=16)
 			{
 				register unsigned int s;
+				__builtin_prefetch(ds2_aubuff, 1, 0);
+				__builtin_prefetch(ds2_aubuff2, 1, 0);
+				__builtin_prefetch(mixbuf2, 0, 0);
 
-				s = mixbuf2[i];
-				ds2_aubuff[i] = s;
-				ds2_aubuff2[i] = s >> 16;
-				++i;
+				s = mixbuf2[0];
+				ds2_aubuff[0] = s;
+				ds2_aubuff2[0] = s >> 16;
 				
-				s = mixbuf2[i];
-				ds2_aubuff[i] = s;
-				ds2_aubuff2[i] = s >> 16;
-				++i;
+				s = mixbuf2[1];
+				ds2_aubuff[1] = s;
+				ds2_aubuff2[1] = s >> 16;
 				
-				s = mixbuf2[i];
-				ds2_aubuff[i] = s;
-				ds2_aubuff2[i] = s >> 16;
-				++i;
+				s = mixbuf2[2];
+				ds2_aubuff[2] = s;
+				ds2_aubuff2[2] = s >> 16;
 				
-				s = mixbuf2[i];
-				ds2_aubuff[i] = s;
-				ds2_aubuff2[i] = s >> 16;
-				++i;
+				s = mixbuf2[3];
+				ds2_aubuff[3] = s;
+				ds2_aubuff2[3] = s >> 16;
 				
-				s = mixbuf2[i];
-				ds2_aubuff[i] = s;
-				ds2_aubuff2[i] = s >> 16;
-				++i;
+				s = mixbuf2[4];
+				ds2_aubuff[4] = s;
+				ds2_aubuff2[4] = s >> 16;
 				
-				s = mixbuf2[i];
-				ds2_aubuff[i] = s;
-				ds2_aubuff2[i] = s >> 16;
-				++i;
+				s = mixbuf2[5];
+				ds2_aubuff[5] = s;
+				ds2_aubuff2[5] = s >> 16;
 				
-				s = mixbuf2[i];
-				ds2_aubuff[i] = s;
-				ds2_aubuff2[i] = s >> 16;
-				++i;
+				s = mixbuf2[6];
+				ds2_aubuff[6] = s;
+				ds2_aubuff2[6] = s >> 16;
 				
-				s = mixbuf2[i];
-				ds2_aubuff[i] = s;
-				ds2_aubuff2[i] = s >> 16;
+				s = mixbuf2[7];
+				ds2_aubuff[7] = s;
+				ds2_aubuff2[7] = s >> 16;
+
+				__builtin_prefetch(mixbuf2+8, 0, 0);
+				s = mixbuf2[8];
+				ds2_aubuff[8] = s;
+				ds2_aubuff2[8] = s >> 16;
+
+				s = mixbuf2[9];
+				ds2_aubuff[9] = s;
+				ds2_aubuff2[9] = s >> 16;
+
+				s = mixbuf2[10];
+				ds2_aubuff[10] = s;
+				ds2_aubuff2[10] = s >> 16;
+
+				s = mixbuf2[11];
+				ds2_aubuff[11] = s;
+				ds2_aubuff2[11] = s >> 16;
+
+				s = mixbuf2[12];
+				ds2_aubuff[12] = s;
+				ds2_aubuff2[12] = s >> 16;
+
+				s = mixbuf2[13];
+				ds2_aubuff[13] = s;
+				ds2_aubuff2[13] = s >> 16;
+
+				s = mixbuf2[14];
+				ds2_aubuff[14] = s;
+				ds2_aubuff2[14] = s >> 16;
+
+				s = mixbuf2[15];
+				ds2_aubuff[15] = s;
+				ds2_aubuff2[15] = s >> 16;
 			}
 		}
 		//Update audio  
