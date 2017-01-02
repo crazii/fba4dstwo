@@ -360,7 +360,6 @@ void clear_gui_texture(int color, short w, short h)
 	{
 		for(short j = 0; j < w; ++j, src+=8)
 		{
-			__builtin_prefetch(src, 1, 0);
 			src[0] = color;
 			src[1] = color;
 			src[2] = color;
@@ -375,6 +374,7 @@ void clear_gui_texture(int color, short w, short h)
 			src[j] = color;
 
 		src += VIDEO_BUFFER_WIDTH/2 - (w << 3);
+		__builtin_prefetch(src, 1, 0);
 	}
 }
 

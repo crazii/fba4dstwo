@@ -21,9 +21,6 @@ static void ds2_play_sound()
 			short* src = mixbuf;
 			for(int i = 0; i < SND_FRAME_SIZE; i+=16, src+=32,ds2_aubuff+=16,ds2_aubuff2+=16)
 			{
-				__builtin_prefetch(ds2_aubuff, 1, 0);
-				__builtin_prefetch(ds2_aubuff2, 1, 0);
-				__builtin_prefetch(src, 0, 0);
 				ds2_aubuff2[0] = ds2_aubuff[0] = src[0];
 				ds2_aubuff2[1] = ds2_aubuff[1] = src[2];
 				ds2_aubuff2[2] = ds2_aubuff[2] = src[4];
@@ -33,7 +30,6 @@ static void ds2_play_sound()
 				ds2_aubuff2[6] = ds2_aubuff[6] = src[12];
 				ds2_aubuff2[7] = ds2_aubuff[7] = src[14];
 
-				__builtin_prefetch(src+16, 0, 0);
 				ds2_aubuff2[8] = ds2_aubuff[8] = src[16];
 				ds2_aubuff2[9] = ds2_aubuff[9] = src[18];
 				ds2_aubuff2[10] = ds2_aubuff[10] = src[20];
@@ -50,9 +46,6 @@ static void ds2_play_sound()
 			for(int i = 0; i < SND_FRAME_SIZE; i+=16, mixbuf2+=16,ds2_aubuff+=16,ds2_aubuff2+=16)
 			{
 				register unsigned int s;
-				__builtin_prefetch(ds2_aubuff, 1, 0);
-				__builtin_prefetch(ds2_aubuff2, 1, 0);
-				__builtin_prefetch(mixbuf2, 0, 0);
 
 				s = mixbuf2[0];
 				ds2_aubuff[0] = s;
@@ -86,7 +79,6 @@ static void ds2_play_sound()
 				ds2_aubuff[7] = s;
 				ds2_aubuff2[7] = s >> 16;
 
-				__builtin_prefetch(mixbuf2+8, 0, 0);
 				s = mixbuf2[8];
 				ds2_aubuff[8] = s;
 				ds2_aubuff2[8] = s >> 16;

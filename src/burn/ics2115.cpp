@@ -466,7 +466,7 @@ void ics2115_update(INT16 *outputs, int samples)
 	if(outputs)
 	{
 		int soundLen = nBurnSoundLen;
-#ifdef NDS
+#if defined NDS
 		//HACK
 		samples = ((22050 * 100) / 6000);
 		memset(outputs + samples*2, 0, (soundLen-samples)*2*2);
