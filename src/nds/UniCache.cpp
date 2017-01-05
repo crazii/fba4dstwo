@@ -454,29 +454,31 @@ void *mallocTemp(unsigned int NumBytes, void(*onDestroyFuncPtr)(unsigned char* a
 	}
 
 	//free blocks from tail & merge
-	register int addrTail = tempAddrTail - 1;
-	register int mergeSize = tempIndex[addrTail].size + tempLeft;
-	while (mergeSize < NumBytes)
 	{
-		removeFromList(addrTail);
-		tempIndex[addrTail].prev = tempIndex[addrTail].next = -1;
-		tempAddr2Index[((unsigned int)tempIndex[addrTail].addr - (unsigned int)tempMemory) >> TEMP_SIZE_SHIFT] = -1;
+		register int addrTail = tempAddrTail - 1;
+		register int mergeSize = tempIndex[addrTail].size + tempLeft;
+		while (mergeSize < NumBytes)
+		{
+			removeFromList(addrTail);
+			tempIndex[addrTail].prev = tempIndex[addrTail].next = -1;
+			tempAddr2Index[((unsigned int)tempIndex[addrTail].addr - (unsigned int)tempMemory) >> TEMP_SIZE_SHIFT] = -1;
+			tempIndex[addrTail].onDestroyFuncPtr((unsigned char*)tempIndex[addrTail].addr);
+			tempIndex[addrTail].onDestroyFuncPtr = NULL;
+			tempIndex[addrTail].addr = NULL;
+			tempIndex[addrTail].size = -1;
+			--addrTail;
+			mergeSize += tempIndex[addrTail].size;
+			tempIndex[addrTail].size = mergeSize;
+		}
+		tempLeft = mergeSize - NumBytes;
+		tempIndex[addrTail].size = NumBytes;
 		tempIndex[addrTail].onDestroyFuncPtr((unsigned char*)tempIndex[addrTail].addr);
-		tempIndex[addrTail].onDestroyFuncPtr = NULL;
-		tempIndex[addrTail].addr = NULL;
-		tempIndex[addrTail].size = -1;
-		--addrTail;
-		mergeSize += tempIndex[addrTail].size;
-		tempIndex[addrTail].size = mergeSize;
+		tempIndex[addrTail].onDestroyFuncPtr = onDestroyFuncPtr;
+		tempAddrTail = addrTail + 1;
+		//move to tail
+		moveToTail(addrTail);
+		return tempIndex[addrTail].addr;
 	}
-	tempLeft = mergeSize - NumBytes;
-	tempIndex[addrTail].size = NumBytes;
-	tempIndex[addrTail].onDestroyFuncPtr((unsigned char*)tempIndex[addrTail].addr);
-	tempIndex[addrTail].onDestroyFuncPtr = onDestroyFuncPtr;
-	tempAddrTail = addrTail + 1;
-	//move to tail
-	moveToTail(addrTail);
-	return tempIndex[addrTail].addr;
 }
 
 bool visitMemTemp(unsigned int offset)

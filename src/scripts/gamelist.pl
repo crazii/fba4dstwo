@@ -202,6 +202,10 @@ CPPEND
 my $Debug = 0;
 foreach my $name ( @Driverlist ) {
 
+	if ( $Drivers{$name}[8] eq "NOT WORKING" ) {
+		next;
+	}
+
 	if ( $Drivers{$name}[0] eq "X" ) {
 		print OUTFILE "//";
 	} else {
@@ -253,6 +257,11 @@ CPPEND
 
 $Debug = 0;
 foreach my $name ( @Driverlist ) {
+
+	if ( $Drivers{$name}[8] eq "NOT WORKING" ) {
+		next;
+	}
+
 	if ( $Drivers{$name}[0] eq "X" ) {
 		print OUTFILE "//";
 	} else {

@@ -119,15 +119,15 @@ swapBufferHQ:
 	lw		a2,	0(AT)
 
 	pref	4, 0(a0)
-	add		AT, zero, zero		#mix
-	add		t5, zero, zero		#accy
-	add		t0, zero, zero
+	move	AT, zero		#mix
+	move	t5, zero		#accy
+	move	t0, zero
 
 LOOP0:	#for (short h = 0; h < height; h++)
-	add		t1, zero, zero
+	move	t1, zero
 
-	add		t2, zero, zero		#accx
-	add		t3, zero, zero		#pixel
+	move	t2, zero			#accx
+	move	t3, zero		#pixel
 	move	t6, a1
 
 LOOP1:	#for (short w = 0; w < width; ++w)
@@ -159,7 +159,7 @@ LOOP1:	#for (short w = 0; w < width; ++w)
 	bltz	t4, LOOP0TAIL
 	li		AT, 1			#delay slot
 #NEXT_DEST_ROW:
-	add		AT, zero, zero
+	move	AT, zero
 	move	t5, t4
 	addi	a1, a1, SCREEN_WIDTH * 2
 	pref	7, 0(a1)
@@ -263,9 +263,9 @@ swapBufferLQ:
 	lw		a2,	0(AT)
 
 	pref	4, 0(a0)
-	add		t5, zero, zero		#accy
+	move	t5, zero		#accy
 
-	add		t0, zero, zero
+	move	t0, zero
 LOOP0LQ:	#for (short h = 0; h < height; h++)
 
 	add		t5, t5, a2
@@ -274,12 +274,12 @@ LOOP0LQ:	#for (short h = 0; h < height; h++)
 	nop
 	move	t5, t4
 
-	add		t2, zero, zero		#accx
-	add		t3, zero, zero		#pixel
+	move	t2, zero		#accx
+	move 	t3, zero		#pixel
 	move	t6, a1
 	move	AT, a0
 
-	add		t1, zero, zero
+	move	t1, zero
 LOOP1LQ:	#for (short w = 0; w < width/32; ++w)
 
 	#pref	5, 0(t6)

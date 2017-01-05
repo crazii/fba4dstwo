@@ -4,11 +4,11 @@
 
 #include "nds.h"
 
-#define MAX_ROM_COUNT	512
+#define MAX_ROM_COUNT	4096
 
 typedef struct rom_ent {
-	char name[256];
-	int stat;
+	char name[14];
+	short stat;
 } ROM_FILE_ENT;
 
 static ROM_FILE_ENT * pRom_ent = NULL;
@@ -39,10 +39,11 @@ static int isValidFile(dirent * pfd, ROM_FILE_ENT * pre)
 	if ( (st.st_mode&S_IFDIR) ) {
 		if ( strcmp(".", pfd->d_name) == 0 ) return 0;
 		if ( pre ) {
-			strcpy( pre->name, pfd->d_name );
+			strncpy( pre->name, pfd->d_name, 15);
+			pre->name[15] = '\0';
 			pre->stat = -1;
 		}
-		return 2;
+		return 0;
 	}
 	char * ext = strrchr(pfd->d_name, '.');
 	if ( strcasecmp(ext, ".zip") ) return 0;
@@ -50,7 +51,10 @@ static int isValidFile(dirent * pfd, ROM_FILE_ENT * pre)
 	if ( pre ) {
 		strcpy( pre->name, pfd->d_name );
 		pre->stat = FindDrvInfoByName( pfd->d_name );
-		if ( (unsigned int)pre->stat >= nBurnDrvCount ) pre->stat = -2;
+		if ( (unsigned int)pre->stat >= nBurnDrvCount ) {
+			pre->stat = -2;
+			return 0;
+		}
 	}
 	return 1;
 }
