@@ -121,7 +121,23 @@ int main(int argc, char** argv) {
 
 		lastpad = pad;
 		ds2_getrawInput(&pad);
-
+if (pad.key & KEY_LID)
+	{
+		ds2_setCPUclocklevel(0);
+		ds2_setSupend();
+		do {
+			ds2_getrawInput(&pad);
+			mdelay(1);
+		} while (pad.key & KEY_LID);
+		ds2_wakeup();
+		// Before starting to emulate again, turn off the lower
+		// screen's backlight.
+		mdelay(100); // needed to avoid ds2_setBacklight crashing
+		ds2_setBacklight(2);
+		ds2_setCPUclocklevel(13);
+	}
+		
+		
 		if ( nGameStage ) {
 			
 			do_ui_key( pad.key );
