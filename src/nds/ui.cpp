@@ -216,6 +216,8 @@ static void return_to_game()
 	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, SCREEN_WIDTH, 30, UI_BGCOLOR );
 	drawString("Press START+L/R to set frame skip", (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, UI_COLOR, (SCREEN_WIDTH));
 	drawString("Press START+SELECT to activate menu", (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT, UI_COLOR, (SCREEN_WIDTH));
+	//mdelay(100); // needed to avoid ds2_setBacklight crashing
+	//ds2_setBacklight(1);
 	update_gui();
 	
 	if( cpu_speeds_select > 3)
@@ -393,6 +395,8 @@ static void process_key( int key, int down, int repeat )
 			
 		case KEY_B:
 			if (nPrevGame == nBurnDrvSelect && nPrevGame != ~0U) {
+				mdelay(100); // needed to avoid ds2_setBacklight crashing
+				ds2_setBacklight(2);
 				return_to_game();
 				//wait B clear to avoid affect game play
 				{
@@ -467,6 +471,8 @@ static void process_key( int key, int down, int repeat )
 
 					if (nPrevGame == nBurnDrvSelect) {
 						// same game, reture to it
+						mdelay(100); // needed to avoid ds2_setBacklight crashing
+						ds2_setBacklight(2);
 						return_to_game();
 						break;
 					}
@@ -494,6 +500,8 @@ static void process_key( int key, int down, int repeat )
 							InpInit();
 							InpDIP();
 							nPrevGame = nBurnDrvSelect;
+							mdelay(100); // needed to avoid ds2_setBacklight crashing
+							ds2_setBacklight(2);
 							return_to_game();
 							
 						} else {

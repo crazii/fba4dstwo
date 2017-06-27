@@ -26,6 +26,8 @@ extern "C" void swapBufferLQ(void* vbuff);
 
 void returnToMenu()
 {
+	//mdelay(100); // needed to avoid ds2_setBacklight crashing
+	//ds2_setBacklight(2);
 	clear_gui_texture(0, VIDEO_BUFFER_WIDTH, VIDEO_BUFFER_HEIGHT);
 	swapBuffer();
 	
@@ -129,6 +131,8 @@ int main(int argc, char** argv) {
 			
 			if ( (pad.key & (KEY_SELECT|KEY_START)) == (KEY_SELECT|KEY_START) ) 
 			{
+				mdelay(100); // needed to avoid ds2_setBacklight crashing
+				ds2_setBacklight(3);
 				returnToMenu();
 				continue;
 			}
