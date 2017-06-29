@@ -27,7 +27,7 @@ void resetGame();
 /* ui.cpp */
 #define UI_COLOR	R8G8B8_to_B5G5R5(0xffffff)
 #define UI_BGCOLOR	R8G8B8_to_B5G5R5(0x102030)
-
+extern int cpu_speeds_select;
 extern char ui_current_path[];
 extern void setGameStage(int stage);
 int do_ui_key(unsigned int key);

@@ -130,11 +130,21 @@ if (pad.key & KEY_LID)
 			mdelay(1);
 		} while (pad.key & KEY_LID);
 		ds2_wakeup();
+		if ( nGameStage ) {
+			//ds2_setBacklight(2);
+			mdelay(100);
+			ds2_setBacklight(1);
+			mdelay(100);
+			ds2_setCPUclocklevel(10);
+			
+		} else {
+			
 		// Before starting to emulate again, turn off the lower
 		// screen's backlight.
 		mdelay(100); // needed to avoid ds2_setBacklight crashing
 		ds2_setBacklight(2);
-		ds2_setCPUclocklevel(13);
+		ds2_setCPUclocklevel(10 + cpu_speeds_select);
+		}
 	}
 		
 		

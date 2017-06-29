@@ -39,7 +39,7 @@ int DrvInitCallback()
 }
 
 int cpu_speeds[] = { 336, 350, 384, 396 };
-static int cpu_speeds_select = 3;
+int cpu_speeds_select = 3;
 
 enum uiMainIndex
 {

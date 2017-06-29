@@ -17,7 +17,7 @@ static int myProgressUpdateCallback(double dProgress, const char* pszText, bool 
 	return 0;
 }
 
-int AppDebugPrintf(int nStatus, char* pszFormat, ...)
+/*int AppDebugPrintf(int nStatus, char* pszFormat, ...)
 {
 	va_list vaFormat;
 	va_start(vaFormat, pszFormat);
@@ -48,7 +48,7 @@ int AppDebugPrintf(int nStatus, char* pszFormat, ...)
 	do {ds2_getrawInput(&pad);}while((pad.key&KEY_SELECT) == 0);
 	do {ds2_getrawInput(&pad);}while((pad.key&KEY_SELECT) != 0);
 	return 0;
-}
+}*/
 
 
 void init_gui()
