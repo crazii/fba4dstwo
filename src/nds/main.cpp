@@ -26,10 +26,8 @@ extern "C" void swapBufferLQ(void* vbuff);
 
 void returnToMenu()
 {
-	//mdelay(100); // needed to avoid ds2_setBacklight crashing
-	//ds2_setBacklight(2);
-	clear_gui_texture(0, VIDEO_BUFFER_WIDTH, VIDEO_BUFFER_HEIGHT);
-	swapBuffer();
+	//clear_gui_texture(0, VIDEO_BUFFER_WIDTH, VIDEO_BUFFER_HEIGHT);
+	//swapBuffer();
 	
 	ds2_setCPUclocklevel(10);
 	setGameStage(1);
@@ -67,7 +65,8 @@ int main(int argc, char** argv) {
 	
 	chech_and_mk_dir( szAppCachePath );
 	strcat(szAppCachePath, "/");
-
+	mdelay(100); // needed to avoid ds2_setBacklight crashing
+	ds2_setBacklight(3 - DOWN_SCREEN); //turn off up screen
 	setGameStage (1);
 	init_gui();
 
@@ -82,9 +81,9 @@ int main(int argc, char** argv) {
 	nBurnPitch = VIDEO_BUFFER_WIDTH * nBurnBpp;
 	BurnHighCol = HighCol16;
 	
-	ds2_clearScreen(UP_SCREEN, 0);
-	ds2_flipScreen(UP_SCREEN, 1);
-	ds2_clearScreen(UP_SCREEN, 0);
+	//ds2_clearScreen(UP_SCREEN, 0);
+	//ds2_flipScreen(UP_SCREEN, 1);
+	//ds2_clearScreen(UP_SCREEN, 0);
 	videoBuffer = (unsigned short*)malloc(VIDEO_BUFFER_WIDTH*VIDEO_BUFFER_HEIGHT*nBurnBpp);
 	if(!videoBuffer)
 		return -1;
@@ -133,7 +132,7 @@ if (pad.key & KEY_LID)
 		if ( nGameStage ) {
 			//ds2_setBacklight(2);
 			mdelay(100);
-			ds2_setBacklight(1);
+			ds2_setBacklight(3 - DOWN_SCREEN); //turn off up screen);
 			mdelay(100);
 			ds2_setCPUclocklevel(10);
 			
@@ -142,7 +141,7 @@ if (pad.key & KEY_LID)
 		// Before starting to emulate again, turn off the lower
 		// screen's backlight.
 		mdelay(100); // needed to avoid ds2_setBacklight crashing
-		ds2_setBacklight(2);
+		ds2_setBacklight(3 - UP_SCREEN); //turn off down screen
 		ds2_setCPUclocklevel(10 + cpu_speeds_select);
 		}
 	}
@@ -158,7 +157,7 @@ if (pad.key & KEY_LID)
 			if ( (pad.key & (KEY_SELECT|KEY_START)) == (KEY_SELECT|KEY_START) ) 
 			{
 				mdelay(100); // needed to avoid ds2_setBacklight crashing
-				ds2_setBacklight(3);
+				ds2_setBacklight(3 - DOWN_SCREEN); //turn off up screen
 				returnToMenu();
 				continue;
 			}
