@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
 
 	BurnLibInit();
 	nBurnDrvSelect = ~0U;
-	bBurnUseASMCPUEmulation = false;
+	bBurnUseASMCPUEmulation = true;
 	
 	sound_start();
 	
