@@ -209,9 +209,9 @@ static void return_to_game()
 {
 	setGameStage(0);
 	sound_continue();
-	//ds2_clearScreen(UP_SCREEN, 0);
-	//ds2_flipScreen(UP_SCREEN, 1);
-	//ds2_clearScreen(UP_SCREEN, 0);
+	ds2_clearScreen(UP_SCREEN, 0);
+	ds2_flipScreen(UP_SCREEN, 1);
+	ds2_clearScreen(UP_SCREEN, 0);
 	draw_ui_main();
 	drawRect( (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, SCREEN_WIDTH, 30, UI_BGCOLOR );
 	drawString("Press START+L/R to set frame skip", (unsigned short*)down_screen_addr, 0, SCREEN_HEIGHT-FONT_HEIGHT*2, UI_COLOR, (SCREEN_WIDTH));
