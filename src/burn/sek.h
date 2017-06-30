@@ -5,7 +5,6 @@
  #define __fastcall
 #endif
 
-//#define EMU_A68K 1
 
 #if !defined EMU_M68K && !defined EMU_A68K
  #define EMU_C68K
