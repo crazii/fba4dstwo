@@ -39,7 +39,7 @@ export
 # Perl is available
 PERL = 1
 
-NDSSDK = ../ds2sdk
+NDSSDK = /usr/local/ds2sdk
 
 PATH := $(NDSSDK)/tools:/opt/dstwo-toolchain/bin:$(PATH)
 
@@ -75,9 +75,9 @@ pgm_new: FORCE
 sega: FORCE
 
 	@$(MAKE) -s -f makefile.sega
-cps3: FORCE
+cps: FORCE
 
-	@$(MAKE) -s -f makefile.cps3
+	@$(MAKE) -s -f makefile.cps
 
 clean:
 	@echo Removing all files from ./obj...
@@ -104,7 +104,7 @@ alltarget : FORCE
 	-@rm -f -r obj/nds/nds
 	-@rm -f -r obj/nds/burn/burn*
 	-@rm -f -r src/generated/driverlist.h
-	@$(MAKE) -s -f makefile.cps3
+	@$(MAKE) -s -f makefile.cps
 	-@rm -f -r obj/nds/nds
 	-@rm -f -r obj/nds/burn/burn*
 	-@rm -f -r src/generated/driverlist.h
