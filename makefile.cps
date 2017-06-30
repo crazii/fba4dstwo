@@ -39,7 +39,7 @@ objdir	= obj/nds/
 srcdir	= src/
 
 alldir	= burn generated nds zlib \
-cpu cpu/c68k cpu/cz80 burn/capcom cpu/m6809 cpu/hd6309 cpu/m6800
+cpu cpu/c68k cpu/a68k.mips/mips32r1 cpu/cz80 burn/capcom cpu/m6809 cpu/hd6309 cpu/m6800
 
 incdir	= -I. -I$(NDSSDK)/include $(foreach dir,$(alldir),-I$(srcdir)$(dir)) -I$(objdir)generated
 
@@ -51,9 +51,9 @@ drvobj	= d_cps1.o d_cps2.o
 
 depobj	:= 	$(drvobj) \
 	   	\
-	   	burn.o burn_gun.o load.o \
+	   	burn.o load.o \
 	   	\
-	   	sek.o zet.o eeprom_93cxx.o \
+	   	a68k.o sek.o zet.o eeprom_93cxx.o \
 	   	burn_sound.o burn_sound_c.o timer.o \
 		burn_ym2151.o \
 	   	ym2151.o \
@@ -79,7 +79,7 @@ autdep	= $(depobj:.o=.d)
 #app_gnuc.rc = $(srcdir)generated/app_gnuc.rc
 #license.rtf = $(srcdir)generated/license.rtf
 
-a68k.o	= $(objdir)cpu/a68k.mips/a68k.o
+#a68k.o	= $(objdir)cpu/a68k.mips/mips32r1/a68k.o
 
 #autobj += a68k.o
 
@@ -124,7 +124,7 @@ LDFLAGS	= -flto=8 -nostdlib -static -L. -L$(NDSSDK)/lib
 	#--verbose -Wl,--verbose -Wl,-plugin-opt=--verbose
 	#-fuse-linker-plugin -Wl,-plugin=$(LTO_PLUGIN)
 
-DEF	:= -DSUB_VERSION=\"CPS\" -DNDS_FW_VERSION=$(NDS_FW_VERSION) -DFILENAME=$(NAME) \
+DEF	:= -DEMU_A68K -DSUB_VERSION=\"CPS\" -DNDS_FW_VERSION=$(NDS_FW_VERSION) -DFILENAME=$(NAME) \
 	-DNDS -DUSE_SPEEDHACKS -DNEOGEO_HACKS \
 	-DPBPNAME='"$(TARGET)"' -DVERSION_MAJOR=$(VERSION_MAJOR) -DVERSION_MINOR=$(VERSION_MINOR)
 	#-DFASTCALL -D__fastcall="__attribute__((fastcall))"
@@ -336,11 +336,11 @@ $(objdir)burn/burn_sound_mips.o: $(srcdir)burn/burn_sound_mips.s
 
 # A68K
 
-$(a68k.o):	mips32r1/fba_make68k.c
-	@echo Compiling A68K MC68000 core...
-	@gcc -s $< -o $(subst $(srcdir),$(objdir),$(<D))/$(<F:.c=.exe)
-	@$(subst $(srcdir),$(objdir),$(<D))/$(<F:.c=.exe) $(@:.o=.s) $(@D)/a68ktbl.inc
-	@$(CC) $(CFLAGS) -c -o $@ $(@:.o=.s)
+# $(a68k.o):	$(srcdir)cpu/a68k.mips/mips32r1/fba_make68k.c
+#	@echo Compiling A68K MC68000 core...
+#	@gcc -s $< -o $(subst $(srcdir),$(objdir),$(<D))/$(<F:.c=.exe)
+#	@$(subst $(srcdir),$(objdir),$(<D))/$(<F:.c=.exe) $(@:.o=.s) $(@D)/a68ktbl.inc
+#	@$(CC) $(CFLAGS) -c -o $@ $(@:.o=.s)
 
 
 # Musashi
