@@ -26,8 +26,8 @@ extern "C" void swapBufferLQ(void* vbuff);
 
 void returnToMenu()
 {
-	clear_gui_texture(0, VIDEO_BUFFER_WIDTH, VIDEO_BUFFER_HEIGHT);
-	swapBuffer();
+	//clear_gui_texture(0, VIDEO_BUFFER_WIDTH, VIDEO_BUFFER_HEIGHT);
+	//swapBuffer();
 	
 	ds2_setCPUclocklevel(10);
 	setGameStage(1);
@@ -65,13 +65,14 @@ int main(int argc, char** argv) {
 	
 	chech_and_mk_dir( szAppCachePath );
 	strcat(szAppCachePath, "/");
-
+	mdelay(100); // needed to avoid ds2_setBacklight crashing
+	ds2_setBacklight(3 - DOWN_SCREEN); //turn off up screen
 	setGameStage (1);
 	init_gui();
 
 	BurnLibInit();
 	nBurnDrvSelect = ~0U;
-	bBurnUseASMCPUEmulation = false;
+	bBurnUseASMCPUEmulation = true;
 	
 	sound_start();
 	
@@ -80,9 +81,9 @@ int main(int argc, char** argv) {
 	nBurnPitch = VIDEO_BUFFER_WIDTH * nBurnBpp;
 	BurnHighCol = HighCol16;
 	
-	ds2_clearScreen(UP_SCREEN, 0);
-	ds2_flipScreen(UP_SCREEN, 1);
-	ds2_clearScreen(UP_SCREEN, 0);
+	//ds2_clearScreen(UP_SCREEN, 0);
+	//ds2_flipScreen(UP_SCREEN, 1);
+	//ds2_clearScreen(UP_SCREEN, 0);
 	videoBuffer = (unsigned short*)malloc(VIDEO_BUFFER_WIDTH*VIDEO_BUFFER_HEIGHT*nBurnBpp);
 	if(!videoBuffer)
 		return -1;
@@ -119,7 +120,33 @@ int main(int argc, char** argv) {
 
 		lastpad = pad;
 		ds2_getrawInput(&pad);
-
+if (pad.key & KEY_LID)
+	{
+		ds2_setCPUclocklevel(0);
+		ds2_setSupend();
+		do {
+			ds2_getrawInput(&pad);
+			mdelay(1);
+		} while (pad.key & KEY_LID);
+		ds2_wakeup();
+		if ( nGameStage ) {
+			//ds2_setBacklight(2);
+			mdelay(100);
+			ds2_setBacklight(3 - DOWN_SCREEN); //turn off up screen);
+			mdelay(100);
+			ds2_setCPUclocklevel(10);
+			
+		} else {
+			
+		// Before starting to emulate again, turn off the lower
+		// screen's backlight.
+		mdelay(100); // needed to avoid ds2_setBacklight crashing
+		ds2_setBacklight(3 - UP_SCREEN); //turn off down screen
+		ds2_setCPUclocklevel(10 + cpu_speeds_select);
+		}
+	}
+		
+		
 		if ( nGameStage ) {
 			
 			do_ui_key( pad.key );
@@ -129,6 +156,8 @@ int main(int argc, char** argv) {
 			
 			if ( (pad.key & (KEY_SELECT|KEY_START)) == (KEY_SELECT|KEY_START) ) 
 			{
+				mdelay(100); // needed to avoid ds2_setBacklight crashing
+				ds2_setBacklight(3 - DOWN_SCREEN); //turn off up screen
 				returnToMenu();
 				continue;
 			}

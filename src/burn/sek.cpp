@@ -278,7 +278,7 @@ inline static unsigned short ReadWord(unsigned int a)
 	pr = FIND_R(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=(pr + (a & SEK_PAGEM));
-#ifdef NDS
+#ifdef EMU_C68K
 		return *(UINT16*)pr;
 #else
 		return (*(pr+1))<<8|(*pr);
@@ -298,7 +298,7 @@ inline static unsigned short FetchWord(unsigned int a)
 	pr = FIND_F(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=(pr + (a & SEK_PAGEM));
-#ifdef NDS
+#ifdef EMU_C68K
 		return *(UINT16*)pr;
 #else
 		return (*(pr+1))<<8|(*pr);
@@ -318,7 +318,7 @@ inline static void WriteWord(unsigned int a, unsigned short d)
 	pr = FIND_W(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=pr + (a & SEK_PAGEM);
-#ifdef NDS
+#ifdef EMU_C68K
 		*(UINT16*)pr = d;
 #else
 		pr[0]=d;
@@ -338,7 +338,7 @@ inline static void WriteWordROM(unsigned int a, unsigned short d)
 	pr = FIND_R(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=pr + (a & SEK_PAGEM);
-#ifdef NDS
+#ifdef EMU_C68K
 		*(UINT16*)pr = d;
 #else
 		pr[0]=d;
@@ -360,7 +360,7 @@ inline static unsigned int ReadLong(unsigned int a)
 	pr = FIND_R(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=pr + (a & SEK_PAGEM);
-#ifdef NDS
+#ifdef EMU_C68K
 		return *(UINT32*)pr;
 #else
 		return pr[1]<<24|pr[0]<<16|pr[3]<<8|pr[2];
@@ -380,7 +380,7 @@ inline static unsigned int FetchLong(unsigned int a)
 	pr = FIND_F(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=pr + (a & SEK_PAGEM);
-#ifdef NDS
+#ifdef EMU_C68K
 		return *(UINT32*)pr;
 #else
 		return  pr[1]<<24|pr[0]<<16|pr[3]<<8|pr[2];
@@ -400,7 +400,7 @@ inline static void WriteLong(unsigned int a, unsigned int d)
 	pr = FIND_W(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=pr + (a & SEK_PAGEM);
-#ifdef NDS
+#ifdef EMU_C68K
 		*(UINT32*)pr = d;
 #else
 		pr[2] = (unsigned char)d;
@@ -422,7 +422,7 @@ inline static void WriteLongROM(unsigned int a, unsigned int d)
 	pr = FIND_R(a);
 	if ((unsigned int)pr >= SEK_MAXHANDLER) {
 		pr=pr + (a & SEK_PAGEM);
-#ifdef NDS
+#ifdef EMU_C68K
 		*(UINT32*)pr = d;
 #else
 		pr[2] = (unsigned char)d;

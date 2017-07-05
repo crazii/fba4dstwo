@@ -15,14 +15,14 @@ VERSION_MAJOR = 0
 #
 
 # Check for changes in header files
-DEPEND = 1
+# DEPEND = 1
 
 #
 #	Declare variables
 #
 
 # Specify the name of the executable file, without ".exe"
-BINDIR = bin/all
+BINDIR = bin/cps
 ELF = ${BINDIR}/fba4dstwo.elf
 BIN = $(ELF:.elf=.bin)
 NAME = _dstwoplug/fba4dstwo.plg
@@ -38,101 +38,36 @@ NAME = _dstwoplug/fba4dstwo.plg
 objdir	= obj/nds/
 srcdir	= src/
 
-alldir	= burn burn/cave burn/pgm burn/toaplan burn/taito generated nds zlib \
-burn/misc burn/misc/post90s burn/misc/pre90s burn/cps3 cpu cpu/c68k cpu/a68k.mips cpu/a68k.mips/mips32r1 cpu/cz80 cpu/m6502 cpu/sh2 cpu/nec cpu/z80 cpu/i8039 burn/capcom burn/neogeo \
-cpu/m6809 cpu/hd6309 cpu/m6800 burn/misc burn/misc/dec0 burn/konami burn/sega cpu/arm7
+alldir	= burn generated nds zlib \
+cpu cpu/c68k cpu/a68k.mips/mips32r1 cpu/cz80 burn/capcom cpu/m6809 cpu/hd6309 cpu/m6800
 
 incdir	= -I. -I$(NDSSDK)/include $(foreach dir,$(alldir),-I$(srcdir)$(dir)) -I$(objdir)generated
 
 lib		=  -lds2a -lds2b -lc -lm -lgcc
 #-Wl,-plugin-opt=-pass-through=-lc -Wl,-plugin-opt=-pass-through=-lm -Wl,-plugin-opt=-pass-through=-lgcc
 		
-drvobj	= d_dodonpachi.o d_donpachi.o d_esprade.o d_feversos.o d_gaia.o d_guwange.o \
-		d_hotdogst.o d_mazinger.o d_metmqstr.o d_pwrinst2.o d_sailormn.o d_uopoko.o \
-		d_cps1.o d_cps2.o d_neogeo.o d_pgm.o \
-		\
-		d_batrider.o d_batsugun.o d_battleg.o d_bbakraid.o d_dogyuun.o d_hellfire.o d_kbash.o \
-		d_mahoudai.o d_outzone.o d_shippumd.o d_snowbro2.o d_tekipaki.o d_truxton.o \
-		d_truxton2.o d_vfive.o d_zerowing.o \
-		\
-		d_1945kiii.o d_aerofgt.o d_seta2.o d_shadfrce.o d_powerins.o d_galpanic.o \
-		\
-		d_4enraya.o d_1942.o d_ambush.o d_arkanoid.o d_bankp.o d_bionicc.o d_bombjack.o \
-		d_dotrikun.o d_epos.o d_exedexes.o d_funkybee.o d_gberet.o d_gunsmoke.o d_higemaru.o \
-		d_jack.o d_kyugo.o d_madgear.o d_meijinsn.o d_minivdr.o d_mole.o d_mrdo.o d_mrflea.o \
-		d_mystston.o d_pacman.o d_pkunwar.o d_pooyan.o d_prehisle.o d_quizo.o d_route16.o d_scregg.o \
-		d_solomon.o d_tigerheli.o d_tnzs.o d_vulgus.o d_wallc.o d_wc90.o \
-		\
-		d_biomtoy.o d_ddragon3.o d_drtomy.o d_gaiden.o d_fstarfrc.o \
-		d_hyperpac.o d_kaneko16.o d_news.o d_ohmygod.o d_tumbleb.o d_wwfwfest.o \
-		\
-		d_taitof2.o d_taitox.o d_taitoz.o d_taitomisc.o d_darius2.o \
-		\
-		d_baddudes.o d_robocop.o \
-		\
-		d_tmnt.o \
-		\
-		d_galpanic.o d_hyperpac.o d_kaneko16.o d_m90.o d_m92.o d_news.o d_ohmygod.o d_powerins.o \
-		d_parent.o \
-		\
-		\
-		d_cps3.o \
-		d_commando.o d_contra.o d_ddragon.o d_galaga.o d_gng.o d_kangaroo.o d_lkage.o d_lwings.o \
-		d_renegade.o d_sf.o d_snk68.o d_sonson.o d_tecmo.o \
-		d_esd16.o d_funybubl.o d_nmg5.o d_suna16.o d_suprnova.o d_psikyosh.o d_unico.o d_zerozone.o \
-		d_hangon.o d_outrun.o d_sys1.o d_sys16a.o d_sys16b.o d_sys18.o d_xbrd.o d_ybrd.o \
-		d_aquarium.o d_armedf.o d_blktiger.o d_blockout.o d_blueprnt.o d_crospang.o d_darkseal.o \
-    d_deniam.o d_diverboy.o d_gotcha.o d_gumbo.o d_ikki.o d_mcatadv.o d_midas.o \
-    d_mugsmash.o d_pirates.o d_skyfox.o d_taotaido.o d_tigeroad.o 
+drvobj	= d_cps1.o d_cps2.o
 
 
 depobj	:= 	$(drvobj) \
 	   	\
-	   	burn.o burn_gun.o load.o \
+	   	burn.o load.o \
 	   	\
 	   	a68k.o sek.o zet.o eeprom_93cxx.o \
 	   	burn_sound.o burn_sound_c.o timer.o \
-		burn_ym2151.o burn_ym3812.o burn_ym2608.o burn_ym2610.o burn_ymf278b.o burn_ym2203.o burn_ym2612.o \
-	   	ay8910.o ym2151.o fm.o fmopl.o ymdeltat.o \
-	   	dac.o ics2115.o msm5205.o msm6295.o rf5c68.o segapcm.o sn76496.o upd7759.o ymf278b.o ymz280b.o \
-	   	burn_ym3526.o\
-	   	x1010.o \
-	   	sh2.o \
-	   	vez.o nec.o \
+		burn_ym2151.o \
+	   	ym2151.o \
+	   	msm6295.o \
 		m6800.o m6800_intf.o m6809.o m6809_intf.o hd6309.o hd6309_intf.o\
-		z80.o z80daisy.o i8039.o\
-		arm7.o \
-	   	cave.o cave_tile.o cave_sprite.o cave_palette.o \
-	   	cps.o cps_config.o cps_draw.o cps_mem.o cps_obj.o cps_pal.o cps_run.o \
+		cps.o cps_config.o cps_draw.o cps_mem.o cps_obj.o cps_pal.o cps_run.o \
 	   	cps2_crpt.o cps_rw.o cps_scr.o cpsr.o cpsrd.o \
 	   	cpst.o ctv.o ps.o ps_m.o ps_z.o qs.o qs_c.o qs_z.o \
 	   	kabuki.o \
-	   	neogeo.o neo_run.o neo_decrypt.o neo_text.o neo_sprite.o neo_palette.o neo_upd4990a.o \
-	   	pgm_crypt.o pgm_draw.o pgm_prot.o pgm_run.o \
-	   	\
-	   	toaplan.o toa_gp9001.o toa_extratext.o toa_palette.o \
-	   	\
-	   	toa_bcu2.o toaplan1.o \
-	   	\
 	   	adler32.o compress.o crc32.o deflate.o inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o \
 	   	\
 	   	ds2_main.o main.o swapBuffer.o drv.o input.o state.o statec.o unzip.o zipfn.o bzip.o font.o \
-	   	roms.o ui.o gui.o snd.o UniCache.o m6502.o m6502_intf.o sh2.o \
-	   	\
-	   	tiles_generic.o \
-		irem_cpu.o\
-	   	\
-	   	tc0110pcr.o tc0220ioc.o tc0150rod.o tc0140syt.o tc0100scn.o tc0510nio.o tc0480scp.o tc0360pri.o \
-	   	tc0280grd.o pc080sn.o pc090oj.o cchip.o taito_ic.o taito.o \
-	   	cps3run.o cps3snd.o \
-	   	\
-	   	dec_aud.o dec_misc.o dec_vid.o \
-	   	\
-	   	k052109.o k051960.o konamiic.o k007232.o \
-		\
-		fd1089.o fd1094.o genesis_vid.o mc8123.o sys16_fd1094.o sys16_gfx.o sys16_run.o \
-		8255ppi.o  
-
+	   	roms.o ui.o gui.o snd.o
+	   	
 autobj += $(depobj)
 
 # burn_sound_mips.o
@@ -144,7 +79,7 @@ autdep	= $(depobj:.o=.d)
 #app_gnuc.rc = $(srcdir)generated/app_gnuc.rc
 #license.rtf = $(srcdir)generated/license.rtf
 
-#a68k.o	= $(objdir)cpu/a68k.mips/a68k.o
+#a68k.o	= $(objdir)cpu/a68k.mips/mips32r1/a68k.o
 
 #autobj += a68k.o
 
@@ -189,7 +124,7 @@ LDFLAGS	= -flto=8 -nostdlib -static -L. -L$(NDSSDK)/lib
 	#--verbose -Wl,--verbose -Wl,-plugin-opt=--verbose
 	#-fuse-linker-plugin -Wl,-plugin=$(LTO_PLUGIN)
 
-DEF	:= -DEMU_A68K -DSUB_VERSION=\"ALL\" -DNDS_FW_VERSION=$(NDS_FW_VERSION) -DFILENAME=$(NAME) \
+DEF	:= -DEMU_A68K -DSUB_VERSION=\"CPS\" -DNDS_FW_VERSION=$(NDS_FW_VERSION) -DFILENAME=$(NAME) \
 	-DNDS -DUSE_SPEEDHACKS -DNEOGEO_HACKS \
 	-DPBPNAME='"$(TARGET)"' -DVERSION_MAJOR=$(VERSION_MAJOR) -DVERSION_MINOR=$(VERSION_MINOR)
 	#-DFASTCALL -D__fastcall="__attribute__((fastcall))"
@@ -261,12 +196,12 @@ ifeq ($(MAKELEVEL),1)
 ifdef DEPEND
 
 all:	init $(autdep) $(autobj)
-	@$(MAKE) -f makefile.all -s
+	@$(MAKE) -f makefile.cps -s
 
 else
 
 all:	init $(autobj)
-	@$(MAKE) -f makefile.all -s
+	@$(MAKE) -f makefile.cps -s
 endif
 else
 
@@ -298,9 +233,9 @@ $(BIN) : $(ELF)
 	
 $(NAME) : $(BIN) $(ELF)
 	@echo Creating nds FBA4DSTWO.plug...
-	$(OBJDUMP) -s $(ELF) > $(BIN:.bin=.dump)
-	$(NM) $(ELF) | sort > $(BIN:.bin=.sym)
-	$(OBJDUMP) -h $(ELF) > $(BIN:.bin=.map)
+	#$(OBJDUMP) -s $(ELF) > $(BIN:.bin=.dump)
+	#$(NM) $(ELF) | sort > $(BIN:.bin=.sym)
+	#$(OBJDUMP) -h $(ELF) > $(BIN:.bin=.map)
 	@$(FIXUP) $(BIN) $@
 	@cp ${BINDIR}/gamelist.txt FBA4DSTWO
 
@@ -401,7 +336,7 @@ $(objdir)burn/burn_sound_mips.o: $(srcdir)burn/burn_sound_mips.s
 
 # A68K
 
-#$(a68k.o):	mips32r1/fba_make68k.c
+# $(a68k.o):	$(srcdir)cpu/a68k.mips/mips32r1/fba_make68k.c
 #	@echo Compiling A68K MC68000 core...
 #	@gcc -s $< -o $(subst $(srcdir),$(objdir),$(<D))/$(<F:.c=.exe)
 #	@$(subst $(srcdir),$(objdir),$(<D))/$(<F:.c=.exe) $(@:.o=.s) $(@D)/a68ktbl.inc

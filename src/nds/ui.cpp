@@ -39,7 +39,7 @@ int DrvInitCallback()
 }
 
 int cpu_speeds[] = { 336, 350, 384, 396 };
-static int cpu_speeds_select = 3;
+int cpu_speeds_select = 3;
 
 enum uiMainIndex
 {
@@ -393,6 +393,8 @@ static void process_key( int key, int down, int repeat )
 			
 		case KEY_B:
 			if (nPrevGame == nBurnDrvSelect && nPrevGame != ~0U) {
+				mdelay(100); // needed to avoid ds2_setBacklight crashing
+				ds2_setBacklight(3 - UP_SCREEN); //turn off down screen
 				return_to_game();
 				//wait B clear to avoid affect game play
 				{
@@ -467,6 +469,8 @@ static void process_key( int key, int down, int repeat )
 
 					if (nPrevGame == nBurnDrvSelect) {
 						// same game, reture to it
+						mdelay(100); // needed to avoid ds2_setBacklight crashing
+						ds2_setBacklight(3 - UP_SCREEN); //turn off down screen
 						return_to_game();
 						break;
 					}
@@ -494,6 +498,8 @@ static void process_key( int key, int down, int repeat )
 							InpInit();
 							InpDIP();
 							nPrevGame = nBurnDrvSelect;
+							mdelay(100); // needed to avoid ds2_setBacklight crashing
+							ds2_setBacklight(3 - UP_SCREEN); //turn off down screen
 							return_to_game();
 							
 						} else {
